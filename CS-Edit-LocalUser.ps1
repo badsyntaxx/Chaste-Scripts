@@ -6,17 +6,17 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 $Script = "Edit-LocalUser"
 $isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
 $path = if ($isAdmin) { "$env:SystemRoot\Temp" } else { "$env:TEMP" }
-$framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 
-if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyContinue) {
-    Write-Host "   Using local file..."
-    Start-Sleep 1
+if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1") {
     $framework = Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -Raw
+    Write-Host "   Using local file."
+    Start-Sleep 1
+} else {
+    $framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 }
 
 $editLocalUser = @"
 function Edit-LocalUser {
-    Clear-Host
     Write-Host "Chaste Scripts: Edit Local User" -ForegroundColor DarkGray
     Write-Text -Type "header" -Text "Select a user" -LineBefore
 
@@ -102,7 +102,7 @@ function Set-Password {
         `$account | Set-LocalUser -Password `$password
 
         Write-Host
-        Write-CloseOut "The password for this account has been changed." -Script "Edit-LocalUser"
+        Write-CloseOut -Message "The password for this account has been changed." -Script "Edit-LocalUser"
     } catch {
         Write-Text -Type "error" -Text "Set Password Error: `$(`$_.Exception.Message)"
         Read-Host -Prompt "Press any key to continue"

@@ -205,7 +205,7 @@ function Write-CloseOut {
     $paths = @("$env:TEMP\$Script.ps1", "$env:SystemRoot\Temp\$Script.ps1")
     foreach ($p in $paths) { Get-Item -ErrorAction SilentlyContinue $p | Remove-Item -ErrorAction SilentlyContinue }
     $param = Read-Host -Prompt "`r`n   Type command to run another task or just hit enter to exit"
-
+    Write-Host
     if ($param.Length -gt 0) {
         Invoke-RestMethod "chaste.dev/$param" | Invoke-Expression -ErrorAction SilentlyContinue
     }
@@ -213,34 +213,42 @@ function Write-CloseOut {
 
 function Get-Download {
     param (
-        [parameter(Mandatory = $true)]
-        [string]$Url,
-        [parameter(Mandatory = $true)]
-        [string]$Output,
+        [parameter(Mandatory = $false)]
+        [System.Collections.Specialized.OrderedDictionary]$Files,
         [parameter(Mandatory = $false)]
         [int]$MaxRetries = 3,
         [parameter(Mandatory = $false)]
         [int]$Interval = 3
     )
 
-    for ($retryCount = 1; $retryCount -le $MaxRetries; $retryCount++) {
-        try {
-            Write-Text "Downloading..."
-            $wc = New-Object System.Net.WebClient
-            $wc.DownloadFile($Url, "$Output")
-            Write-Text -Type "done" -Text "Download complete."
-            return $true
-        } catch {
-            # Write-Text "$($_.Exception.Message)`n" -Type "error"
-            Write-Text "Download failed." -Type "fail"
-            if ($retryCount -lt $MaxRetries) {
-                Write-Text "Retrying..."
-                Start-Sleep -Seconds $Interval
-            } else {
-                Write-Text "Maximum retries reached. Initialization failed." -Type "fail"
-                return $false
+    $downloadComplete = $true 
+    Write-Text -Text "Downloading..."
+    foreach ($q in $Files.Keys) { 
+        for ($retryCount = 1; $retryCount -le $MaxRetries; $retryCount++) {
+            try {
+                $wc = New-Object System.Net.WebClient
+                $wc.DownloadFile($Files[$q], $q)
+            } catch {
+                Write-Text -Type "fail" -Text "$($_.Exception.Message)"
+                $downloadComplete = $false
+                if ($retryCount -lt $MaxRetries) {
+                    Write-Text -Text "Retrying..."
+                    Start-Sleep -Seconds $Interval
+                } else {
+                    Write-Text -Type "error" -Text "Maximum retries reached. Download failed."
+                }
             }
         }
+    }
+
+    if ($downloadComplete) {
+        Write-Text -Type "done" -Text "Download complete."
+        return $true
+    } else {
+        foreach ($q in $Files.Keys) { 
+            Get-Item -ErrorAction SilentlyContinue $q | Remove-Item -ErrorAction SilentlyContinue 
+        }
+        return $false
     }
 }
 

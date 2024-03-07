@@ -6,17 +6,17 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 $Script = "Enable-BuiltInAdminAccount"
 $isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
 $path = if ($isAdmin) { "$env:SystemRoot\Temp" } else { "$env:TEMP" }
-$framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/ChasteScripts/main/CS-Framework.ps1"
 
-if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyContinue) {
-    Write-Host "   Using local file..."
-    Start-Sleep 1
+if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1") {
     $framework = Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -Raw
+    Write-Host "   Using local file."
+    Start-Sleep 1
+} else {
+    $framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 }
 
 $editLocalUser = @"
 function Enable-BuiltInAdminAccount {
-    Clear-Host
     Write-Host "Chaste Scripts: Enable Administrator Account" -ForegroundColor DarkGray
     Write-Text -Type "header" -Text "Toggle admin account" -LineBefore
 
@@ -41,7 +41,7 @@ function Enable-BuiltInAdminAccount {
         Write-Text -Type "done" -Text "Administrator account Disabled."
     }
 
-    Write-CloseOut "The administrator account was toggled." -Script "Enable-BuiltInAdminAccount"
+    Write-CloseOut -Message "The administrator account was toggled." -Script "Enable-BuiltInAdminAccount"
 }
 
 "@

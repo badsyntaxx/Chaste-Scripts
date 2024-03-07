@@ -6,17 +6,17 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 $Script = "Set-ComputerName"
 $isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
 $path = if ($isAdmin) { "$env:SystemRoot\Temp" } else { "$env:TEMP" }
-$framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 
-if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyContinue) {
-    Write-Host "   Using local file..."
-    Start-Sleep 1
+if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1") {
     $framework = Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -Raw
+    Write-Host "   Using local file."
+    Start-Sleep 1
+} else {
+    $framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 }
 
 $setComputerName = @"
 function Set-ComputerName {
-    Clear-Host
     Write-Host "Chaste Scripts: Rename Computer" -ForegroundColor DarkGray
     Write-Text -Type "header" -Text "Name & Description" -LineBefore
 
@@ -63,7 +63,7 @@ function Set-ComputerName {
     } 
 
     Write-Host
-    Write-CloseOut "The PC name changes have been applied. No restart required!" -Script "Set-ComputerName"
+    Write-CloseOut -Message "The PC name changes have been applied. No restart required!" -Script "Set-ComputerName"
 }
 
 

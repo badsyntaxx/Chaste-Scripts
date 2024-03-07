@@ -36,8 +36,10 @@ function Initialize-Action {
         Write-Text -Text "Path: $path"
         Write-Text -Text "File: $Script"
         
-        $url = "https://raw.githubusercontent.com/badsyntaxx/ChasteScripts/main/"
-        $download = Get-Download -Url "$url/$script" -Output "$path\$script"
+        $files = [ordered]@{
+            "$path\$script" = "https://raw.githubusercontent.com/badsyntaxx/ChasteScripts/main/"
+        }
+        $download = Get-Download -Files $files
         if ($download) { 
             Write-Text -Type "done" -Text "Script ready..."
             PowerShell.exe -File "$path\$script"
@@ -62,17 +64,20 @@ function Get-Download {
 
     for ($retryCount = 1; $retryCount -le $MaxRetries; $retryCount++) {
         try {
+            Write-Text "Downloading..."
             $wc = New-Object System.Net.WebClient
             $wc.DownloadFile($Url, "$Output")
-            Write-Text -Type "done" -Text "Script downloaded."
+            Write-Text -Type "done" -Text "Download complete."
             return $true
         } catch {
-            Write-Text -Type "error" -Text "$($_.Exception.Message)"
+            # Write-Text "$($_.Exception.Message)`n" -Type "error"
+            Write-Text "Download failed." -Type "fail"
             if ($retryCount -lt $MaxRetries) {
+                Write-Text "Retrying..."
                 Start-Sleep -Seconds $Interval
             } else {
-                Write-Text -Type "error" -Text "Maximum retries reached. Initialization failed."
-                Read-Host "   Press any key to continue"
+                Write-Text "Maximum retries reached. Initialization failed." -Type "fail"
+                return $false
             }
         }
     }
@@ -117,29 +122,30 @@ function Initialize-Script {
 function Get-Option {
     param (
         [parameter(Mandatory = $true)]
-        [array]$Options
+        [array]$Options,
+        [parameter(Mandatory = $false)]
+        [int]$DefaultOption = 0
     )
 
     try {
         $vkeycode = 0
-        $pos = 0
+        $pos = $DefaultOption
         $oldPos = 0
         $fcolor = $host.UI.RawUI.ForegroundColor
-        $bcolor = $host.UI.RawUI.BackgroundColor
   
         for ($i = 0; $i -le $Options.length; $i++) {
             if ($i -eq $pos) {
-                Write-Host "   $($Options[$i])" -ForegroundColor $bcolor -BackgroundColor $fcolor 
+                Write-Host " $([char]0x203A) $($Options[$i])" -ForegroundColor "Cyan"
             } else {
                 if ($($Options[$i])) {
-                    Write-Host "   $($Options[$i])" -ForegroundColor $fcolor -BackgroundColor $bcolor
+                    Write-Host "   $($Options[$i])" -ForegroundColor $fcolor
                 } 
             }
         }
 
         $currPos = $host.UI.RawUI.CursorPosition
         While ($vkeycode -ne 13) {
-            $press = $host.ui.rawui.readkey("NoEcho,IncludeKeyDown")
+            $press = $host.ui.rawui.readkey("NoEcho, IncludeKeyDown")
             $vkeycode = $press.virtualkeycode
             Write-host "$($press.character)" -NoNewLine
             $oldPos = $pos;
@@ -150,51 +156,65 @@ function Get-Option {
 
             $menuLen = $Options.Count
             $fcolor = $host.UI.RawUI.ForegroundColor
-            $bcolor = $host.UI.RawUI.BackgroundColor
             $menuOldPos = New-Object System.Management.Automation.Host.Coordinates(0, ($currPos.Y - ($menuLen - $oldPos)))
             $menuNewPos = New-Object System.Management.Automation.Host.Coordinates(0, ($currPos.Y - ($menuLen - $pos)))
       
             $host.UI.RawUI.CursorPosition = $menuOldPos
-            Write-Host "   $($Options[$oldPos])" -ForegroundColor $fcolor -BackgroundColor $bcolor 
+            Write-Host "   $($Options[$oldPos])" -ForegroundColor $fcolor
             $host.UI.RawUI.CursorPosition = $menuNewPos
-            Write-Host "   $($Options[$pos])" -ForegroundColor $bcolor -BackgroundColor $fcolor 
+            Write-Host " $([char]0x203A) $($Options[$pos])" -ForegroundColor "Cyan"
             $host.UI.RawUI.CursorPosition = $currPos
         }
-        return $pos
+        Write-Output $pos
     } catch {
-        Write-Text -Text "$($_.Exception.Message)" -Type "error"
+        Write-Host "   $($_.Exception.Message)" -ForegroundColor "Red"
         Read-Host "   Press any key to continue"
     }
 }
 
 function Write-Text {
     param (
-        [parameter(Mandatory = $true)]
+        [parameter(Mandatory = $false)]
         [string]$Text,
         [parameter(Mandatory = $false)]
         [string]$Type = "plain",
         [parameter(Mandatory = $false)]
         [switch]$LineBefore = $false,
         [parameter(Mandatory = $false)]
-        [switch]$LineAfter = $false
+        [switch]$LineAfter = $false,
+        [parameter(Mandatory = $false)]
+        [System.Collections.Specialized.OrderedDictionary]$Data
     )
 
     if ($LineBefore) { Write-Host }
-    if ($Type -eq "heading") { Write-Host " $Text" -ForegroundColor "Cyan" }
-    if ($Type -eq "heading") { 
+    if ($Type -eq "header") { Write-Host "   $Text" -ForegroundColor "DarkCyan" }
+    if ($Type -eq "header") { 
         $lines = ""
-        for ($i = 0; $i -lt 70; $i++) { $lines += "$([char]0x2500)" }
-        Write-Host "$lines`n" -ForegroundColor Cyan
+        for ($i = 0; $i -lt 50; $i++) { $lines += "$([char]0x2500)" }
+        Write-Host "   $lines" -ForegroundColor "DarkCyan"
     }
     if ($Type -eq 'done') { 
         Write-Host " $([char]0x2713)" -ForegroundColor "Green" -NoNewline
         Write-Host " $Text" 
     }
-    if ($Type -eq "header") { Write-Host " $([char]0x203A) $Text" -ForegroundColor "Cyan" }
+    if ($Type -eq 'fail') { 
+        Write-Host " X " -ForegroundColor "Red" -NoNewline
+        Write-Host "$Text" 
+    }
     if ($Type -eq 'success') { Write-Host " $([char]0x2713) $Text" -ForegroundColor "Green" }
     if ($Type -eq 'error') { Write-Host "   $Text" -ForegroundColor "Red" }
     if ($Type -eq 'notice') { Write-Host "   $Text" -ForegroundColor "Yellow" }
     if ($Type -eq 'plain') { Write-Host "   $Text" }
+    if ($Type -eq 'recap') {
+        foreach ($key in $Data.Keys) { 
+            $value = $Data[$key]
+            if ($value.Length -gt 0) {
+                Write-Host "   $key`:$value" -ForegroundColor "DarkGray" 
+            } else {
+                Write-Host "   $key`:" -ForegroundColor "Magenta" 
+            }
+        }
+    }
     if ($LineAfter) { Write-Host }
 }
 

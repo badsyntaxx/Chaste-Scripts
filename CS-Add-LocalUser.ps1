@@ -6,18 +6,19 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 $Script = "Add-LocalUser"
 $isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
 $path = if ($isAdmin) { "$env:SystemRoot\Temp" } else { "$env:TEMP" }
-$framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
+$framework = Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -Raw
 
-if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyContinue) {
-    Write-Host "   Using local file..."
-    Start-Sleep 1
+if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1") {
     $framework = Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -Raw
+    Write-Host "   Using local file."
+    Start-Sleep 1
+} else {
+    $framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 }
 
 $addLocalUser = @"
 function Add-LocalUser {
     try {
-        Clear-Host
         Write-Host "Chaste Scripts: Create Local User" -ForegroundColor DarkGray
         Write-Text -Type "header" -Text "Credentials" -LineBefore
 
@@ -62,7 +63,7 @@ function Add-LocalUser {
 
         if (`$group -eq "Administrators") { `$groupType = "An administrator" } else { `$groupType = "A standard user" }
 
-        Write-CloseOut "`$groupType was created with the username '`$name'." -Script "Add-LocalUser"
+        Write-CloseOut -Message "`$groupType was created with the username '`$name'." -Script "Add-LocalUser"
     } catch {
         Write-Text -Type "error" -Text "Add User Error: `$(`$_.Exception.Message)"
         Read-Host "   Press any key to continue"
@@ -77,4 +78,4 @@ Add-Content -Path "$path\$Script.ps1" -Value $addLocalUser
 Add-Content -Path "$path\$Script.ps1" -Value $framework
 Add-Content -Path "$path\$Script.ps1" -Value "Initialize-Script '$Script'"
 
-PowerShell.exe -File "$path\$Script.ps1" -Verb RunAs
+PowerShell.exe -NoExit -File "$path\$Script.ps1" -Verb RunAs

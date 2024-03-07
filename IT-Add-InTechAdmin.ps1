@@ -6,58 +6,58 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 $script = "Add-InTechAdmin"
 $isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
 $path = if ($isAdmin) { "$env:SystemRoot\Temp" } else { "$env:TEMP" }
-$framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 
-if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyContinue) {
-    Write-Host "   Using local file..."
-    Start-Sleep 1
+if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1") {
     $framework = Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -Raw
+    Write-Host "   Using local file."
+    Start-Sleep 1
+} else {
+    $framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 }
-
-$FilePaths = @("$env:TEMP\$Script.ps1", "$env:SystemRoot\Temp\IT-$Script.ps1")
-foreach ($FilePath in $FilePaths) { Get-Item $FilePath | Remove-Item }
 
 $addInTechAdmin = @"
 function Add-InTechAdmin {
     try {
+        Write-Host "Chaste Scripts: Create InTechAdmin Account" -ForegroundColor DarkGray
+        Write-Text -Type "header" -Text "Getting credentials" -LineBefore
+
         `$isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
-        `$path = if (`$isAdmin) { "`$env:SystemRoot\Temp\" } else { "`$env:TEMP\" }
-        `$keyUrl = "https://drive.google.com/uc?export=download&id=1EGASU9cvnl5E055krXXcXUcgbr4ED4ry"
-        `$phraseUrl = "https://drive.google.com/uc?export=download&id=1jbppZfGusqAUM2aU7V4IeK0uHG2OYgoY"
+        `$path = if (`$isAdmin) { "`$env:SystemRoot\Temp" } else { "`$env:TEMP" }
         `$accountName = "InTechAdmin"
 
-        Write-Host "Chaste Scripts" -ForegroundColor DarkGray
-        Write-Text -Type "heading" -Text "Creating InTechAdmin account" 
-        Write-Text "Getting credentials" -Type "header"
-        `$keyDownload = Get-Download -Url `$keyUrl -Output "`$path\KEY.txt"
-        `$pwDownload = Get-Download -Url `$phraseUrl -Output "`$path\PHRASE.txt"
-        if (`$keyDownload -and `$pwDownload) { Write-Text "Credentials acquired." -Type "done" } else { throw "Unable to acquire credentials." }
+        `$files = [ordered]@{
+            "`$path\KEY.txt" = "https://drive.google.com/uc?export=download&id=1EGASU9cvnl5E055krXXcXUcgbr4ED4ry"
+            "`$path\PHRASE.txt" = "https://drive.google.com/uc?export=download&id=1jbppZfGusqAUM2aU7V4IeK0uHG2OYgoY"
+        }
+
+        `$download = Get-Download -Files `$files
+
+        if (!`$download) { throw "Unable to acquire credentials." }
 
         `$password = Get-Content -Path "`$path\PHRASE.txt" | ConvertTo-SecureString -Key (Get-Content -Path "`$path\KEY.txt")
-        Write-Text "Credentials decrypted." -Type "done"
+        Write-Text -Type "done" -Text "Credentials decrypted."
 
-        Write-Text "Creating account" -Type "header"
+        Write-Text -Type "header" -Text "Creating account" -LineBefore
         `$account = Get-LocalUser -Name `$accountName -ErrorAction SilentlyContinue
         if (`$null -eq `$account) {
-            New-LocalUser -Name `$accountName -Password `$password -FullName "" -Description "InTech Administrator" -AccountNeverExpires -PasswordNeverExpires -ErrorAction stop
-            Write-Text "Account created." -Type "done"
+            New-LocalUser -Name `$accountName -Password `$password -FullName "" -Description "InTech Administrator" -AccountNeverExpires -PasswordNeverExpires -ErrorAction stop | Out-Null
+            Write-Text -Type "done" -Text "Account created."
             Add-LocalGroupMember -Group "Administrators" -Member `$accountName -ErrorAction stop
-            Write-Text "Group assignment successful." -Type "done"
-            Write-Text "The InTechAdmin account has been created." -Type "Success" -LineAfter
+            Write-Text -Type "done" -Text "Group assignment successful."
+            Write-Text -Type "don" -Text "The InTechAdmin account has been created."
         } else {
-            Write-Text "NOTICE: InTechAdmin account already exists!" -Type "notice"
+            Write-Text -Type "notice" -Text "NOTICE: InTechAdmin account already exists!"
             Write-Text "Updating password..."
             `$account = Get-LocalUser -Name `$accountName
             `$account | Set-LocalUser -Password `$password
-            Write-Text "Credentials applied." -Type "done"
-            Write-Text "InTechAdmin password updated." -Type "Success" -LineAfter
+            Write-Text -Type "done" -Text "Password updated."
         }
 
         Remove-Item -Path "`$path\PHRASE.txt"
         Remove-Item -Path "`$path\KEY.txt"
-        Write-CloseOut -Script "Add-IntechAdmin"
+        Write-CloseOut -Message "Task completed successfully." -Script "Add-IntechAdmin"
     } catch {
-        Write-Text "`$(`$_.Exception.Message)" -Type "error"
+        Write-Text -Type "error" -Text "Create IntechAdmin Error: `$(`$_.Exception.Message)"
         Read-Host "   Press any key to continue"
     }
 }

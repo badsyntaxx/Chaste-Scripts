@@ -6,12 +6,13 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 $Script = "Install-ISRApps"
 $isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
 $path = if ($isAdmin) { "$env:SystemRoot\Temp" } else { "$env:TEMP" }
-$framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 
-if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyContinue) {
-    Write-Host "   Using local file..."
-    Start-Sleep 1
+if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1") {
     $framework = Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -Raw
+    Write-Host "   Using local file."
+    Start-Sleep 1
+} else {
+    $framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 }
 
 $addLocalUser = @"
@@ -74,9 +75,11 @@ function Install-GoogleChrome {
 function Install-GoogleChromeBookmarks {
     try {
         Write-Text "Adding Nuvia bookmarks" -Type "header" -LineBefore
-        `$boomarksUrl = "https://drive.google.com/uc?export=download&id=1WmvSnxtDSLOt0rgys947sOWW-v9rzj9U"
         `$tempPath = "C:\Users\`$account\Desktop\TEMP"
-        `$download = Get-Download -Url `$boomarksUrl -Output "`$tempPath\Bookmarks"
+        `$files = [ordered]@{
+            "`$tempPath\Bookmarks" = "https://drive.google.com/uc?export=download&id=1WmvSnxtDSLOt0rgys947sOWW-v9rzj9U"
+        }
+        `$download = Get-Download -Files `$files
         if (`$download) {
             ROBOCOPY "`$tempPath" "C:\Users\`$account\AppData\Local\Google\Chrome\User Data\Default" "Bookmarks" /NFL /NDL /NJH /NJS /nc /ns | Out-Null
             Write-Text "Bookmarks added to chrome." -Type "done"
@@ -280,7 +283,10 @@ function Install-Program {
     try {
         if (`$Extenstion -eq "msi") { `$output = "`$AppName.msi" } else { `$output = "`$AppName.exe" }
         `$tempPath = "C:\Users\`$account\Desktop\TEMP"
-        `$download = Get-Download -Url `$Url -Output "`$tempPath\`$output"
+        `$files = [ordered]@{
+            "`$tempPath\`$output" = `$Url
+        }
+        `$download = Get-Download -Files $files
         if (`$download) {
             Write-Text "Intalling" -Type "header" -LineBefore
             if (`$Extenstion -eq "msi") {
