@@ -42,7 +42,7 @@ function Initialize-Action {
         $url = "https://raw.githubusercontent.com/badsyntaxx/ChasteScripts/main/"
         $download = Get-Download -Url "$url/$script" -Output "$path\$script"
         if ($download) { 
-            Write-Text -Type "done" -Text "Script ready..."
+            Write-Text -Type "done" -Text "Script loading..."
             PowerShell.exe -File "$path\$script"
         }
     } catch {
@@ -65,17 +65,20 @@ function Get-Download {
 
     for ($retryCount = 1; $retryCount -le $MaxRetries; $retryCount++) {
         try {
+            Write-Text "Downloading..."
             $wc = New-Object System.Net.WebClient
             $wc.DownloadFile($Url, "$Output")
-            Write-Text -Type "done" -Text "Script downloaded."
+            Write-Text -Type "done" -Text "Download complete."
             return $true
         } catch {
-            Write-Text -Type "error" -Text "$($_.Exception.Message)"
+            # Write-Text "$($_.Exception.Message)`n" -Type "error"
+            Write-Text "Download failed." -Type "fail"
             if ($retryCount -lt $MaxRetries) {
+                Write-Text "Retrying..."
                 Start-Sleep -Seconds $Interval
             } else {
-                Write-Text -Type "error" -Text "Maximum retries reached. Initialization failed."
-                Read-Host "   Press any key to continue"
+                Write-Text "Maximum retries reached. Initialization failed." -Type "fail"
+                return $false
             }
         }
     }

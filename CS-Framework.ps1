@@ -228,14 +228,16 @@ function Get-Download {
             Write-Text "Downloading..."
             $wc = New-Object System.Net.WebClient
             $wc.DownloadFile($Url, "$Output")
+            Write-Text -Type "done" -Text "Download complete."
             return $true
         } catch {
-            Write-Host "   $($_.Exception.Message)`n" -ForegroundColor "Red"
+            # Write-Text "$($_.Exception.Message)`n" -Type "error"
+            Write-Text "Download failed." -Type "fail"
             if ($retryCount -lt $MaxRetries) {
-                Write-Host "   Retrying in $Interval seconds"
+                Write-Text "Retrying..."
                 Start-Sleep -Seconds $Interval
             } else {
-                Write-Host "   Maximum retries reached. Initialization failed." -Color "Red"
+                Write-Text "Maximum retries reached. Initialization failed." -Type "fail"
                 return $false
             }
         }
