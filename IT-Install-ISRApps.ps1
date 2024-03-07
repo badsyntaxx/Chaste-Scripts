@@ -6,7 +6,7 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 $Script = "Install-ISRApps"
 $isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
 $path = if ($isAdmin) { "$env:SystemRoot\Temp" } else { "$env:TEMP" }
-$framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/ChasteScripts/main/CS-Framework.ps1"
+$framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 
 $addLocalUser = @"
 function Install-ISRApps {
