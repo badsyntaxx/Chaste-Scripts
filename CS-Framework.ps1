@@ -75,16 +75,16 @@ function Get-Input {
             }
         }
 
+        if ($userInput.Length -eq 0 -and $Value -ne "") {
+            $userInput = $Value
+        }
+
         [Console]::SetCursorPosition($originalPosition.X, $originalPosition.Y)
         Write-Host " $([char]0x2713)" -ForegroundColor "Green" -NoNewline
         if ($IsSecure -and ($userInput.Length -eq 0)) {
             Write-Host " $Prompt`:                                                                                    "                     
         } else {
             Write-Host " $Prompt`:$userInput                                                                                    "         
-        }
-
-        if ($userInput.Length -eq 0 -and $Value -ne "") {
-            $userInput = $Value
         }
     
         return $userInput
