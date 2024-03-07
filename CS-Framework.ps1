@@ -41,41 +41,52 @@ function Get-Input {
         [parameter(Mandatory = $true)]
         [string]$Prompt,
         [parameter(Mandatory = $false)]
-        [string]$Alert = "",
-        [parameter(Mandatory = $false)]
-        [string]$AlertType = "notice",
-        [parameter(Mandatory = $false)]
         [regex]$Validate = $null,
         [parameter(Mandatory = $false)]
-        [boolean]$IsSecure = $false
+        [boolean]$IsSecure = $false,
+        [parameter(Mandatory = $false)]
+        [switch]$CheckExistingUser = $false
     )
 
     try {
-        if ($Alert) { Write-Text -Type $AlertType -Text $Alert }
         $originalPosition = $host.UI.RawUI.CursorPosition
 
         Write-Host "   $Prompt`:" -NoNewline
         if ($IsSecure) { $userInput = Read-Host -AsSecureString } 
         else { $userInput = Read-Host }
 
+        $errorMessage = ""
+
+        if ($CheckExistingUser) {
+            $account = Get-LocalUser -Name $userInput -ErrorAction SilentlyContinue
+            if ($null -ne $account) { $errorMessage = "An account with that name already exists." }
+        }
+
         if ($userInput -notmatch $Validate) {
-            return Get-Input -Prompt $Prompt -Alert "Invalid input. Please try again." -AlertType "error" -Validate $Validate
+            $errorMessage = "Invalid input. Please try again."
         } 
 
-        if ($userInput.Length -eq 0 -and $Value -ne "") {
-            $userInput = $Value
+        if ($errorMessage -ne "") {
+            Write-Text -Type "error" -Text $errorMessage
+            if ($CheckExistingUser) {
+                return Get-Input -Prompt $Prompt -Validate $Validate -CheckExistingUser
+            } else {
+                return Get-Input -Prompt $Prompt -Validate $Validate
+            }
         }
-        
+
         [Console]::SetCursorPosition($originalPosition.X, $originalPosition.Y)
-
         Write-Host " $([char]0x2713)" -ForegroundColor "Green" -NoNewline
-
         if ($IsSecure -and ($userInput.Length -eq 0)) {
             Write-Host " $Prompt`:                                                                                    "                     
         } else {
             Write-Host " $Prompt`:$userInput                                                                                    "         
         }
-       
+
+        if ($userInput.Length -eq 0 -and $Value -ne "") {
+            $userInput = $Value
+        }
+    
         return $userInput
     } catch {
         Write-Text -Type "error" -Text "Input Error: $($_.Exception.Message)"
@@ -160,6 +171,10 @@ function Write-Text {
     if ($Type -eq 'done') { 
         Write-Host " $([char]0x2713)" -ForegroundColor "Green" -NoNewline
         Write-Host " $Text" 
+    }
+    if ($Type -eq 'fail') { 
+        Write-Host " X " -ForegroundColor "Red" -NoNewline
+        Write-Host "$Text" 
     }
     if ($Type -eq 'success') { Write-Host " $([char]0x2713) $Text" -ForegroundColor "Green" }
     if ($Type -eq 'error') { Write-Host "   $Text" -ForegroundColor "Red" }

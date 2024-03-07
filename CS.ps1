@@ -11,6 +11,8 @@ function Select-Tool {
         "Quit                   - Do nothing and exit."
     )
 
+    Write-Text -Type "header" -Text "Selection"
+
     $choice = Get-Option -Options $options
 
     if ($choice -eq 0) { $script = "CS-Enable-BuiltInAdminAccount.ps1" }
@@ -141,7 +143,7 @@ function Get-Option {
 
         $currPos = $host.UI.RawUI.CursorPosition
         While ($vkeycode -ne 13) {
-            $press = $host.ui.rawui.readkey("NoEcho,IncludeKeyDown")
+            $press = $host.ui.rawui.readkey("NoEcho, IncludeKeyDown")
             $vkeycode = $press.virtualkeycode
             Write-host "$($press.character)" -NoNewLine
             $oldPos = $pos;
@@ -170,34 +172,47 @@ function Get-Option {
 
 function Write-Text {
     param (
-        [parameter(Mandatory = $true)]
+        [parameter(Mandatory = $false)]
         [string]$Text,
         [parameter(Mandatory = $false)]
         [string]$Type = "plain",
         [parameter(Mandatory = $false)]
         [switch]$LineBefore = $false,
         [parameter(Mandatory = $false)]
-        [switch]$LineAfter = $false
+        [switch]$LineAfter = $false,
+        [parameter(Mandatory = $false)]
+        [System.Collections.Specialized.OrderedDictionary]$Data
     )
 
     if ($LineBefore) { Write-Host }
-    if ($Type -eq "heading") { Write-Host " $Text" -ForegroundColor "DarkCyan" }
-    if ($Type -eq "heading") { 
+    if ($Type -eq "header") { Write-Host "   $Text" -ForegroundColor "DarkCyan" }
+    if ($Type -eq "header") { 
         $lines = ""
-        for ($i = 0; $i -lt 70; $i++) { $lines += "$([char]0x2500)" }
-        Write-Host "$lines`n" -ForegroundColor "DarkCyan"
+        for ($i = 0; $i -lt 50; $i++) { $lines += "$([char]0x2500)" }
+        Write-Host "   $lines" -ForegroundColor "DarkCyan"
     }
     if ($Type -eq 'done') { 
         Write-Host " $([char]0x2713)" -ForegroundColor "Green" -NoNewline
         Write-Host " $Text" 
     }
-    if ($Type -eq "header") { 
-        Write-Host " $([char]0x2500) $Text" -ForegroundColor "DarkCyan" 
+    if ($Type -eq 'fail') { 
+        Write-Host " X " -ForegroundColor "Red" -NoNewline
+        Write-Host "$Text" 
     }
     if ($Type -eq 'success') { Write-Host " $([char]0x2713) $Text" -ForegroundColor "Green" }
     if ($Type -eq 'error') { Write-Host "   $Text" -ForegroundColor "Red" }
     if ($Type -eq 'notice') { Write-Host "   $Text" -ForegroundColor "Yellow" }
     if ($Type -eq 'plain') { Write-Host "   $Text" }
+    if ($Type -eq 'recap') {
+        foreach ($key in $Data.Keys) { 
+            $value = $Data[$key]
+            if ($value.Length -gt 0) {
+                Write-Host "   $key`:$value" -ForegroundColor "DarkGray" 
+            } else {
+                Write-Host "   $key`:" -ForegroundColor "Magenta" 
+            }
+        }
+    }
     if ($LineAfter) { Write-Host }
 }
 

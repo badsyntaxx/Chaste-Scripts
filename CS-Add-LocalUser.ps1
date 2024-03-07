@@ -21,14 +21,7 @@ function Add-LocalUser {
         Write-Host "Chaste Scripts: Create Local User" -ForegroundColor DarkGray
         Write-Text -Type "header" -Text "Credentials" -LineBefore
 
-        `$name = Get-Input -Prompt "Username" -Validate "^(\s*|[a-zA-Z0-9 _\-]{1,15})$" 
-        `$account = Get-LocalUser -Name `$name -ErrorAction SilentlyContinue
-
-        while (`$null -ne `$account) {
-            `$name = Get-Input -Prompt "Username" -Validate "^(\s*|[a-zA-Z0-9 _\-]{1,15})$" -Alert "ERROR: An account with that name already exists." -AlertType "error"
-            `$account = Get-LocalUser -Name `$name -ErrorAction SilentlyContinue
-        }
-        
+        `$name = Get-Input -Prompt "Username" -Validate "^(\s*|[a-zA-Z0-9 _\-]{1,15})$"  -CheckExistingUser
         `$password = Get-Input -Prompt "Password" -IsSecure `$true 
         
         Write-Text -Type "header" -Text "Group membership"
@@ -38,9 +31,9 @@ function Add-LocalUser {
         if (`$group -eq 'Administrators') { `$groupDisplay = 'Administrator' } else { `$groupDisplay = 'Standard user' }
 
         `$options = @(
-            "Submit   - Confirm and apply changes", 
-            "Reset    - Start add user over.", 
-            "Exit     - Start over back at task selection."
+            "Submit  - Confirm and apply changes", 
+            "Reset   - Start add user over.", 
+            "Exit    - Start over back at task selection."
         )
 
         `$data = [ordered]@{}
