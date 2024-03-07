@@ -44,7 +44,7 @@ function Edit-LocalUserAction {
         [string]`$Username
     )
 
-    Write-Text "Select an action" -Type "header" -LineBefore
+    Write-Text -Type "header" -Text "Select an action" -LineBefore
 
     `$data = Get-AccountInfo `$Username
 
@@ -76,7 +76,7 @@ function Set-Password {
     )
 
     try {
-        Write-Text "Change password" -Type "header" -LineBefore
+        Write-Text -Type "header" -Text "Change password" -LineBefore
         Write-Text -Type "notice" -Text "NOTICE: Leave blank to remove password."
         `$password = Get-Input -Prompt "Password" -IsSecure `$true
 
@@ -86,11 +86,11 @@ function Set-Password {
             `$alert = "NOTICE: You're about to change this users password."
         }
 
-        Write-Text "Confirm password change" -Type "header" -LineBefore
+        Write-Text -Type "header" -Text "Confirm password change" -LineBefore
 
         `$data = Get-AccountInfo `$Username
 
-        Write-Text -Text "`$alert" -Type "notice"
+        Write-Text -Type "notice" -Text "`$alert"
         Write-Text -Type "recap" -Data `$data -LineAfter
 
         `$choice = Get-Option -Options `$confirmOptions
@@ -104,7 +104,7 @@ function Set-Password {
         Write-Host
         Write-CloseOut "The password for this account has been changed." -Script "Edit-LocalUser"
     } catch {
-        Write-Text -Text "Set Password Error: `$(`$_.Exception.Message)" -Type "error"
+        Write-Text -Type "error" -Text "Set Password Error: `$(`$_.Exception.Message)"
         Read-Host -Prompt "Press any key to continue"
     }
 }
@@ -116,7 +116,7 @@ function Set-Name {
     )
 
     try {
-        Write-Text "Change username" -Type "header" -LineBefore
+        Write-Text -Type "header" -Text "Change username" -LineBefore
 
         `$newName = Get-Input -Prompt "Enter new name" -Validate "^(\s*|[a-zA-Z0-9 _\-]{1,15})$"
 
@@ -124,7 +124,7 @@ function Set-Name {
 
         `$data["New Name"] = `$newName 
 
-        Write-Text -Text "NOTICE: You're about to change this users name." -Type "notice"
+        Write-Text -Type "notice" -Text "NOTICE: You're about to change this users name."
         Write-Text -Type "recap" -Data `$data -LineAfter
 
         `$choice = Get-Option -Options `$confirmOptions
@@ -136,7 +136,7 @@ function Set-Name {
 
         Write-CloseOut "The name for this account has been changed." -Script "Edit-LocalUser"
     } catch {
-        Write-Text -Text "Set Name Error: `$(`$_.Exception.Message)" -Type "error"
+        Write-Text -Type "error" -Text "Set Name Error: `$(`$_.Exception.Message)"
         Read-Host -Prompt "Press any key to continue"
     }
 }
@@ -148,7 +148,7 @@ function Set-Group {
     )
 
     try {
-        Write-Text "Change group membership" -Type "header" -LineBefore
+        Write-Text -Type "header" -Text "Change group membership" -LineBefore
 
         `$options = @("Administrator", "Standard User")
         `$group = Get-Option -Options `$options
@@ -160,7 +160,7 @@ function Set-Group {
 
         Write-Text -Type "header" -Text "Confirm group change" -LineBefore
 
-        Write-Text -Text "NOTICE: You're about to change this users group membership." -Type "notice"
+        Write-Text -Type "notice" -Text "NOTICE: You're about to change this users group membership."
         Write-Text -Type "recap" -Data `$data -LineAfter
         
         `$choice = Get-Option -Options `$confirmOptions
@@ -174,7 +174,7 @@ function Set-Group {
         
         Write-CloseOut "The group membership for `$Username has been changed to `$group." -Script "Edit-LocalUser"
     } catch {
-        Write-Text -Text "Set Group Error: `$(`$_.Exception.Message)" -Type "error"
+        Write-Text -Type "error" -Text "Set Group Error: `$(`$_.Exception.Message)"
         Read-Host -Prompt "Press any key to continue"
     }
 } 
@@ -186,7 +186,7 @@ function Remove-User {
     )
 
     try {
-        Write-Text "Delete user data" -Type "header" -LineBefore
+        Write-Text -Type "header" -Text "Delete user data" -LineBefore
         `$options = @(
             "Delete   - Also delete the users data and remove their profile folder",
             "Keep     - Do not delete the users data and leave their profile folder alone"
@@ -212,14 +212,14 @@ function Remove-User {
 
         Remove-LocalUser -Name `$Username
 
-        Write-Text "Local user removed." -Type "done" -LineBefore
+        Write-Text -Type "done" -Text "Local user removed." -LineBefore
         
         if (`$deleteData) {
             `$userProfile = Get-CimInstance Win32_UserProfile -Filter "SID = '`$(`$user.SID)'"
             `$dir = `$userProfile.LocalPath
             if (`$null -ne `$dir -And (Test-Path -Path `$dir)) { 
                 Remove-Item -Path `$dir -Recurse -Force 
-                Write-Text "User data deleted." -Type "done"
+                Write-Text -Type "done" -Text "User data deleted."
             } else {
                 Write-Text "No data found."
             }
@@ -227,7 +227,7 @@ function Remove-User {
 
         Write-CloseOut "The user has been deleted." -Script "Edit-LocalUser"
     } catch {
-        Write-Text -Text "Remove User Error: `$(`$_.Exception.Message)" -Type "error"
+        Write-Text -Type "error" -Text "Remove User Error: `$(`$_.Exception.Message)"
         Read-Host -Prompt "   Press any key to continue"
     }
 }
@@ -256,7 +256,7 @@ function Get-AccountInfo {
 
         return `$data
     } catch {
-        Write-Alert -Text "ERROR: `$(`$_.Exception.Message)" -Type "error"
+        Write-Alert -Type "error" -Text "ERROR: `$(`$_.Exception.Message)"
         Read-Host -Prompt "Press any key to continue"
     }
 }

@@ -18,8 +18,8 @@ $addLocalUser = @"
 function Add-LocalUser {
     try {
         Clear-Host
-        Write-Host "Chaste Scripts: Create Local User`n`n" -ForegroundColor DarkGray
-        Write-Text -Text "Credentials" -Type "header"
+        Write-Host "Chaste Scripts: Create Local User" -ForegroundColor DarkGray
+        Write-Text -Type "header" -Text "Credentials" -LineBefore
 
         `$name = Get-Input -Prompt "Username" -Validate "^(\s*|[a-zA-Z0-9 _\-]{1,15})$" 
         `$account = Get-LocalUser -Name `$name -ErrorAction SilentlyContinue
@@ -48,7 +48,7 @@ function Add-LocalUser {
         `$data["Password"] = `$password
         `$data["Group"] = `$groupDisplay 
 
-        Write-Text "Confirm user settings" -Type "header" -LineBefore
+        Write-Text -Type "header" -Text "Confirm user settings" -LineBefore
         Write-Text -Type "notice" -Text "NOTICE: You're about to create a new local user!"
         Write-Text -Type "recap" -Data `$data -LineAfter
 

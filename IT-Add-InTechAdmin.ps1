@@ -19,15 +19,15 @@ foreach ($FilePath in $FilePaths) { Get-Item $FilePath | Remove-Item }
 
 $addInTechAdmin = @"
 function Add-InTechAdmin {
-    `$isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
-    `$path = if (`$isAdmin) { "`$env:SystemRoot\Temp\" } else { "`$env:TEMP\" }
-    `$keyUrl = "https://drive.google.com/uc?export=download&id=1EGASU9cvnl5E055krXXcXUcgbr4ED4ry"
-    `$phraseUrl = "https://drive.google.com/uc?export=download&id=1jbppZfGusqAUM2aU7V4IeK0uHG2OYgoY"
-    `$accountName = "InTechAdmin"
-
     try {
+        `$isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
+        `$path = if (`$isAdmin) { "`$env:SystemRoot\Temp\" } else { "`$env:TEMP\" }
+        `$keyUrl = "https://drive.google.com/uc?export=download&id=1EGASU9cvnl5E055krXXcXUcgbr4ED4ry"
+        `$phraseUrl = "https://drive.google.com/uc?export=download&id=1jbppZfGusqAUM2aU7V4IeK0uHG2OYgoY"
+        `$accountName = "InTechAdmin"
+
         Write-Host "Chaste Scripts" -ForegroundColor DarkGray
-        Write-Text "Creating InTechAdmin account" -Type "heading" 
+        Write-Text -Type "heading" -Text "Creating InTechAdmin account" 
         Write-Text "Getting credentials" -Type "header"
         `$keyDownload = Get-Download -Url `$keyUrl -Output "`$path\KEY.txt"
         `$pwDownload = Get-Download -Url `$phraseUrl -Output "`$path\PHRASE.txt"
