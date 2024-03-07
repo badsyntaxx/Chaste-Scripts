@@ -8,6 +8,12 @@ $isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -mat
 $path = if ($isAdmin) { "$env:SystemRoot\Temp" } else { "$env:TEMP" }
 $framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 
+if (Get-Content -Path "C:\Users\$env:username\Documents\Dev\Chaste-Scripts\CS-Framework.ps1" -ErrorAction SilentlyContinue) {
+    Write-Host "Using local file"
+    Start-Sleep 1
+    $framework = Get-Content -Path "C:\Users\$env:username\Documents\Dev\Chaste-Scripts\CS-Framework.ps1" -Raw
+}
+
 $addLocalUser = @"
 function Install-ISRApps {
     Write-Host "Chaste Scripts" -ForegroundColor DarkGray
