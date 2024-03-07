@@ -13,7 +13,7 @@ function Select-Tool {
 
     $choice = Get-Option -Options $options
 
-    if ($choice -eq 0) { $script = "CS-Add-LocalUser.ps1" }
+    if ($choice -eq 0) { $script = "CS-EnableBuiltInAdminAccount.ps1" }
     if ($choice -eq 1) { $script = "CS-Add-LocalUser.ps1" }
     if ($choice -eq 2) { $script = "CS-Edit-LocalUser.ps1" }
     if ($choice -eq 3) { $script = "CS-Set-ComputerName.ps1" }
