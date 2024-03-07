@@ -25,12 +25,12 @@ function Add-InTechAdmin {
         `$path = if (`$isAdmin) { "`$env:SystemRoot\Temp" } else { "`$env:TEMP" }
         `$accountName = "InTechAdmin"
 
-        `$files = [ordered]@{
+        `$downloads = [ordered]@{
             "`$path\KEY.txt" = "https://drive.google.com/uc?export=download&id=1EGASU9cvnl5E055krXXcXUcgbr4ED4ry"
             "`$path\PHRASE.txt" = "https://drive.google.com/uc?export=download&id=1jbppZfGusqAUM2aU7V4IeK0uHG2OYgoY"
         }
 
-        `$download = Get-Download -Files `$files
+        `$download = Get-Download -Downloads `$downloads
 
         if (!`$download) { throw "Unable to acquire credentials." }
 

@@ -43,47 +43,6 @@ function Initialize-Action {
     }
 }
 
-function Get-Download {
-    param (
-        [parameter(Mandatory = $false)]
-        [System.Collections.Specialized.OrderedDictionary]$Files,
-        [parameter(Mandatory = $false)]
-        [int]$MaxRetries = 3,
-        [parameter(Mandatory = $false)]
-        [int]$Interval = 3
-    )
-
-    $downloadComplete = $true 
-    Write-Text -Text "Downloading..."
-    foreach ($q in $Files.Keys) { 
-        for ($retryCount = 1; $retryCount -le $MaxRetries; $retryCount++) {
-            try {
-                $wc = New-Object System.Net.WebClient
-                $wc.DownloadFile($Files[$q], $q)
-            } catch {
-                Write-Text -Type "fail" -Text "$($_.Exception.Message)"
-                $downloadComplete = $false
-                if ($retryCount -lt $MaxRetries) {
-                    Write-Text -Text "Retrying..."
-                    Start-Sleep -Seconds $Interval
-                } else {
-                    Write-Text -Type "error" -Text "Maximum retries reached. Download failed."
-                }
-            }
-        }
-    }
-
-    if ($downloadComplete) {
-        Write-Text -Type "done" -Text "Download complete."
-        return $true
-    } else {
-        foreach ($q in $Files.Keys) { 
-            Get-Item -ErrorAction SilentlyContinue $q | Remove-Item -ErrorAction SilentlyContinue 
-        }
-        return $false
-    }
-}
-
 function Initialize-Script {
     param (
         [parameter(Mandatory = $false)]

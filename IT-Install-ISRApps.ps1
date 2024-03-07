@@ -74,21 +74,20 @@ function Install-GoogleChrome {
 
 function Install-GoogleChromeBookmarks {
     try {
-        Write-Text "Adding Nuvia bookmarks" -Type "header" -LineBefore
+        Write-Text "Adding Nuvia bookmarks..." -LineBefore
         `$tempPath = "C:\Users\`$account\Desktop\TEMP"
-        `$files = [ordered]@{
+        `$downloads = [ordered]@{
             "`$tempPath\Bookmarks" = "https://drive.google.com/uc?export=download&id=1WmvSnxtDSLOt0rgys947sOWW-v9rzj9U"
         }
-        `$download = Get-Download -Files `$files
+        `$download = Get-Download -Downloads `$downloads
         if (`$download) {
             ROBOCOPY "`$tempPath" "C:\Users\`$account\AppData\Local\Google\Chrome\User Data\Default" "Bookmarks" /NFL /NDL /NJH /NJS /nc /ns | Out-Null
-            Write-Text "Bookmarks added to chrome." -Type "done"
+            Write-Text -Type "done" -Text "Bookmarks added to chrome."
         }
     } catch {
         Write-Text "Bookmarks Error: `$(`$_.Exception.Message)" -Type "error"
         Read-Text "Press any key to continue"
     }
-    
 }
 
 function Install-Slack {
@@ -249,9 +248,8 @@ function Find-ExistingInstall {
         [string]`$App
     )
 
-    Write-Host
-    Write-Text "Installing `$App" -Type "heading" -LineBefore
-    Write-Text "Checking for existing install" -Type "header"
+    Write-Text -Type "header" -Text "Installing `$App" -LineBefore
+    Write-Text "Checking for existing install..."
     `$installationFound = `$false
     foreach (`$path in `$paths) {
         if (Test-Path `$path) {
@@ -260,7 +258,7 @@ function Find-ExistingInstall {
         }
     }
     if (`$installationFound) {
-        Write-Text "`$App already installed. Skipping."
+        Write-Text -Type "success" -Text "`$App already installed."
     } else {
         Write-Text "`$App not found."
     }
@@ -283,19 +281,19 @@ function Install-Program {
     try {
         if (`$Extenstion -eq "msi") { `$output = "`$AppName.msi" } else { `$output = "`$AppName.exe" }
         `$tempPath = "C:\Users\`$account\Desktop\TEMP"
-        `$files = [ordered]@{
+        `$downloads = [ordered]@{
             "`$tempPath\`$output" = `$Url
         }
-        `$download = Get-Download -Files $files
+        `$download = Get-Download -Downloads `$downloads
         if (`$download) {
-            Write-Text "Intalling" -Type "header" -LineBefore
+            Write-Text -Text "Intalling..."
             if (`$Extenstion -eq "msi") {
                 Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$output``" `$Args" -Wait
             } else {
                 Start-Process -FilePath "`$tempPath\`$output" -ArgumentList "`$Args" -Wait
             }
            
-            Write-Text "Installed." -Type "done"
+            Write-Text -Type "success" -Text "`$AppName successfully installed."
         } else {
             Write-Text "Download failed. Skipping." -Type "error" -LineAfter
         }

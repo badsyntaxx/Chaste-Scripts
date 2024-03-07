@@ -31,55 +31,10 @@ function Initialize-Action {
     )
 
     try {
-        $isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
-        $path = if ($isAdmin) { "$env:SystemRoot\Temp" } else { "$env:TEMP" }
-        Write-Text -Text "Path: $path"
-        Write-Text -Text "File: $Script"
-        
-        $files = [ordered]@{
-            "$path\$script" = "https://raw.githubusercontent.com/badsyntaxx/ChasteScripts/main/"
-        }
-        $download = Get-Download -Files $files
-        if ($download) { 
-            Write-Text -Type "done" -Text "Script ready..."
-            PowerShell.exe -File "$path\$script"
-        }
+        Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/$Script" | Invoke-Expression
     } catch {
-        Write-Text -Text "$($_.Exception.Message)" -Type "error"
+        Write-Text -Type "error" -Text "$($_.Exception.Message)"
         Read-Host "   Press any key to continue"
-    }
-}
-
-function Get-Download {
-    param (
-        [parameter(Mandatory = $true)]
-        [string]$Url,
-        [parameter(Mandatory = $true)]
-        [string]$Output,
-        [parameter(Mandatory = $false)]
-        [int]$MaxRetries = 3,
-        [parameter(Mandatory = $false)]
-        [int]$Interval = 3
-    )
-
-    for ($retryCount = 1; $retryCount -le $MaxRetries; $retryCount++) {
-        try {
-            Write-Text "Downloading..."
-            $wc = New-Object System.Net.WebClient
-            $wc.DownloadFile($Url, "$Output")
-            Write-Text -Type "done" -Text "Download complete."
-            return $true
-        } catch {
-            # Write-Text "$($_.Exception.Message)`n" -Type "error"
-            Write-Text "Download failed." -Type "fail"
-            if ($retryCount -lt $MaxRetries) {
-                Write-Text "Retrying..."
-                Start-Sleep -Seconds $Interval
-            } else {
-                Write-Text "Maximum retries reached. Initialization failed." -Type "fail"
-                return $false
-            }
-        }
     }
 }
 

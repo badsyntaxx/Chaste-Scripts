@@ -15,7 +15,7 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1") {
     $framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 }
 
-$editLocalUser = @"
+$core = @"
 function Edit-LocalUser {
     Write-Host "Chaste Scripts: Edit Local User" -ForegroundColor DarkGray
     Write-Text -Type "header" -Text "Select a user" -LineBefore
@@ -265,7 +265,7 @@ function Get-AccountInfo {
 
 New-Item -Path "$path\$Script.ps1" -ItemType File -Force | Out-Null
 
-Add-Content -Path "$path\$Script.ps1" -Value $editLocalUser
+Add-Content -Path "$path\$Script.ps1" -Value $core
 Add-Content -Path "$path\$Script.ps1" -Value $framework
 Add-Content -Path "$path\$Script.ps1" -Value "Initialize-Script '$Script'"
 

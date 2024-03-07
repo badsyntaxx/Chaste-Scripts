@@ -15,7 +15,7 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1") {
     $framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 }
 
-$setComputerName = @"
+$core = @"
 function Set-ComputerName {
     Write-Host "Chaste Scripts: Rename Computer" -ForegroundColor DarkGray
     Write-Text -Type "header" -Text "Name & Description" -LineBefore
@@ -71,7 +71,7 @@ function Set-ComputerName {
 
 New-Item -Path "$path\$Script.ps1" -ItemType File -Force | Out-Null
 
-Add-Content -Path "$path\$Script.ps1" -Value $setComputerName
+Add-Content -Path "$path\$Script.ps1" -Value $core
 Add-Content -Path "$path\$Script.ps1" -Value $framework
 Add-Content -Path "$path\$Script.ps1" -Value "Initialize-Script '$Script'"
 

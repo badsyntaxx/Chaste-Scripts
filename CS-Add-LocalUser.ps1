@@ -16,7 +16,7 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1") {
     $framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 }
 
-$addLocalUser = @"
+$core = @"
 function Add-LocalUser {
     try {
         Write-Host "Chaste Scripts: Create Local User" -ForegroundColor DarkGray
@@ -74,7 +74,7 @@ function Add-LocalUser {
 
 New-Item -Path "$path\$Script.ps1" -ItemType File -Force | Out-Null
 
-Add-Content -Path "$path\$Script.ps1" -Value $addLocalUser
+Add-Content -Path "$path\$Script.ps1" -Value $core
 Add-Content -Path "$path\$Script.ps1" -Value $framework
 Add-Content -Path "$path\$Script.ps1" -Value "Initialize-Script '$Script'"
 
