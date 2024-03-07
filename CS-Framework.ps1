@@ -191,7 +191,9 @@ function Write-CloseOut {
     foreach ($p in $paths) { Get-Item -ErrorAction SilentlyContinue $p | Remove-Item -ErrorAction SilentlyContinue }
     $param = Read-Host -Prompt "`r`n   Type command to run another task or just hit enter to exit"
 
-    Invoke-RestMethod "chaste.dev/$param" | Invoke-Expression -ErrorAction SilentlyContinue
+    if ($param.Length -gt 0) {
+        Invoke-RestMethod "chaste.dev/$param" | Invoke-Expression -ErrorAction SilentlyContinue
+    }
 }
 
 function Get-Download {
