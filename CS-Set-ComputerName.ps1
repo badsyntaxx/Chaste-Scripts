@@ -6,14 +6,14 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 $Script = "Set-ComputerName"
 $isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
 $path = if ($isAdmin) { "$env:SystemRoot\Temp" } else { "$env:TEMP" }
-
-$framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chases-Windows-Scripts/main/CWS-Framework.ps1"
-$framework = Get-Content -Path "C:\Users\Chase Asahina\Desktop\Chases-Windows-Scripts\CWS-Framework.ps1" -Raw
+$framework = Get-Content -Path "C:\Users\$env:username\Documents\Dev\chaste-scripts\CS-Framework.ps1" -Raw
+# $framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/ChasteScripts/main/CS-Framework.ps1"
 
 $setComputerName = @"
 function Set-ComputerName {
-    Write-Host "Chase's Windows Tools: Rename Computer" -ForegroundColor DarkGray
-    Write-Text -Type "subheading" -Text "Name & Description" -LineBefore
+    Clear-Host
+    Write-Host "Chaste Scripts: Rename Computer" -ForegroundColor DarkGray
+    Write-Text -Type "header" -Text "Name & Description" -LineBefore
 
     `$currentHostname = `$env:COMPUTERNAME
     `$currentDescription = (Get-WmiObject -Class Win32_OperatingSystem).Description
@@ -27,16 +27,15 @@ function Set-ComputerName {
         "Exit     - Start over back at task selection."
     )
 
-    Write-Text "Confirm name settings" -Type "subheading" -LineBefore
-
     if (`$hostname -eq "") { `$hostname = `$currentHostname } 
     if (`$description -eq "") { `$description = `$currentDescription } 
 
     `$data = [ordered]@{ "Hostname" = `$hostname }
     `$data = [ordered]@{ "Hostname" = `$hostname; "Description" = `$description }
 
-    Write-Text -Type "recap" -Data `$data
-    Write-Text -Type "notice" -Text "NOTICE: You're about to change the computer name and description." -LineAfter -LineBefore
+    Write-Text "Confirm name settings" -Type "header" -LineBefore
+    Write-Text -Type "notice" -Text "NOTICE: You're about to change the computer name and description."
+    Write-Text -Type "recap" -Data `$data -LineAfter
 
     `$choice = Get-Option -Options `$options
 

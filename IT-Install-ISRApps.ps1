@@ -6,12 +6,12 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 $Script = "Install-ISRApps"
 $isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
 $path = if ($isAdmin) { "$env:SystemRoot\Temp" } else { "$env:TEMP" }
-$framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chases-Windows-Scripts/main/CWS-Framework.ps1"
+$framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/ChasteScripts/main/CS-Framework.ps1"
 
 $addLocalUser = @"
 function Install-ISRApps {
-    Write-Host "Chase's Windows Tools" -ForegroundColor DarkGray
-    Write-Text "Select user" -Type "subheading" -LineBefore
+    Write-Host "Chaste Scripts" -ForegroundColor DarkGray
+    Write-Text "Select user" -Type "header" -LineBefore
     Select-LocalUser
     Add-TempFolder
     Install-NinjaOne
@@ -31,7 +31,7 @@ function Install-ISRApps {
 
 function Add-TempFolder {
     try {
-        Write-Text "Creating TEMP folder" -Type "subheading" -LineBefore
+        Write-Text "Creating TEMP folder" -Type "header" -LineBefore
         Write-Text "Path: C:\Users\`$account\Desktop\"
         `$folderPath = "C:\Users\`$account\Desktop\TEMP"
         if (-not (Test-Path -PathType Container `$folderPath)) {
@@ -67,7 +67,7 @@ function Install-GoogleChrome {
 
 function Install-GoogleChromeBookmarks {
     try {
-        Write-Text "Adding Nuvia bookmarks" -Type "subheading" -LineBefore
+        Write-Text "Adding Nuvia bookmarks" -Type "header" -LineBefore
         `$boomarksUrl = "https://drive.google.com/uc?export=download&id=1WmvSnxtDSLOt0rgys947sOWW-v9rzj9U"
         `$tempPath = "C:\Users\`$account\Desktop\TEMP"
         `$download = Get-Download -Url `$boomarksUrl -Output "`$tempPath\Bookmarks"
@@ -242,7 +242,7 @@ function Find-ExistingInstall {
 
     Write-Host
     Write-Text "Installing `$App" -Type "heading" -LineBefore
-    Write-Text "Checking for existing install" -Type "subheading"
+    Write-Text "Checking for existing install" -Type "header"
     `$installationFound = `$false
     foreach (`$path in `$paths) {
         if (Test-Path `$path) {
@@ -276,7 +276,7 @@ function Install-Program {
         `$tempPath = "C:\Users\`$account\Desktop\TEMP"
         `$download = Get-Download -Url `$Url -Output "`$tempPath\`$output"
         if (`$download) {
-            Write-Text "Intalling" -Type "subheading" -LineBefore
+            Write-Text "Intalling" -Type "header" -LineBefore
             if (`$Extenstion -eq "msi") {
                 Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$output``" `$Args" -Wait
             } else {

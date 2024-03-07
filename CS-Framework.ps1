@@ -25,7 +25,7 @@ function Initialize-Script {
         $console.WindowSize = New-Object System.Management.Automation.Host.size($Width, $Height)
         $console.BackgroundColor = "Black"
         $console.ForegroundColor = "Gray"
-        $console.WindowTitle = "Chase's Windows Tools"
+        $console.WindowTitle = "Chaste Scripts"
         Clear-Host
         Invoke-Expression $ScriptName
     } catch {
@@ -67,10 +67,15 @@ function Get-Input {
         }
         
         [Console]::SetCursorPosition($originalPosition.X, $originalPosition.Y)
+
+        Write-Host " $([char]0x2713)" -ForegroundColor "Green" -NoNewline
+
         if ($IsSecure -and ($userInput.Length -eq 0)) {
-            Write-Host " $([char]0x203A) $Prompt`:$userInput                                                                  " -ForegroundColor "Cyan"
+            Write-Host " $Prompt`:                                                                                    "                     
+        } else {
+            Write-Host " $Prompt`:$userInput                                                                                    "         
         }
-        Write-Host " $([char]0x203A) $Prompt`:$userInput                                                                  " -ForegroundColor "Cyan"
+       
         return $userInput
     } catch {
         Write-Text -Type "error" -Text "Input Error: $($_.Exception.Message)"
@@ -104,7 +109,7 @@ function Get-Option {
 
         $currPos = $host.UI.RawUI.CursorPosition
         While ($vkeycode -ne 13) {
-            $press = $host.ui.rawui.readkey("NoEcho,IncludeKeyDown")
+            $press = $host.ui.rawui.readkey("NoEcho, IncludeKeyDown")
             $vkeycode = $press.virtualkeycode
             Write-host "$($press.character)" -NoNewLine
             $oldPos = $pos;
@@ -146,14 +151,11 @@ function Write-Text {
     )
 
     if ($LineBefore) { Write-Host }
-    if ($Type -eq "heading") { Write-Host " $Text" -ForegroundColor "Cyan" }
-    if ($Type -eq "heading") { 
+    if ($Type -eq "header") { Write-Host "   $Text" -ForegroundColor "DarkCyan" }
+    if ($Type -eq "header") { 
         $lines = ""
-        for ($i = 0; $i -lt 70; $i++) { $lines += "$([char]0x2500)" }
-        Write-Host "$lines`n" -ForegroundColor "Cyan"
-    }
-    if ($Type -eq "subheading") { 
-        Write-Host " $([char]0x2500) $Text" -ForegroundColor "DarkCyan" 
+        for ($i = 0; $i -lt 50; $i++) { $lines += "$([char]0x2500)" }
+        Write-Host "   $lines" -ForegroundColor "DarkCyan"
     }
     if ($Type -eq 'done') { 
         Write-Host " $([char]0x2713)" -ForegroundColor "Green" -NoNewline
@@ -164,18 +166,16 @@ function Write-Text {
     if ($Type -eq 'notice') { Write-Host "   $Text" -ForegroundColor "Yellow" }
     if ($Type -eq 'plain') { Write-Host "   $Text" }
     if ($Type -eq 'recap') {
-        foreach ($key in $Data.Keys) { Write-Host "   - $key`:$($Data[$key])" }
+        foreach ($key in $Data.Keys) { 
+            $value = $Data[$key]
+            if ($value.Length -gt 0) {
+                Write-Host "   $key`:$value" -ForegroundColor "DarkGray" 
+            } else {
+                Write-Host "   $key`:" -ForegroundColor "Magenta" 
+            }
+        }
     }
     if ($LineAfter) { Write-Host }
-}
-
-function Write-Recap {
-    param (
-        [parameter(Mandatory = $false)]
-        [System.Collections.Specialized.OrderedDictionary]$Data
-    )
-
-    foreach ($key in $Data.Keys) { Write-Host "   - $key`:$($Data[$key])" }
 }
 
 function Write-CloseOut {
@@ -187,8 +187,8 @@ function Write-CloseOut {
     )
 
     if ($Message -ne "") { Write-Text -Text $Message -Type "success" }
-    $FilePaths = @("$env:TEMP\$Script.ps1", "$env:SystemRoot\Temp\$Script.ps1")
-    foreach ($FilePath in $FilePaths) { Get-Item $FilePath | Remove-Item }
+    $paths = @("$env:TEMP\$Script.ps1", "$env:SystemRoot\Temp\$Script.ps1")
+    foreach ($p in $paths) { Get-Item -ErrorAction SilentlyContinue $p | Remove-Item -ErrorAction SilentlyContinue }
     Read-Host -Prompt "`r`n   Press any key to continue"
 }
 

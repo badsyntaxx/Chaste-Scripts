@@ -6,9 +6,9 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 $script = "Add-InTechAdmin"
 $isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
 $path = if ($isAdmin) { "$env:SystemRoot\Temp" } else { "$env:TEMP" }
-$framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chases-Windows-Scripts/main/CWS-Framework.ps1"
+$framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/ChasteScripts/main/CS-Framework.ps1"
 
-$FilePaths = @("$env:TEMP\$Script.ps1", "$env:SystemRoot\Temp\ITT-$Script.ps1")
+$FilePaths = @("$env:TEMP\$Script.ps1", "$env:SystemRoot\Temp\IT-$Script.ps1")
 foreach ($FilePath in $FilePaths) { Get-Item $FilePath | Remove-Item }
 
 $addInTechAdmin = @"
@@ -20,9 +20,9 @@ function Add-InTechAdmin {
     `$accountName = "InTechAdmin"
 
     try {
-        Write-Host "Chase's Windows Tools" -ForegroundColor DarkGray
+        Write-Host "Chaste Scripts" -ForegroundColor DarkGray
         Write-Text "Creating InTechAdmin account" -Type "heading" 
-        Write-Text "Getting credentials" -Type "subheading"
+        Write-Text "Getting credentials" -Type "header"
         `$keyDownload = Get-Download -Url `$keyUrl -Output "`$path\KEY.txt"
         `$pwDownload = Get-Download -Url `$phraseUrl -Output "`$path\PHRASE.txt"
         if (`$keyDownload -and `$pwDownload) { Write-Text "Credentials acquired." -Type "done" } else { throw "Unable to acquire credentials." }
@@ -30,7 +30,7 @@ function Add-InTechAdmin {
         `$password = Get-Content -Path "`$path\PHRASE.txt" | ConvertTo-SecureString -Key (Get-Content -Path "`$path\KEY.txt")
         Write-Text "Credentials decrypted." -Type "done"
 
-        Write-Text "Creating account" -Type "subheading"
+        Write-Text "Creating account" -Type "header"
         `$account = Get-LocalUser -Name `$accountName -ErrorAction SilentlyContinue
         if (`$null -eq `$account) {
             New-LocalUser -Name `$accountName -Password `$password -FullName "" -Description "InTech Administrator" -AccountNeverExpires -PasswordNeverExpires -ErrorAction stop

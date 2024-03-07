@@ -1,23 +1,24 @@
 
 
 function Select-Tool {
-    Write-Host "Chase's Windows Tools`n" -ForegroundColor DarkGray
+    Write-Host "Chaste Scripts`n" -ForegroundColor DarkGray
+    Write-Text -Type "heading" -Text "Chaste Scripts"
+    Write-Text -Type "header" -Text "Select a tool"
 
     $options = @(
-        "Create user          - Create a local user.",
-        "Edit user            - Edit / delete existing user.",
-        "Rename computer      - Edit this computers name and description.",
-        "Quit                 - Do nothing and exit."
+        "Create InTechAdmin       - Create the InTechAdmin account.",
+        "Install Nuvia ISR Apps   - Create a local user.",
+        "Quit                     - Do nothing and exit."
     )
 
     $choice = Get-Option -Options $options
 
-    if ($choice -eq 0) { $script = "CWS-Add-LocalUser.ps1" }
-    if ($choice -eq 1) { $script = "CWS-Edit-LocalUser.ps1" }
-    if ($choice -eq 2) { $script = "CWS-Set-ComputerName.ps1" }
-    if ($choice -eq 3) { Exit }
+    if ($choice -eq 0) { $script = "IT-Add-InTechAdmin.ps1" }
+    if ($choice -eq 1) { $script = "IT-Install-ISRApps.ps1" }
+    if ($choice -eq 2) { $script = "IT-Add-ISRBookmarks.ps1" }
+    if ($choice -eq 4) { Exit }
 
-    Write-Text -Type "subheading" -Text "Initializing script" -LineBefore
+    Write-Text -Type "header" -Text "Initializing script" -LineBefore
     Initialize-Action -Script $script -Choice $choice
 }
 
@@ -35,7 +36,7 @@ function Initialize-Action {
         Write-Text -Text "Path: $path"
         Write-Text -Text "File: $Script"
         
-        $url = "https://raw.githubusercontent.com/badsyntaxx/Chases-Windows-Scripts/main/"
+        $url = "https://raw.githubusercontent.com/badsyntaxx/ChasteScripts/main/"
         $download = Get-Download -Url "$url/$script" -Output "$path\$script"
         if ($download) { 
             Write-Text -Type "done" -Text "Script ready..."
@@ -104,7 +105,7 @@ function Initialize-Script {
         $console.WindowSize = New-Object System.Management.Automation.Host.size($Width, $Height)
         $console.BackgroundColor = "Black"
         $console.ForegroundColor = "Gray"
-        $console.WindowTitle = "Chase's Windows Tools"
+        $console.WindowTitle = "Chaste Scripts"
         Clear-Host
         Invoke-Expression $ScriptName
     } catch {
@@ -116,23 +117,22 @@ function Initialize-Script {
 function Get-Option {
     param (
         [parameter(Mandatory = $true)]
-        [array]$Options,
-        [parameter(Mandatory = $false)]
-        [int]$DefaultOption = 0
+        [array]$Options
     )
 
     try {
         $vkeycode = 0
-        $pos = $DefaultOption
+        $pos = 0
         $oldPos = 0
         $fcolor = $host.UI.RawUI.ForegroundColor
+        $bcolor = $host.UI.RawUI.BackgroundColor
   
         for ($i = 0; $i -le $Options.length; $i++) {
             if ($i -eq $pos) {
-                Write-Host " $([char]0x203A) $($Options[$i])" -ForegroundColor "Cyan"
+                Write-Host "   $($Options[$i])" -ForegroundColor $bcolor -BackgroundColor $fcolor 
             } else {
                 if ($($Options[$i])) {
-                    Write-Host "   $($Options[$i])" -ForegroundColor $fcolor
+                    Write-Host "   $($Options[$i])" -ForegroundColor $fcolor -BackgroundColor $bcolor
                 } 
             }
         }
@@ -150,18 +150,19 @@ function Get-Option {
 
             $menuLen = $Options.Count
             $fcolor = $host.UI.RawUI.ForegroundColor
+            $bcolor = $host.UI.RawUI.BackgroundColor
             $menuOldPos = New-Object System.Management.Automation.Host.Coordinates(0, ($currPos.Y - ($menuLen - $oldPos)))
             $menuNewPos = New-Object System.Management.Automation.Host.Coordinates(0, ($currPos.Y - ($menuLen - $pos)))
       
             $host.UI.RawUI.CursorPosition = $menuOldPos
-            Write-Host "   $($Options[$oldPos])" -ForegroundColor $fcolor
+            Write-Host "   $($Options[$oldPos])" -ForegroundColor $fcolor -BackgroundColor $bcolor 
             $host.UI.RawUI.CursorPosition = $menuNewPos
-            Write-Host " $([char]0x203A) $($Options[$pos])" -ForegroundColor "Cyan"
+            Write-Host "   $($Options[$pos])" -ForegroundColor $bcolor -BackgroundColor $fcolor 
             $host.UI.RawUI.CursorPosition = $currPos
         }
-        Write-Output $pos
+        return $pos
     } catch {
-        Write-Host "   $($_.Exception.Message)" -ForegroundColor "Red"
+        Write-Text -Text "$($_.Exception.Message)" -Type "error"
         Read-Host "   Press any key to continue"
     }
 }
@@ -179,19 +180,17 @@ function Write-Text {
     )
 
     if ($LineBefore) { Write-Host }
-    if ($Type -eq "heading") { Write-Host " $Text" -ForegroundColor "DarkCyan" }
+    if ($Type -eq "heading") { Write-Host " $Text" -ForegroundColor "Cyan" }
     if ($Type -eq "heading") { 
         $lines = ""
         for ($i = 0; $i -lt 70; $i++) { $lines += "$([char]0x2500)" }
-        Write-Host "$lines`n" -ForegroundColor "DarkCyan"
+        Write-Host "$lines`n" -ForegroundColor Cyan
     }
     if ($Type -eq 'done') { 
         Write-Host " $([char]0x2713)" -ForegroundColor "Green" -NoNewline
         Write-Host " $Text" 
     }
-    if ($Type -eq "subheading") { 
-        Write-Host " $([char]0x2500) $Text" -ForegroundColor "DarkCyan" 
-    }
+    if ($Type -eq "header") { Write-Host " $([char]0x203A) $Text" -ForegroundColor "Cyan" }
     if ($Type -eq 'success') { Write-Host " $([char]0x2713) $Text" -ForegroundColor "Green" }
     if ($Type -eq 'error') { Write-Host "   $Text" -ForegroundColor "Red" }
     if ($Type -eq 'notice') { Write-Host "   $Text" -ForegroundColor "Yellow" }

@@ -36,7 +36,7 @@ function Initialize-Script {
         $console.WindowSize = New-Object System.Management.Automation.Host.size($Width, $Height)
         $console.BackgroundColor = "Black"
         $console.ForegroundColor = "Gray"
-        $console.WindowTitle = "Chase's Windows Tools"
+        $console.WindowTitle = "Chaste Scripts"
         Clear-Host
         Invoke-Expression $ScriptName
     } catch {
