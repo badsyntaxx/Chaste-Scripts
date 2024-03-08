@@ -23,11 +23,6 @@ function Edit-LocalUser {
     `$accountNames = @()
     `$localUsers = Get-LocalUser
     `$excludedAccounts = @("DefaultAccount", "Administrator", "WDAGUtilityAccount", "Guest", "defaultuser0")
-    `$script:confirmOptions = @(
-        "Submit   - Confirm and apply changes", 
-        "Reset    - Start edit user over.", 
-        "Exit     - Start over back at task selection."
-    )
 
     foreach (`$user in `$localUsers) {
         if (`$user.Name -notin `$excludedAccounts) { `$accountNames += `$user.Name }
@@ -35,10 +30,10 @@ function Edit-LocalUser {
 
     `$choice = Get-Option -Options `$accountNames
 
-    Edit-LocalUserAction -Username `$accountNames[`$choice]
+    Select-Action -Username `$accountNames[`$choice]
 }
 
-function Edit-LocalUserAction {
+function Select-Action {
     param (
         [parameter(Mandatory = `$true)]
         [string]`$Username
@@ -57,14 +52,20 @@ function Edit-LocalUserAction {
         "Delete account             - Delete the local user account.",
         "Go back                    - Go back to account selection."
     )
+
+    `$confirmation = @(
+        "Submit   - Confirm and apply changes", 
+        "Reset    - Start edit user over.", 
+        "Exit     - Start over back at task selection."
+    )
     
     `$choice = Get-Option -Options `$options
 
     switch (`$choice) {
-        0 { Set-Password -Username `$Username }
-        1 { Set-Name -Username `$Username }
-        2 { Set-Group -Username `$Username }
-        3 { Remove-User -Username `$Username }
+        0 { Set-Password -Username `$Username -Confirmation `$confirmation }
+        1 { Set-Name -Username `$Username -Confirmation `$confirmation }
+        2 { Set-Group -Username `$Username -Confirmation `$confirmation }
+        3 { Remove-User -Username `$Username -Confirmation `$confirmation }
         4 { Invoke-Script "Edit-LocalUser" }  # Go back to account selection
     }
 }
@@ -72,7 +73,9 @@ function Edit-LocalUserAction {
 function Set-Password {
     param (
         [parameter(Mandatory = `$true)]
-        [string]`$Username
+        [string]`$Username,
+        [parameter(Mandatory = `$true)]
+        [array]`$Confirmation
     )
 
     try {
@@ -93,7 +96,7 @@ function Set-Password {
         Write-Text -Type "notice" -Text "`$alert"
         Write-Text -Type "recap" -Data `$data -LineAfter
 
-        `$choice = Get-Option -Options `$confirmOptions
+        `$choice = Get-Option -Options `$Confirmation
         if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { Set-Password }
         if (`$choice -eq 1) { Invoke-Script "Edit-LocalUser" }
         if (`$choice -eq 2) { Invoke-RestMethod https://chaste.dev/s | Invoke-Expression }
@@ -112,7 +115,9 @@ function Set-Password {
 function Set-Name {
     param (
         [parameter(Mandatory = `$true)]
-        [string]`$Username
+        [string]`$Username,
+        [parameter(Mandatory = `$true)]
+        [array]`$Confirmation
     )
 
     try {
@@ -127,7 +132,7 @@ function Set-Name {
         Write-Text -Type "notice" -Text "NOTICE: You're about to change this users name."
         Write-Text -Type "recap" -Data `$data -LineAfter
 
-        `$choice = Get-Option -Options `$confirmOptions
+        `$choice = Get-Option -Options `$options
         if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { Set-Name }
         if (`$choice -eq 1) { Invoke-Script "Edit-LocalUser" }
         if (`$choice -eq 2) { Invoke-RestMethod https://chaste.dev/s | Invoke-Expression }
@@ -144,7 +149,9 @@ function Set-Name {
 function Set-Group {
     param (
         [parameter(Mandatory = `$true)]
-        [string]`$Username
+        [string]`$Username,
+        [parameter(Mandatory = `$true)]
+        [array]`$Confirmation
     )
 
     try {
@@ -163,7 +170,7 @@ function Set-Group {
         Write-Text -Type "notice" -Text "NOTICE: You're about to change this users group membership."
         Write-Text -Type "recap" -Data `$data -LineAfter
         
-        `$choice = Get-Option -Options `$confirmOptions
+        `$choice = Get-Option -Options `$Confirmation
 
         if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { Set-Group }
         if (`$choice -eq 1) { Invoke-Script "Edit-LocalUser" }
@@ -182,7 +189,9 @@ function Set-Group {
 function Remove-User {
     param (
         [parameter(Mandatory = `$true)]
-        [string]`$Username
+        [string]`$Username,
+        [parameter(Mandatory = `$true)]
+        [array]`$Confirmation
     )
 
     try {
@@ -206,7 +215,7 @@ function Remove-User {
 
         Write-Text -Type "recap" -Data `$data -LineAfter
         
-        `$choice = Get-Option -Options `$confirmOptions
+        `$choice = Get-Option -Options `$Confirmation
         if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "Edit-LocalUser" }
         if (`$choice -eq 2) { Invoke-RestMethod https://chaste.dev/s | Invoke-Expression }
 
