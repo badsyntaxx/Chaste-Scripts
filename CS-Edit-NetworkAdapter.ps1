@@ -35,30 +35,23 @@ Function Edit-NetworkAdapter {
 }
 
 Function Select-Adapter {
-    Clear-Host
     `$adapters = @()
 
     foreach (`$n in (Get-NetAdapter | Select-Object -ExpandProperty Name)) {
         `$adapters += `$n
     }
 
-    `$i = 1
-    `$choices = @()
-    foreach (`$n in `$adapters) {
-        `$choices += (New-Object System.Management.Automation.Host.ChoiceDescription "&`$i.`$n,")
-        `$i++
-    }
+    `$choice = Get-Option -Options `$adapters
 
-    `$choice = `$host.UI.PromptForChoice("", "Select a network adapter", `$choices, 0)
-    `$global:adapterName = `$adapters[`$choice]
-    `$global:netAdapter = Get-NetAdapter -Name `$adapterName
-    `$global:adapterIndex = `$netAdapter.InterfaceIndex
+    `$script:adapterName = `$adapters[`$choice]
+    `$script:netAdapter = Get-NetAdapter -Name `$adapterName
+    `$script:adapterIndex = `$netAdapter.InterfaceIndex
     `$ipData = Get-NetIPAddress -InterfaceIndex `$adapterIndex | Select-Object -First 1
-    `$global:currentIP = `$ipData.IPAddress
-    `$global:currentGateway = (Get-NetRoute | Where-Object { `$_.DestinationPrefix -eq '0.0.0.0/0' }).NextHop
-    `$global:currentSubnet = Convert-CIDRToMask -CIDR `$ipData.PrefixLength
+    `$script:currentIP = `$ipData.IPAddress
+    `$script:currentGateway = (Get-NetRoute | Where-Object { `$_.DestinationPrefix -eq '0.0.0.0/0' }).NextHop
+    `$script:currentSubnet = Convert-CIDRToMask -CIDR `$ipData.PrefixLength
     `$interface = Get-NetIPInterface -InterfaceIndex `$adapterIndex
-    `$global:currentAssignment = `$(if (`$interface.Dhcp -eq "Enabled") { "DHCP" } else { "Static" })
+    `$script:currentAssignment = `$(if (`$interface.Dhcp -eq "Enabled") { "DHCP" } else { "Static" })
 
     Select-QuickOrNormal
 }
@@ -118,8 +111,46 @@ Function Select-QuickOrNormal {
 }
 
 Function Show-Adapters {
-    netsh interface ipv4 show config
-    Confirm-StartingChoice
+    param (
+        [parameter(Mandatory = `$false)]
+        [switch]`$Detailed
+    )
+
+    `$adapters = @()
+    foreach (`$n in (Get-NetAdapter | Select-Object -ExpandProperty Name)) {
+        `$adapters += `$n
+    }
+
+    foreach (`$a in `$adapters) {
+        `$macAddress = Get-NetAdapter -Name `$a | Select-Object -ExpandProperty MacAddress
+        `$name = Get-NetAdapter -Name `$a | Select-Object -ExpandProperty Name
+        `$status = Get-NetAdapter -Name `$a | Select-Object -ExpandProperty Status
+        `$index = Get-NetAdapter -Name `$a | Select-Object -ExpandProperty InterfaceIndex
+        `$gateway = (Get-NetRoute | Where-Object { `$_.DestinationPrefix -eq '0.0.0.0/0' }).NextHop
+        `$interface = Get-NetIPInterface -InterfaceIndex `$index
+        `$dhcp = `$(if (`$interface.Dhcp -eq "Enabled") { "DHCP" } else { "Static" })
+        `$ipData = Get-NetIPAddress -InterfaceIndex `$index | Select-Object -First 1
+        `$ipAddress = `$ipData.IPAddress
+        `$subnet = Convert-CIDRToMask -CIDR `$ipData.PrefixLength
+        `$dnsServers = Get-DnsClientServerAddress -InterfaceIndex `$index | Select-Object -ExpandProperty ServerAddresses
+
+        Write-Text -Type "header" -Text "Adapter:`$name(`$dhcp)" -LineBefore
+        Write-Text "Status. . . . . . : `$status"
+        Write-Text "Mac Address . . . : `$macAddress"
+        Write-Text "IPv4 Address. . . : `$ipAddress"
+        Write-Text "Subnet Mask . . . : `$subnet"
+        Write-Text "Default Gateway . : `$gateway"
+
+        for (`$i = 0; `$i -lt `$dnsServers.Count; `$i++) {
+            if (`$i -eq 0) {
+                Write-Text "DNS Servers . . . : `$(`$dnsServers[`$i])"
+            } else {
+                Write-Text "                    `$(`$dnsServers[`$i])"
+            }
+        }
+    }
+
+    Select-Adapter
 }
 
 Function Edit-IP {
@@ -133,18 +164,18 @@ Function Edit-IP {
     )
     `$default = 0
     `$choice = `$host.UI.PromptForChoice(`$title, `$prompt, `$choices, `$default)
-    `$global:IPDHCP = `$false
+    `$script:IPDHCP = `$false
 
     if (0 -eq `$choice) { 
-        `$global:desiredAddress = Test-IPIsGood -Prompt "Enter IP Address (Leave blank to skip)"
-        `$global:desiredSubnet = Test-IPIsGood -Prompt "Enter Subnet mask (Leave blank to skip)"        
-        `$global:desiredGateway = Test-IPIsGood -Prompt "Enter Gateway (Leave blank to skip)"
+        `$script:desiredAddress = Test-IPIsGood -Prompt "Enter IP Address (Leave blank to skip)"
+        `$script:desiredSubnet = Test-IPIsGood -Prompt "Enter Subnet mask (Leave blank to skip)"        
+        `$script:desiredGateway = Test-IPIsGood -Prompt "Enter Gateway (Leave blank to skip)"
 
         if ("" -eq `$desiredAddress) { `$desiredAddress = `$currentIP }
         if ("" -eq `$desiredSubnet) { `$desiredSubnet = `$currentSubnet }
         if ("" -eq `$desiredGateway) { `$desiredGateway = `$currentGateway }
     }
-    if (1 -eq `$choice) { `$global:IPDHCP = `$true }
+    if (1 -eq `$choice) { `$script:IPDHCP = `$true }
     if (2 -eq `$choice) { Select-QuickOrNormal }
 
     Edit-DNS
@@ -189,10 +220,10 @@ Function Edit-DNS {
     )
     `$default = 0
     `$choice = `$host.UI.PromptForChoice(`$title, `$prompt, `$choices, `$default)
-    `$global:DNSDHCP = `$false
+    `$script:DNSDHCP = `$false
 
     if (0 -eq `$choice) { 
-        `$global:dns = New-Object System.Collections.Generic.List[System.Object]
+        `$script:dns = New-Object System.Collections.Generic.List[System.Object]
         `$csl = ""
         `$firstLoop = `$true
         `$prompt = Test-IPIsGood -Prompt "Enter a DNS (Leave blank to skip)"
@@ -230,7 +261,7 @@ Function Edit-DNS {
             }
         }   
     }
-    if (1 -eq `$choice) { `$global:DNSDHCP = `$true }
+    if (1 -eq `$choice) { `$script:DNSDHCP = `$true }
     if (2 -eq `$choice) { Edit-IP }
 
     Confirm-Edits
