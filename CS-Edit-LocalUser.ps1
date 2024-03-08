@@ -118,7 +118,7 @@ function Set-Name {
     try {
         Write-Text -Type "header" -Text "Change username" -LineBefore
 
-        `$newName = Get-Input -Prompt "Enter new name" -Validate "^(\s*|[a-zA-Z0-9 _\-]{1,15})$" -CheckExistingUser
+        `$newName = Get-Input -Prompt "Enter new name" -Validate "^(\s*|[a-zA-Z0-9 _\-]{1,64})$" -CheckExistingUser
 
         Write-Text -Type "header" -Text "Confirm name change" -LineBefore
 
