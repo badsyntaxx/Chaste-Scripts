@@ -16,26 +16,6 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1") {
     $framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 }
 
-Function Initialize-NetworkAdapterEditor {
-    Enable-RunAsAdministrator
-    Confirm-StartingChoice
-    Wait-ForKey
-}
-
-Function Enable-RunAsAdministrator {
-    $CurrentUser = New-Object Security.Principal.WindowsPrincipal $([Security.Principal.WindowsIdentity]::GetCurrent())
-    if ($CurrentUser.IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)) {
-        Write-host "Script is running with Administrator privileges!"
-    } else {
-        $ElevatedProcess = New-Object System.Diagnostics.ProcessStartInfo "PowerShell";
-        $ElevatedProcess.Arguments = "& '" + $script:MyInvocation.MyCommand.Path + "'"
-        $ElevatedProcess.Verb = "runas"
-        [System.Diagnostics.Process]::Start($ElevatedProcess)
-        Write-Host "Script has been elevated."
-        Exit
-    }
-}
-
 $core = @"
 Function Edit-NetworkAdapter {
     Write-Host "Chaste Scripts: Edit Network Adapter" -ForegroundColor DarkGray
@@ -43,7 +23,6 @@ Function Edit-NetworkAdapter {
 
     `$options = @(
         "Display a list of network adapters."
-        "Display a more detailed list of network adapters."
         "Select a network adapter."
         "Quit."
     )
@@ -51,9 +30,8 @@ Function Edit-NetworkAdapter {
     `$choice = Get-Option -Options `$options
         
     if (0 -eq `$choice) { Show-Adapters }
-    if (1 -eq `$choice) { Show-AdaptersDetailed }
-    if (2 -eq `$choice) { Select-Adapter }
-    if (3 -eq `$choice) { Exit }
+    if (1 -eq `$choice) { Select-Adapter }
+    if (2 -eq `$choice) { Exit }
 }
 
 Function Select-Adapter {
@@ -139,14 +117,9 @@ Function Select-QuickOrNormal {
     if (2 -eq `$choice) { Select-Adapter }
 }
 
-Function Show-AdaptersDetailed {
+Function Show-Adapters {
     netsh interface ipv4 show config
     Confirm-StartingChoice
-}
-
-Function Show-Adapters {
-    Get-NetAdapter
-    Edit-NetworkAdapter
 }
 
 Function Edit-IP {
@@ -334,6 +307,6 @@ New-Item -Path "$path\$Script.ps1" -ItemType File -Force | Out-Null
 
 Add-Content -Path "$path\$Script.ps1" -Value $core
 Add-Content -Path "$path\$Script.ps1" -Value $framework
-Add-Content -Path "$path\$Script.ps1" -Value "Initialize-Script '$Script'"
+Add-Content -Path "$path\$Script.ps1" -Value "Invoke-Script '$Script'"
 
 PowerShell.exe -NoExit -File "$path\$Script.ps1" -Verb RunAs

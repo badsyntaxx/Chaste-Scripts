@@ -1,4 +1,4 @@
-function Initialize-Script {
+function Invoke-Script {
     param (
         [parameter(Mandatory = $false)]
         [string]$ScriptName
@@ -43,7 +43,7 @@ function Get-Input {
         [parameter(Mandatory = $false)]
         [regex]$Validate = $null,
         [parameter(Mandatory = $false)]
-        [boolean]$IsSecure = $false,
+        [switch]$IsSecure = $false,
         [parameter(Mandatory = $false)]
         [switch]$CheckExistingUser = $false
     )
@@ -82,9 +82,9 @@ function Get-Input {
         [Console]::SetCursorPosition($originalPosition.X, $originalPosition.Y)
         Write-Host " $([char]0x2713)" -ForegroundColor "Green" -NoNewline
         if ($IsSecure -and ($userInput.Length -eq 0)) {
-            Write-Host " $Prompt`:                                                                                    "                     
+            Write-Host " $Prompt`:                                                       "
         } else {
-            Write-Host " $Prompt`:$userInput                                                                                    "         
+            Write-Host " $Prompt`:$userInput                                             "
         }
     
         return $userInput

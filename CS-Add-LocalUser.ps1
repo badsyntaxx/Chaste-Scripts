@@ -23,9 +23,9 @@ function Add-LocalUser {
         Write-Text -Type "header" -Text "Credentials" -LineBefore
 
         `$name = Get-Input -Prompt "Username" -Validate "^(\s*|[a-zA-Z0-9 _\-]{1,15})$"  -CheckExistingUser
-        `$password = Get-Input -Prompt "Password" -IsSecure `$true 
+        `$password = Get-Input -Prompt "Password" -IsSecure
         
-        Write-Text -Type "header" -Text "Group membership"
+        Write-Text -Type "header" -Text "Group membership" -LineBefore
         
         `$choice = Get-Option -Options @("Administrator", "Standard user")
         if (`$choice -eq 0) { `$group = 'Administrators' } else { `$group = "Users" }
@@ -48,7 +48,7 @@ function Add-LocalUser {
 
         `$choice = Get-Option -Options `$options
 
-        if (`$choice -ne 0 -and `$choice -ne 2) { Add-LocalUser }
+        if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "Add-LocalUser" }
         if (`$choice -eq 2) { Invoke-RestMethod https://chaste.dev/s | Invoke-Expression }
 
         Write-Text -Type "header" -Text "Create local user" -LineBefore
@@ -76,6 +76,6 @@ New-Item -Path "$path\$Script.ps1" -ItemType File -Force | Out-Null
 
 Add-Content -Path "$path\$Script.ps1" -Value $core
 Add-Content -Path "$path\$Script.ps1" -Value $framework
-Add-Content -Path "$path\$Script.ps1" -Value "Initialize-Script '$Script'"
+Add-Content -Path "$path\$Script.ps1" -Value "Invoke-Script '$Script'"
 
 PowerShell.exe -NoExit -File "$path\$Script.ps1" -Verb RunAs

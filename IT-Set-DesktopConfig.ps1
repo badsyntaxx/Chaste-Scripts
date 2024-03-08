@@ -9,7 +9,7 @@ Function Set-DesktopConfig {
     Read-Host "Press any key to continue"
 }
 
-function Initialize-Script {
+function Invoke-Script {
     param (
         [parameter(Mandatory = $false)]
         [string]$ScriptName
@@ -152,4 +152,4 @@ Function Reset-Explorer() {
     Start-Process explorer
 }
 
-Initialize-Script "Set-DesktopConfig"
+Invoke-Script "Set-DesktopConfig"

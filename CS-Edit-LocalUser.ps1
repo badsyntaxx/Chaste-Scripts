@@ -65,7 +65,7 @@ function Edit-LocalUserAction {
         1 { Set-Name -Username `$Username }
         2 { Set-Group -Username `$Username }
         3 { Remove-User -Username `$Username }
-        4 { Edit-LocalUser }  # Go back to account selection
+        4 { Invoke-Script "Edit-LocalUser" }  # Go back to account selection
     }
 }
 
@@ -95,7 +95,7 @@ function Set-Password {
 
         `$choice = Get-Option -Options `$confirmOptions
         if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { Set-Password }
-        if (`$choice -eq 1) { Edit-LocalUser }
+        if (`$choice -eq 1) { Invoke-Script "Edit-LocalUser" }
         if (`$choice -eq 2) { Invoke-RestMethod https://chaste.dev/s | Invoke-Expression }
 
         `$account = Get-LocalUser -Name `$Username
@@ -129,7 +129,7 @@ function Set-Name {
 
         `$choice = Get-Option -Options `$confirmOptions
         if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { Set-Name }
-        if (`$choice -eq 1) { Edit-LocalUser }
+        if (`$choice -eq 1) { Invoke-Script "Edit-LocalUser" }
         if (`$choice -eq 2) { Invoke-RestMethod https://chaste.dev/s | Invoke-Expression }
     
         Rename-LocalUser -Name `$Username -NewName `$newName
@@ -166,7 +166,7 @@ function Set-Group {
         `$choice = Get-Option -Options `$confirmOptions
 
         if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { Set-Group }
-        if (`$choice -eq 1) { Edit-LocalUser }
+        if (`$choice -eq 1) { Invoke-Script "Edit-LocalUser" }
         if (`$choice -eq 2) { Invoke-RestMethod https://chaste.dev/s | Invoke-Expression }
 
         Remove-LocalGroupMember -Group "Administrators" -Member `$Username -ErrorAction SilentlyContinue
@@ -207,7 +207,7 @@ function Remove-User {
         Write-Text -Type "recap" -Data `$data -LineAfter
         
         `$choice = Get-Option -Options `$confirmOptions
-        if (`$choice -ne 0 -and `$choice -ne 2) { Edit-LocalUser }
+        if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "Edit-LocalUser" }
         if (`$choice -eq 2) { Invoke-RestMethod https://chaste.dev/s | Invoke-Expression }
 
         Remove-LocalUser -Name `$Username
@@ -267,6 +267,6 @@ New-Item -Path "$path\$Script.ps1" -ItemType File -Force | Out-Null
 
 Add-Content -Path "$path\$Script.ps1" -Value $core
 Add-Content -Path "$path\$Script.ps1" -Value $framework
-Add-Content -Path "$path\$Script.ps1" -Value "Initialize-Script '$Script'"
+Add-Content -Path "$path\$Script.ps1" -Value "Invoke-Script '$Script'"
 
 PowerShell.exe -File "$path\$Script.ps1" -Verb RunAs

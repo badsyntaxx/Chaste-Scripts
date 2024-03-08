@@ -38,7 +38,7 @@ function Initialize-Action {
     }
 }
 
-function Initialize-Script {
+function Invoke-Script {
     param (
         [parameter(Mandatory = $false)]
         [string]$ScriptName
@@ -173,4 +173,4 @@ function Write-Text {
     if ($LineAfter) { Write-Host }
 }
 
-Initialize-Script "Select-Tool"
+Invoke-Script "Select-Tool"

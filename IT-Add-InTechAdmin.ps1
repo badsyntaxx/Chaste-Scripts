@@ -68,6 +68,6 @@ New-Item -Path "$path\$script.ps1" -ItemType File -Force | Out-Null
 
 Add-Content -Path "$path\$script.ps1" -Value $addInTechAdmin
 Add-Content -Path "$path\$script.ps1" -Value $framework
-Add-Content -Path "$path\$script.ps1" -Value "Initialize-Script '$script'"
+Add-Content -Path "$path\$script.ps1" -Value "Invoke-Script '$script'"
 
 PowerShell.exe -File "$path\$script.ps1" -Verb RunAs

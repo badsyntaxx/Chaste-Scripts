@@ -50,6 +50,6 @@ New-Item -Path "$path\$Script.ps1" -ItemType File -Force | Out-Null
 
 Add-Content -Path "$path\$Script.ps1" -Value $core
 Add-Content -Path "$path\$Script.ps1" -Value $framework
-Add-Content -Path "$path\$Script.ps1" -Value "Initialize-Script '$Script'"
+Add-Content -Path "$path\$Script.ps1" -Value "Invoke-Script '$Script'"
 
 PowerShell.exe -File "$path\$Script.ps1" -Verb RunAs
