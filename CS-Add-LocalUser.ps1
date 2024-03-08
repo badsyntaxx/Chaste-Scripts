@@ -6,7 +6,6 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 $Script = "Add-LocalUser"
 $isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
 $path = if ($isAdmin) { "$env:SystemRoot\Temp" } else { "$env:TEMP" }
-$framework = Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -Raw
 
 if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyContinue) {
     $framework = Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -Raw

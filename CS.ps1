@@ -24,19 +24,25 @@ function Select-Tool {
     if ($choice -eq 5) { Exit }
 
     Write-Text -Text "Initializing script..." -LineBefore
-    Initialize-Action -Script $script -Choice $choice
+    Initialize-Action -Script $script
 }
 
 function Initialize-Action {
     param (
         [parameter(Mandatory = $true)]
-        [string]$Script,
-        [parameter(Mandatory = $true)]
-        [string]$Choice
+        [string]$Script
     )
 
     try {
-        Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/$Script" | Invoke-Expression
+        $isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
+        $path = if ($isAdmin) { "$env:SystemRoot\Temp" } else { "$env:TEMP" }
+        $rawScript = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/$Script"
+
+        New-Item -Path "$path\$Script" -ItemType File -Force | Out-Null
+
+        Add-Content -Path "$path\$Script" -Value $rawScript
+
+        PowerShell.exe -NoExit -File "$path\$Script" -Verb RunAs
     } catch {
         Write-Text -Type "error" -Text "$($_.Exception.Message)"
         Read-Host "   Press any key to continue"
@@ -176,6 +182,49 @@ function Write-Text {
         }
     }
     if ($LineAfter) { Write-Host }
+}
+
+function Get-Download {
+    param (
+        [parameter(Mandatory = $false)]
+        [System.Collections.Specialized.OrderedDictionary]$Downloads,
+        [parameter(Mandatory = $false)]
+        [int]$MaxRetries = 3,
+        [parameter(Mandatory = $false)]
+        [int]$Interval = 3
+    )
+
+    $downloadComplete = $true 
+    Write-Text -Text "Downloading..."
+    foreach ($output in $Downloads.Keys) { 
+        $url = $Downloads[$output]
+        $file = $output
+        for ($retryCount = 1; $retryCount -le $MaxRetries; $retryCount++) {
+            try {
+                $wc = New-Object System.Net.WebClient
+                $wc.DownloadFile($url, $file)
+            } catch {
+                Write-Text -Type "fail" -Text "$($_.Exception.Message)"
+                $downloadComplete = $false
+                if ($retryCount -lt $MaxRetries) {
+                    Write-Text -Text "Retrying..."
+                    Start-Sleep -Seconds $Interval
+                } else {
+                    Write-Text -Type "error" -Text "Maximum retries reached. Download failed."
+                }
+            }
+        }
+    }
+
+    if ($downloadComplete) {
+        Write-Text -Type "done" -Text "Download complete."
+        return $true
+    } else {
+        foreach ($file in $Downloads.Keys) { 
+            Get-Item -ErrorAction SilentlyContinue $file | Remove-Item -ErrorAction SilentlyContinue 
+        }
+        return $false
+    }
 }
 
 Invoke-Script "Select-Tool"

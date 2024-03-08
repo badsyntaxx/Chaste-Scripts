@@ -140,7 +140,7 @@ function Get-Option {
             Write-Host " $([char]0x203A) $($Options[$pos])" -ForegroundColor "Cyan"
             $host.UI.RawUI.CursorPosition = $currPos
         }
-        Write-Output $pos
+        return $pos
     } catch {
         Write-Host "   $($_.Exception.Message)" -ForegroundColor "Red"
         Read-Host "   Press any key to continue"
