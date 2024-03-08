@@ -17,7 +17,7 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1") {
 }
 
 $core = @"
-Function Edit-NetworkAdapter {
+function Edit-NetworkAdapter {
     Write-Host "Chaste Scripts: Edit Network Adapter" -ForegroundColor DarkGray
     Write-Text -Type "header" -Text "Get started" -LineBefore
 
@@ -34,9 +34,10 @@ Function Edit-NetworkAdapter {
     if (2 -eq `$choice) { Exit }
 }
 
-Function Select-Adapter {
-    `$adapters = @()
+function Select-Adapter {
+    Write-Text -Type "header" -Text "Select an adapter" -LineBefore
 
+    `$adapters = @()
     foreach (`$n in (Get-NetAdapter | Select-Object -ExpandProperty Name)) {
         `$adapters += `$n
     }
@@ -53,135 +54,103 @@ Function Select-Adapter {
     `$interface = Get-NetIPInterface -InterfaceIndex `$adapterIndex
     `$script:currentAssignment = `$(if (`$interface.Dhcp -eq "Enabled") { "DHCP" } else { "Static" })
 
-    Select-QuickOrNormal
+    Select-QuickOrNormal -AdapterName `$adapterName
 }
 
-Function Convert-CIDRToMask {
+function Select-QuickOrNormal {
     param (
         [parameter(Mandatory = `$false)]
-        [int]`$CIDR
+        [string]`$AdapterName
     )
 
-    switch (`$CIDR) {
-        8 { `$mask = "255.0.0.0" }
-        9 { `$mask = "255.128.0.0" }
-        10 { `$mask = "255.192.0.0" }
-        11 { `$mask = "255.224.0.0" }
-        12 { `$mask = "255.240.0.0" }
-        13 { `$mask = "255.248.0.0" }
-        14 { `$mask = "255.252.0.0" }
-        15 { `$mask = "255.254.0.0" }
-        16 { `$mask = "255.255.0.0" }
-        17 { `$mask = "255.255.128.0" }
-        18 { `$mask = "255.255.192.0" }
-        19 { `$mask = "255.255.224.0" }
-        20 { `$mask = "255.255.240.0" }
-        21 { `$mask = "255.255.248.0" }
-        22 { `$mask = "255.255.252.0" }
-        23 { `$mask = "255.255.254.0" }
-        24 { `$mask = "255.255.255.0" }
-        25 { `$mask = "255.255.255.128" }
-        26 { `$mask = "255.255.255.192" }
-        27 { `$mask = "255.255.255.224" }
-        28 { `$mask = "255.255.255.240" }
-        29 { `$mask = "255.255.255.248" }
-        30 { `$mask = "255.255.255.252" }
-        31 { `$mask = "255.255.255.254" }
-        32 { `$mask = "255.255.255.255" }
-    }
+    Write-Text -Type "header" -Text "Quick import" -LineBefore
+    Get-AdapterInfo -AdapterName `$AdapterName
 
-    `$mask
-}
-
-Function Select-QuickOrNormal {
-    Clear-Host
-    `$title = "NETWORK ADAPTER: `$adapterName"
-    `$prompt = "Would you like to QUICK IMPORT using a text file?"
-    `$choices = @(
-        (New-Object System.Management.Automation.Host.ChoiceDescription "&Yes", "Use a (.txt) file to quickly import IP and DNS settings."),
-        (New-Object System.Management.Automation.Host.ChoiceDescription "&No", "Enter the settings yourself."),
-        (New-Object System.Management.Automation.Host.ChoiceDescription "&Back", "Go back to adapter selection.")
+    `$options = @(
+        "Quick import  - Import ip settings to the adapter with a pre-made .txt file."
+        "Manual edit   - Edit the network adapter yourself."
+        "Back          - Go back to network adapter selection."
     )
-    `$default = 0
-    `$choice = `$host.UI.PromptForChoice(`$title, `$prompt, `$choices, `$default)
+
+    `$choice = Get-Option -Options `$options
 
     if (0 -eq `$choice) { Select-QuickImport }
     if (1 -eq `$choice) { Edit-IP }
     if (2 -eq `$choice) { Select-Adapter }
 }
 
-Function Show-Adapters {
+function Get-AdapterInfo {
     param (
         [parameter(Mandatory = `$false)]
-        [switch]`$Detailed
+        [string]`$AdapterName
     )
 
-    `$adapters = @()
-    foreach (`$n in (Get-NetAdapter | Select-Object -ExpandProperty Name)) {
-        `$adapters += `$n
+    `$macAddress = Get-NetAdapter -Name `$AdapterName | Select-Object -ExpandProperty MacAddress
+    `$name = Get-NetAdapter -Name `$AdapterName | Select-Object -ExpandProperty Name
+    `$status = Get-NetAdapter -Name `$AdapterName | Select-Object -ExpandProperty Status
+    `$index = Get-NetAdapter -Name `$AdapterName | Select-Object -ExpandProperty InterfaceIndex
+    `$gateway = (Get-NetRoute | Where-Object { `$_.DestinationPrefix -eq '0.0.0.0/0' }).NextHop
+    `$interface = Get-NetIPInterface -InterfaceIndex `$index
+    `$dhcp = `$(if (`$interface.Dhcp -eq "Enabled") { "DHCP" } else { "Static" })
+    `$ipData = Get-NetIPAddress -InterfaceIndex `$index | Select-Object -First 1
+    `$ipAddress = `$ipData.IPAddress
+    `$subnet = Convert-CIDRToMask -CIDR `$ipData.PrefixLength
+    `$dnsServers = Get-DnsClientServerAddress -InterfaceIndex `$index | Select-Object -ExpandProperty ServerAddresses
+
+    if (`$status -eq "Up") {
+        Write-Host " `$([char]0x2022)" -ForegroundColor "Green" -NoNewline
+        Write-Host " `$name(`$dhcp)" 
+    } else {
+        Write-Host " `$([char]0x25BC)" -ForegroundColor "Red" -NoNewline
+        Write-Host " `$name(`$dhcp)"
     }
 
-    foreach (`$a in `$adapters) {
-        `$macAddress = Get-NetAdapter -Name `$a | Select-Object -ExpandProperty MacAddress
-        `$name = Get-NetAdapter -Name `$a | Select-Object -ExpandProperty Name
-        `$status = Get-NetAdapter -Name `$a | Select-Object -ExpandProperty Status
-        `$index = Get-NetAdapter -Name `$a | Select-Object -ExpandProperty InterfaceIndex
-        `$gateway = (Get-NetRoute | Where-Object { `$_.DestinationPrefix -eq '0.0.0.0/0' }).NextHop
-        `$interface = Get-NetIPInterface -InterfaceIndex `$index
-        `$dhcp = `$(if (`$interface.Dhcp -eq "Enabled") { "DHCP" } else { "Static" })
-        `$ipData = Get-NetIPAddress -InterfaceIndex `$index | Select-Object -First 1
-        `$ipAddress = `$ipData.IPAddress
-        `$subnet = Convert-CIDRToMask -CIDR `$ipData.PrefixLength
-        `$dnsServers = Get-DnsClientServerAddress -InterfaceIndex `$index | Select-Object -ExpandProperty ServerAddresses
+    # Write-Text -Type "header" -Text "Adapter:`$name(`$dhcp)" -LineBefore
+    # Write-Text "Status. . . . . . : `$status"
+    Write-Text "Mac Address . . . : `$macAddress"
+    Write-Text "IPv4 Address. . . : `$ipAddress"
+    Write-Text "Subnet Mask . . . : `$subnet"
+    Write-Text "Default Gateway . : `$gateway"
 
-        Write-Text -Type "header" -Text "Adapter:`$name(`$dhcp)" -LineBefore
-        Write-Text "Status. . . . . . : `$status"
-        Write-Text "Mac Address . . . : `$macAddress"
-        Write-Text "IPv4 Address. . . : `$ipAddress"
-        Write-Text "Subnet Mask . . . : `$subnet"
-        Write-Text "Default Gateway . : `$gateway"
-
-        for (`$i = 0; `$i -lt `$dnsServers.Count; `$i++) {
-            if (`$i -eq 0) {
-                Write-Text "DNS Servers . . . : `$(`$dnsServers[`$i])"
-            } else {
-                Write-Text "                    `$(`$dnsServers[`$i])"
-            }
+    for (`$i = 0; `$i -lt `$dnsServers.Count; `$i++) {
+        if (`$i -eq 0) {
+            Write-Text "DNS Servers . . . : `$(`$dnsServers[`$i])"
+        } else {
+            Write-Text "                    `$(`$dnsServers[`$i])"
         }
     }
-
-    Select-Adapter
+    Write-Host
 }
 
-Function Edit-IP {
-    Clear-Host
-    `$title = "NETWORK ADAPTER: `$adapterName"
-    `$prompt = "Set to DHCP or set to static and enter IP data manually"
-    `$choices = @(
-        (New-Object System.Management.Automation.Host.ChoiceDescription "&Manual", "Set the IP's to static and type the IP data."),
-        (New-Object System.Management.Automation.Host.ChoiceDescription "&DHCP", "Set the adapter to DHCP."),
-        (New-Object System.Management.Automation.Host.ChoiceDescription "&Back", "Go back to quick import selection.")
+function Edit-IP {
+    Write-Text -Type "header" -Text "Select protocol" -LineBefore
+
+    `$options = @(
+        "Static  - Import ip settings to the adapter with a pre-made .txt file."
+        "DHCP   - Edit the network adapter yourself."
+        "Back          - Go back to network adapter selection."
     )
-    `$default = 0
-    `$choice = `$host.UI.PromptForChoice(`$title, `$prompt, `$choices, `$default)
-    `$script:IPDHCP = `$false
+
+    `$choice = Get-Option -Options `$options
 
     if (0 -eq `$choice) { 
-        `$script:desiredAddress = Test-IPIsGood -Prompt "Enter IP Address (Leave blank to skip)"
-        `$script:desiredSubnet = Test-IPIsGood -Prompt "Enter Subnet mask (Leave blank to skip)"        
-        `$script:desiredGateway = Test-IPIsGood -Prompt "Enter Gateway (Leave blank to skip)"
+        `$regex = "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+        `$script:desiredAddress = Get-Input -Prompt "Enter IP Address (Leave blank to skip)" -Validate `$regex -Value `$currentIP
+        `$script:desiredSubnet = Get-Input -Prompt "Enter Subnet mask (Leave blank to skip)" -Validate `$regex -Value `$currentSubnet        
+        `$script:desiredGateway = Get-Input -Prompt "Enter Gateway (Leave blank to skip)" -Validate `$regex -Value `$currentGateway
 
-        if ("" -eq `$desiredAddress) { `$desiredAddress = `$currentIP }
-        if ("" -eq `$desiredSubnet) { `$desiredSubnet = `$currentSubnet }
-        if ("" -eq `$desiredGateway) { `$desiredGateway = `$currentGateway }
+        if (`$desiredAddress -eq "") { `$desiredAddress = `$currentIP }
+        if (`$desiredSubnet -eq "") { `$desiredSubnet = `$currentSubnet }
+        if (`$desiredGateway -eq "") { `$desiredGateway = `$currentGateway }
     }
+
     if (1 -eq `$choice) { `$script:IPDHCP = `$true }
     if (2 -eq `$choice) { Select-QuickOrNormal }
 
     Edit-DNS
 }
 
-Function Set-IPScheme {
+function Set-IPScheme {
     param (
         [parameter(Mandatory = `$true)]
         [boolean]`$Automagic,
@@ -210,7 +179,7 @@ Function Set-IPScheme {
     Confirm-StartingChoice
 }
 
-Function Edit-DNS {
+function Edit-DNS {
     `$title = "NETWORK ADAPTER: `$adapterName"
     `$prompt = "Set to DHCP or set to static and enter the DNS data manually"
     `$choices = @(
@@ -267,7 +236,7 @@ Function Edit-DNS {
     Confirm-Edits
 }
 
-Function Confirm-Edits {
+function Confirm-Edits {
     Write-Host "Here are the IP settings you chose for '`$adapterName'"
     Write-Host "IPv4 Address:     `$desiredAddress"
     Write-Host "Subnet Mask:      `$desiredSubnet"
@@ -288,29 +257,67 @@ Function Confirm-Edits {
     # `$netAdapter | Set-DnsClientServerAddress -ServerAddresses `$csl
 }
 
-Function Test-IPIsGood {
+function Convert-CIDRToMask {
     param (
-        [parameter(Mandatory = `$true)]
-        [string]`$Prompt
+        [parameter(Mandatory = `$false)]
+        [int]`$CIDR
     )
 
-    `$ipv4 = '^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)`$'
-    `$ip = Read-Host `$Prompt
-
-    while (`$ip -notmatch `$ipv4 -And `$ip -ne "") {
-        Write-Host "The IP address you entered appears to be malformed. Try again."
-        `$ip = Read-Host `$Prompt
+    switch (`$CIDR) {
+        8 { `$mask = "255.0.0.0" }
+        9 { `$mask = "255.128.0.0" }
+        10 { `$mask = "255.192.0.0" }
+        11 { `$mask = "255.224.0.0" }
+        12 { `$mask = "255.240.0.0" }
+        13 { `$mask = "255.248.0.0" }
+        14 { `$mask = "255.252.0.0" }
+        15 { `$mask = "255.254.0.0" }
+        16 { `$mask = "255.255.0.0" }
+        17 { `$mask = "255.255.128.0" }
+        18 { `$mask = "255.255.192.0" }
+        19 { `$mask = "255.255.224.0" }
+        20 { `$mask = "255.255.240.0" }
+        21 { `$mask = "255.255.248.0" }
+        22 { `$mask = "255.255.252.0" }
+        23 { `$mask = "255.255.254.0" }
+        24 { `$mask = "255.255.255.0" }
+        25 { `$mask = "255.255.255.128" }
+        26 { `$mask = "255.255.255.192" }
+        27 { `$mask = "255.255.255.224" }
+        28 { `$mask = "255.255.255.240" }
+        29 { `$mask = "255.255.255.248" }
+        30 { `$mask = "255.255.255.252" }
+        31 { `$mask = "255.255.255.254" }
+        32 { `$mask = "255.255.255.255" }
     }
 
-    return `$ip
+    `$mask
 }
 
-Function Use-QuickImport {
+function Show-Adapters {
+    param (
+        [parameter(Mandatory = `$false)]
+        [switch]`$Detailed
+    )
+
+    `$adapters = @()
+    foreach (`$n in (Get-NetAdapter | Select-Object -ExpandProperty Name)) {
+        `$adapters += `$n
+    }
+
+    foreach (`$a in `$adapters) {
+        Get-AdapterInfo -AdapterName `$a
+    }
+
+    Select-Adapter
+}
+
+function Use-QuickImport {
     `$lines = Get-Content -Path "C:\Users\`$env:username\Desktop\ipscheme.txt"
     `$ips = ""
     `$dns = @()
     `$setting = 'ip'
-    `$ipv4 = '^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)`$'
+    `$ipv4 = '^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
 
     foreach (`$n in `$lines) {
         if (`$n -notmatch `$ipv4) {
