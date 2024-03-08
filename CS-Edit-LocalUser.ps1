@@ -132,7 +132,7 @@ function Set-Name {
         Write-Text -Type "notice" -Text "NOTICE: You're about to change this users name."
         Write-Text -Type "recap" -Data `$data -LineAfter
 
-        `$choice = Get-Option -Options `$options
+        `$choice = Get-Option -Options `$Confirmation
         if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { Set-Name }
         if (`$choice -eq 1) { Invoke-Script "Edit-LocalUser" }
         if (`$choice -eq 2) { Invoke-RestMethod https://chaste.dev/s | Invoke-Expression }
