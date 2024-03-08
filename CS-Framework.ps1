@@ -10,7 +10,7 @@ function Invoke-Script {
             Exit;
         } 
 
-        $height = 37
+        $height = 35
         $width = 110
         $console = $host.UI.RawUI
         $consoleBuffer = $console.BufferSize
@@ -21,7 +21,7 @@ function Invoke-Script {
         if ($consoleBuffer.Height -gt $Height ) { $currentHeight = $Height }
         $console.WindowPosition = New-Object System.Management.Automation.Host.Coordinates(0, 0)
         $console.WindowSize = New-Object System.Management.Automation.Host.size($currentWidth, $currentHeight)
-        $console.BufferSize = New-Object System.Management.Automation.Host.size($Width, 100)
+        $console.BufferSize = New-Object System.Management.Automation.Host.size($Width, 9001)
         $console.WindowSize = New-Object System.Management.Automation.Host.size($Width, $Height)
         $console.BackgroundColor = "Black"
         $console.ForegroundColor = "Gray"
