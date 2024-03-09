@@ -46,9 +46,8 @@ function Add-LocalUser {
         Write-Text -Type "recap" -Data `$data -LineAfter
 
         `$choice = Get-Option -Options `$options
-
         if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "Add-LocalUser" }
-        if (`$choice -eq 2) { Invoke-RestMethod https://chaste.dev/s | Invoke-Expression }
+        if (`$choice -eq 2) {  Write-CloseOut -Script "Add-LocalUser" }
 
         Write-Text -Type "header" -Text "Create local user" -LineBefore
 

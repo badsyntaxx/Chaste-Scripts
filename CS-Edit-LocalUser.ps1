@@ -99,7 +99,7 @@ function Set-Password {
         `$choice = Get-Option -Options `$Confirmation
         if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { Set-Password }
         if (`$choice -eq 1) { Invoke-Script "Edit-LocalUser" }
-        if (`$choice -eq 2) { Invoke-RestMethod https://chaste.dev/s | Invoke-Expression }
+        if (`$choice -eq 2) { Write-CloseOut -Script "Edit-LocalUser" }
 
         `$account = Get-LocalUser -Name `$Username
         `$account | Set-LocalUser -Password `$password
@@ -135,7 +135,7 @@ function Set-Name {
         `$choice = Get-Option -Options `$Confirmation
         if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { Set-Name }
         if (`$choice -eq 1) { Invoke-Script "Edit-LocalUser" }
-        if (`$choice -eq 2) { Invoke-RestMethod https://chaste.dev/s | Invoke-Expression }
+        if (`$choice -eq 2) { Write-CloseOut -Script "Edit-LocalUser" }
     
         Rename-LocalUser -Name `$Username -NewName `$newName
 
@@ -174,7 +174,7 @@ function Set-Group {
 
         if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { Set-Group }
         if (`$choice -eq 1) { Invoke-Script "Edit-LocalUser" }
-        if (`$choice -eq 2) { Invoke-RestMethod https://chaste.dev/s | Invoke-Expression }
+        if (`$choice -eq 2) { Write-CloseOut -Script "Edit-LocalUser" }
 
         Remove-LocalGroupMember -Group "Administrators" -Member `$Username -ErrorAction SilentlyContinue
         Add-LocalGroupMember -Group `$group -Member `$Username
@@ -217,7 +217,7 @@ function Remove-User {
         
         `$choice = Get-Option -Options `$Confirmation
         if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "Edit-LocalUser" }
-        if (`$choice -eq 2) { Invoke-RestMethod https://chaste.dev/s | Invoke-Expression }
+        if (`$choice -eq 2) { Write-CloseOut -Script "Edit-LocalUser" }
 
         Remove-LocalUser -Name `$Username
 

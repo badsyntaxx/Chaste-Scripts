@@ -201,7 +201,7 @@ function Write-CloseOut {
         [string]$Script = ""
     )
 
-    if ($Message -ne "") { Write-Text -Text $Message -Type "success" }
+    if ($Message -ne "") { Write-Text -Type "success" -Text $Message }
     $paths = @("$env:TEMP\$Script.ps1", "$env:SystemRoot\Temp\$Script.ps1")
     foreach ($p in $paths) { Get-Item -ErrorAction SilentlyContinue $p | Remove-Item -ErrorAction SilentlyContinue }
     $param = Read-Host -Prompt "`r`n   Type command to run another task or just hit enter to exit"
