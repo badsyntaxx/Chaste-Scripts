@@ -92,46 +92,22 @@ function Edit-IP {
     Edit-DNS
 }
 
-function Set-IPScheme {
+function Edit-DNS {
     param (
         [parameter(Mandatory = `$true)]
-        [boolean]`$Automagic,
-        [parameter(Mandatory = `$false)]
-        [string]`$Address,
-        [parameter(Mandatory = `$false)]
-        [string]`$Subnet,
-        [parameter(Mandatory = `$false)]
-        [string]`$Gateway
+        [string]`$AdapterName
     )
 
-    Get-NetAdapter -Name `$adapterName | Remove-NetIPAddress -Confirm:`$false
-    Remove-NetRoute -InterfaceAlias `$adapterName -DestinationPrefix 0.0.0.0/0 -Confirm:`$false
+    Write-Text -Type "header" -Text "Edit net adapter" -LineBefore
+    Get-AdapterInfo -AdapterName `$AdapterName
 
-    if (`$Automagic) {
-        Write-Host "Settings network adapter `$adapterName to DHCP"
-        Set-NetIPInterface -InterfaceIndex `$adapterIndex -Dhcp Enabled
-        netsh interface ipv4 set address name="`$adapterName" source=dhcp
-    } else {
-        if (`$Address -ne "") { `$newAddress = `$Address } else { `$newAddress = `$currentIP }
-        if (`$Subnet -ne "") { `$newSubnet = `$Subnet } else { `$newSubnet = `$currentSubnet }
-        if (`$Gateway -ne "") { `$newGateway = `$Gateway } else { `$newGateway = `$currentGatway }
-        netsh interface ipv4 set address name="`$adapterName" static `$newAddress `$newSubnet `$newGateway
-    }
-
-    Confirm-StartingChoice
-}
-
-function Edit-DNS {
-    `$title = "NETWORK ADAPTER: `$adapterName"
-    `$prompt = "Set to DHCP or set to static and enter the DNS data manually"
-    `$choices = @(
-        (New-Object System.Management.Automation.Host.ChoiceDescription "&Manual", "Set DNS to static and type the DNS data."),
-        (New-Object System.Management.Automation.Host.ChoiceDescription "&DHCP", "Set the DNS to DHCP."),
-        (New-Object System.Management.Automation.Host.ChoiceDescription "&Back", "Go back to IP entry.")
+    `$options = @(
+        "Static DNS addressing  - Set this adapter to static and enter DNS data manually."
+        "DHCP DNS addressing    - Set this adapter to DHCP."
+        "Back                  - Go back to network adapter selection."
     )
-    `$default = 0
-    `$choice = `$host.UI.PromptForChoice(`$title, `$prompt, `$choices, `$default)
-    `$script:DNSDHCP = `$false
+
+    `$choice = Get-Option -Options `$options
 
     if (0 -eq `$choice) { 
         `$script:dns = New-Object System.Collections.Generic.List[System.Object]
@@ -176,6 +152,35 @@ function Edit-DNS {
     if (2 -eq `$choice) { Edit-IP }
 
     Confirm-Edits
+}
+
+function Set-IPScheme {
+    param (
+        [parameter(Mandatory = `$true)]
+        [boolean]`$Automagic,
+        [parameter(Mandatory = `$false)]
+        [string]`$Address,
+        [parameter(Mandatory = `$false)]
+        [string]`$Subnet,
+        [parameter(Mandatory = `$false)]
+        [string]`$Gateway
+    )
+
+    Get-NetAdapter -Name `$adapterName | Remove-NetIPAddress -Confirm:`$false
+    Remove-NetRoute -InterfaceAlias `$adapterName -DestinationPrefix 0.0.0.0/0 -Confirm:`$false
+
+    if (`$Automagic) {
+        Write-Host "Settings network adapter `$adapterName to DHCP"
+        Set-NetIPInterface -InterfaceIndex `$adapterIndex -Dhcp Enabled
+        netsh interface ipv4 set address name="`$adapterName" source=dhcp
+    } else {
+        if (`$Address -ne "") { `$newAddress = `$Address } else { `$newAddress = `$currentIP }
+        if (`$Subnet -ne "") { `$newSubnet = `$Subnet } else { `$newSubnet = `$currentSubnet }
+        if (`$Gateway -ne "") { `$newGateway = `$Gateway } else { `$newGateway = `$currentGatway }
+        netsh interface ipv4 set address name="`$adapterName" static `$newAddress `$newSubnet `$newGateway
+    }
+
+    Confirm-StartingChoice
 }
 
 function Confirm-Edits {
@@ -302,7 +307,7 @@ function Use-QuickImport {
     `$ips = ""
     `$dns = @()
     `$setting = 'ip'
-    `$ipv4 = '^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)`$'
+    `$ipv4 = '^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
 
     foreach (`$n in `$lines) {
         if (`$n -notmatch `$ipv4) {

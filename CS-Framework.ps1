@@ -214,7 +214,9 @@ function Write-CloseOut {
 function Get-Download {
     param (
         [parameter(Mandatory = $false)]
-        [System.Collections.Specialized.OrderedDictionary]$Downloads,
+        [string]$Uri,
+        [parameter(Mandatory = $false)]
+        [string]$Target,
         [parameter(Mandatory = $false)]
         [int]$MaxRetries = 3,
         [parameter(Mandatory = $false)]
@@ -223,22 +225,19 @@ function Get-Download {
 
     $downloadComplete = $true 
     Write-Text -Text "Downloading..."
-    foreach ($output in $Downloads.Keys) { 
-        $url = $Downloads[$output]
-        $file = $output
-        for ($retryCount = 1; $retryCount -le $MaxRetries; $retryCount++) {
-            try {
-                $wc = New-Object System.Net.WebClient
-                $wc.DownloadFile($url, $file)
-            } catch {
-                Write-Text -Type "fail" -Text "$($_.Exception.Message)"
-                $downloadComplete = $false
-                if ($retryCount -lt $MaxRetries) {
-                    Write-Text -Text "Retrying..."
-                    Start-Sleep -Seconds $Interval
-                } else {
-                    Write-Text -Type "error" -Text "Maximum retries reached. Download failed."
-                }
+    
+    for ($retryCount = 1; $retryCount -le $MaxRetries; $retryCount++) {
+        try {
+            $wc = New-Object System.Net.WebClient
+            $wc.DownloadFile($Uri, $Target)
+        } catch {
+            Write-Text -Type "fail" -Text "$($_.Exception.Message)"
+            $downloadComplete = $false
+            if ($retryCount -lt $MaxRetries) {
+                Write-Text -Text "Retrying..."
+                Start-Sleep -Seconds $Interval
+            } else {
+                Write-Text -Type "error" -Text "Maximum retries reached. Download failed."
             }
         }
     }
@@ -247,9 +246,7 @@ function Get-Download {
         Write-Text -Type "done" -Text "Download complete."
         return $true
     } else {
-        foreach ($file in $Downloads.Keys) { 
-            Get-Item -ErrorAction SilentlyContinue $file | Remove-Item -ErrorAction SilentlyContinue 
-        }
+        Get-Item -ErrorAction SilentlyContinue $Target | Remove-Item -ErrorAction SilentlyContinue 
         return $false
     }
 }

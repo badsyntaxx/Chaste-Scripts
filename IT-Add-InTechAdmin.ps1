@@ -30,7 +30,9 @@ function Add-InTechAdmin {
             "`$path\PHRASE.txt" = "https://drive.google.com/uc?export=download&id=1jbppZfGusqAUM2aU7V4IeK0uHG2OYgoY"
         }
 
-        `$download = Get-Download -Downloads `$downloads
+        foreach (`$download in `$downloads.Keys) {
+            `$download = Get-Download -Uri `$download -Target `$(`$downloads[`$download])
+        } 
 
         if (!`$download) { throw "Unable to acquire credentials." }
 

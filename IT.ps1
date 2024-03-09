@@ -2,36 +2,53 @@
 
 function Select-Tool {
     Write-Host "Chaste Scripts`n" -ForegroundColor DarkGray
-    Write-Text -Type "heading" -Text "Chaste Scripts"
-    Write-Text -Type "header" -Text "Select a tool"
 
     $options = @(
-        "Create InTechAdmin       - Create the InTechAdmin account.",
-        "Install Nuvia ISR Apps   - Create a local user.",
-        "Quit                     - Do nothing and exit."
+        "Enable Administrator    - Enable Windows built in administrator account."
+        "Create user             - Create a local user."
+        "Edit user               - Edit / delete existing user."
+        "Rename computer         - Edit this computers name and description."
+        "Edit network adapter    - Select and edit a network adapter."
+        "Create InTechAdmin      - Create the InTechAdmin account.",
+        "Install Nuvia ISR apps  - Install all the apps a Nuvia ISR will need.",
+        "Configure desktop       - Create a professional desktop with system stats background."
+        "Quit                    - Do nothing and exit."
     )
 
-    $choice = Get-Option -Options $options
+    Write-Text -Type "header" -Text "Selection"
 
-    if ($choice -eq 0) { $script = "IT-Add-InTechAdmin.ps1" }
-    if ($choice -eq 1) { $script = "IT-Install-ISRApps.ps1" }
-    if ($choice -eq 2) { $script = "IT-Add-ISRBookmarks.ps1" }
-    if ($choice -eq 4) { Exit }
+    $choice = Get-Option -Options $options -DefaultOption 5
+    if ($choice -eq 0) { $script = "CS-Enable-BuiltInAdminAccount.ps1" }
+    if ($choice -eq 1) { $script = "CS-Add-LocalUser.ps1" }
+    if ($choice -eq 2) { $script = "CS-Edit-LocalUser.ps1" }
+    if ($choice -eq 3) { $script = "CS-Set-ComputerName.ps1" }
+    if ($choice -eq 4) { $script = "CS-Edit-NetworkAdapter.ps1" }
+    if ($choice -eq 5) { $script = "IT-Add-InTechAdmin.ps1" }
+    if ($choice -eq 6) { $script = "IT-Install-ISRApps.ps1" }
+    if ($choice -eq 7) { $script = "IT-Add-ISRBookmarks.ps1" }
+    if ($choice -eq 8) { Exit }
 
     Write-Text -Type "header" -Text "Initializing script" -LineBefore
+
     Initialize-Action -Script $script -Choice $choice
 }
 
 function Initialize-Action {
     param (
         [parameter(Mandatory = $true)]
-        [string]$Script,
-        [parameter(Mandatory = $true)]
-        [string]$Choice
+        [string]$Script
     )
 
     try {
-        Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/$Script" | Invoke-Expression
+        $isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
+        $path = if ($isAdmin) { "$env:SystemRoot\Temp" } else { "$env:TEMP" }
+        $rawScript = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/$Script"
+
+        New-Item -Path "$path\$Script" -ItemType File -Force | Out-Null
+
+        Add-Content -Path "$path\$Script" -Value $rawScript
+
+        PowerShell.exe -NoExit -File "$path\$Script" -Verb RunAs
     } catch {
         Write-Text -Type "error" -Text "$($_.Exception.Message)"
         Read-Host "   Press any key to continue"
@@ -50,19 +67,7 @@ function Invoke-Script {
     }  
 
     try {
-        $height = 37
-        $width = 110
         $console = $host.UI.RawUI
-        $consoleBuffer = $console.BufferSize
-        $consoleSize = $console.WindowSize
-        $currentWidth = $consoleSize.Width
-        $currentHeight = $consoleSize.Height
-        if ($consoleBuffer.Width -gt $Width ) { $currentWidth = $Width }
-        if ($consoleBuffer.Height -gt $Height ) { $currentHeight = $Height }
-
-        $console.WindowSize = New-Object System.Management.Automation.Host.size($currentWidth, $currentHeight)
-        $console.BufferSize = New-Object System.Management.Automation.Host.size($Width, 2000)
-        $console.WindowSize = New-Object System.Management.Automation.Host.size($Width, $Height)
         $console.BackgroundColor = "Black"
         $console.ForegroundColor = "Gray"
         $console.WindowTitle = "Chaste Scripts"

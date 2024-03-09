@@ -68,10 +68,7 @@ function Install-GoogleChromeBookmarks {
     try {
         Write-Text "Adding Nuvia bookmarks..." -LineBefore
         `$tempPath = "C:\Users\`$account\Desktop\TEMP"
-        `$downloads = [ordered]@{
-            "`$tempPath\Bookmarks" = "https://drive.google.com/uc?export=download&id=1WmvSnxtDSLOt0rgys947sOWW-v9rzj9U"
-        }
-        `$download = Get-Download -Downloads `$downloads
+        `$download = Get-Download -Uri "https://drive.google.com/uc?export=download&id=1WmvSnxtDSLOt0rgys947sOWW-v9rzj9U" -Target "`$tempPath\Bookmarks"
         if (`$download) {
             ROBOCOPY "`$tempPath" "C:\Users\`$account\AppData\Local\Google\Chrome\User Data\Default" "Bookmarks" /NFL /NDL /NJH /NJS /nc /ns | Out-Null
             Write-Text -Type "done" -Text "Bookmarks added to chrome."
@@ -272,11 +269,10 @@ function Install-Program {
 
     try {
         if (`$Extenstion -eq "msi") { `$output = "`$AppName.msi" } else { `$output = "`$AppName.exe" }
+        
         `$tempPath = "C:\Users\`$account\Desktop\TEMP"
-        `$downloads = [ordered]@{
-            "`$tempPath\`$output" = `$Url
-        }
-        `$download = Get-Download -Downloads `$downloads
+        `$download = Get-Download -Uri `$Url -Target "`$tempPath\`$output"
+
         if (`$download) {
             Write-Text -Text "Intalling..."
             if (`$Extenstion -eq "msi") {
