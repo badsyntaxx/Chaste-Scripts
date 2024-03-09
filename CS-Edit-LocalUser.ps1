@@ -50,10 +50,10 @@ function Select-Action {
         "Edit username              - Edit the account username.",
         "Change group               - Edit group membership (Administrators / Users).",
         "Delete account             - Delete the local user account.",
-        "Go back                    - Go back to account selection."
+        "Go back                    - Go back to user selection."
     )
 
-    `$confirmation = @(
+    `$script:confirmation = @(
         "Submit   - Confirm and apply changes", 
         "Reset    - Start edit user over.", 
         "Exit     - Start over back at task selection."
@@ -62,10 +62,10 @@ function Select-Action {
     `$choice = Get-Option -Options `$options
 
     switch (`$choice) {
-        0 { Set-Password -Username `$Username -Confirmation `$confirmation }
-        1 { Set-Name -Username `$Username -Confirmation `$confirmation }
-        2 { Set-Group -Username `$Username -Confirmation `$confirmation }
-        3 { Remove-User -Username `$Username -Confirmation `$confirmation }
+        0 { Set-Password -Username `$Username }
+        1 { Set-Name -Username `$Username }
+        2 { Set-Group -Username `$Username }
+        3 { Remove-User -Username `$Username }
         4 { Invoke-Script "Edit-LocalUser" }  # Go back to account selection
     }
 }
@@ -73,9 +73,7 @@ function Select-Action {
 function Set-Password {
     param (
         [parameter(Mandatory = `$true)]
-        [string]`$Username,
-        [parameter(Mandatory = `$true)]
-        [array]`$Confirmation
+        [string]`$Username
     )
 
     try {
@@ -83,11 +81,8 @@ function Set-Password {
         Write-Text -Type "notice" -Text "NOTICE: Leave blank to remove password."
         `$password = Get-Input -Prompt "Password" -IsSecure `$true
 
-        if (`$password.Length -eq 0) {
-            `$alert = "NOTICE: You're about to remove this users password."
-        } else {
-            `$alert = "NOTICE: You're about to change this users password."
-        }
+        if (`$password.Length -eq 0) { `$alert = "NOTICE: You're about to remove this users password." } 
+        else { `$alert = "NOTICE: You're about to change this users password." }
 
         Write-Text -Type "header" -Text "Confirm password change" -LineBefore
 
@@ -96,7 +91,7 @@ function Set-Password {
         Write-Text -Type "notice" -Text "`$alert"
         Write-Text -Type "recap" -Data `$data -LineAfter
 
-        `$choice = Get-Option -Options `$Confirmation
+        `$choice = Get-Option -Options `$confirmation
         if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { Set-Password }
         if (`$choice -eq 1) { Invoke-Script "Edit-LocalUser" }
         if (`$choice -eq 2) { Write-CloseOut -Script "Edit-LocalUser" }
@@ -115,15 +110,13 @@ function Set-Password {
 function Set-Name {
     param (
         [parameter(Mandatory = `$true)]
-        [string]`$Username,
-        [parameter(Mandatory = `$true)]
-        [array]`$Confirmation
+        [string]`$Username
     )
 
     try {
         Write-Text -Type "header" -Text "Change username" -LineBefore
 
-        `$newName = Get-Input -Prompt "Enter new name" -Validate "^(\s*|[a-zA-Z0-9 _\-]{1,64})$" -CheckExistingUser
+        `$newName = Get-Input -Prompt "Username" -Validate "^(\s*|[a-zA-Z0-9 _\-]{1,64})$" -CheckExistingUser
 
         Write-Text -Type "header" -Text "Confirm name change" -LineBefore
 
@@ -132,7 +125,7 @@ function Set-Name {
         Write-Text -Type "notice" -Text "NOTICE: You're about to change this users name."
         Write-Text -Type "recap" -Data `$data -LineAfter
 
-        `$choice = Get-Option -Options `$Confirmation
+        `$choice = Get-Option -Options `$confirmation
         if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { Set-Name }
         if (`$choice -eq 1) { Invoke-Script "Edit-LocalUser" }
         if (`$choice -eq 2) { Write-CloseOut -Script "Edit-LocalUser" }
@@ -149,20 +142,24 @@ function Set-Name {
 function Set-Group {
     param (
         [parameter(Mandatory = `$true)]
-        [string]`$Username,
-        [parameter(Mandatory = `$true)]
-        [array]`$Confirmation
+        [string]`$Username
     )
 
     try {
         Write-Text -Type "header" -Text "Change group membership" -LineBefore
 
-        `$options = @("Administrator", "Standard User")
+        `$options = @(
+            "Administrator  - Make this user an administrator."
+            "Standard User  - Make this user a standard user."
+            "Back           - Go back to action selection."
+        )
+
         `$group = Get-Option -Options `$options
 
         switch (`$group) {
             0 { `$group = 'Administrators' }
             1 { `$group = 'Users' }
+            2 { Select-Action -Username `$Username }
         }
 
         Write-Text -Type "header" -Text "Confirm group change" -LineBefore
@@ -170,7 +167,7 @@ function Set-Group {
         Write-Text -Type "notice" -Text "NOTICE: You're about to change this users group membership."
         Write-Text -Type "recap" -Data `$data -LineAfter
         
-        `$choice = Get-Option -Options `$Confirmation
+        `$choice = Get-Option -Options `$confirmation
 
         if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { Set-Group }
         if (`$choice -eq 1) { Invoke-Script "Edit-LocalUser" }
@@ -189,20 +186,21 @@ function Set-Group {
 function Remove-User {
     param (
         [parameter(Mandatory = `$true)]
-        [string]`$Username,
-        [parameter(Mandatory = `$true)]
-        [array]`$Confirmation
+        [string]`$Username
     )
 
     try {
         Write-Text -Type "header" -Text "Delete user data" -LineBefore
         `$options = @(
-            "Delete   - Also delete the users data and remove their profile folder",
-            "Keep     - Do not delete the users data and leave their profile folder alone"
+            "Delete  - Also delete the users data.",
+            "Keep    - Do not delete the users data."
+            "Back    - Go back to action selection."
         )
 
         `$choice = Get-Option -Options `$options
-        if (`$choice -eq 0) { `$deleteData = `$true } else { `$deleteData = `$false }
+        if (`$choice -eq 0) { `$deleteData = `$true }
+        if (`$choice -eq 1) { `$deleteData = `$false }
+        if (`$choice -eq 2) { Select-Action -Username `$Username }
 
         Write-Text -Type "header" -Text "Confirm user deletion" -LineBefore
         if (`$deleteData) {
@@ -215,7 +213,7 @@ function Remove-User {
 
         Write-Text -Type "recap" -Data `$data -LineAfter
         
-        `$choice = Get-Option -Options `$Confirmation
+        `$choice = Get-Option -Options `$confirmation
         if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "Edit-LocalUser" }
         if (`$choice -eq 2) { Write-CloseOut -Script "Edit-LocalUser" }
 
