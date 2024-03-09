@@ -1,5 +1,3 @@
-
-
 function Select-Tool {
     Write-Host "Chaste Scripts`n" -ForegroundColor DarkGray
 
@@ -15,7 +13,6 @@ function Select-Tool {
     Write-Text -Type "header" -Text "Selection"
 
     $choice = Get-Option -Options $options
-
     if ($choice -eq 0) { $script = "CS-Enable-BuiltInAdminAccount.ps1" }
     if ($choice -eq 1) { $script = "CS-Add-LocalUser.ps1" }
     if ($choice -eq 2) { $script = "CS-Edit-LocalUser.ps1" }
@@ -24,6 +21,7 @@ function Select-Tool {
     if ($choice -eq 5) { Exit }
 
     Write-Text -Text "Initializing script..." -LineBefore
+    
     Initialize-Action -Script $script
 }
 
@@ -61,19 +59,7 @@ function Invoke-Script {
     }  
 
     try {
-        $height = 37
-        $width = 110
         $console = $host.UI.RawUI
-        $consoleBuffer = $console.BufferSize
-        $consoleSize = $console.WindowSize
-        $currentWidth = $consoleSize.Width
-        $currentHeight = $consoleSize.Height
-        if ($consoleBuffer.Width -gt $Width ) { $currentWidth = $Width }
-        if ($consoleBuffer.Height -gt $Height ) { $currentHeight = $Height }
-
-        $console.WindowSize = New-Object System.Management.Automation.Host.size($currentWidth, $currentHeight)
-        $console.BufferSize = New-Object System.Management.Automation.Host.size($Width, 2000)
-        $console.WindowSize = New-Object System.Management.Automation.Host.size($Width, $Height)
         $console.BackgroundColor = "Black"
         $console.ForegroundColor = "Gray"
         $console.WindowTitle = "Chaste Scripts"
@@ -182,49 +168,6 @@ function Write-Text {
         }
     }
     if ($LineAfter) { Write-Host }
-}
-
-function Get-Download {
-    param (
-        [parameter(Mandatory = $false)]
-        [System.Collections.Specialized.OrderedDictionary]$Downloads,
-        [parameter(Mandatory = $false)]
-        [int]$MaxRetries = 3,
-        [parameter(Mandatory = $false)]
-        [int]$Interval = 3
-    )
-
-    $downloadComplete = $true 
-    Write-Text -Text "Downloading..."
-    foreach ($output in $Downloads.Keys) { 
-        $url = $Downloads[$output]
-        $file = $output
-        for ($retryCount = 1; $retryCount -le $MaxRetries; $retryCount++) {
-            try {
-                $wc = New-Object System.Net.WebClient
-                $wc.DownloadFile($url, $file)
-            } catch {
-                Write-Text -Type "fail" -Text "$($_.Exception.Message)"
-                $downloadComplete = $false
-                if ($retryCount -lt $MaxRetries) {
-                    Write-Text -Text "Retrying..."
-                    Start-Sleep -Seconds $Interval
-                } else {
-                    Write-Text -Type "error" -Text "Maximum retries reached. Download failed."
-                }
-            }
-        }
-    }
-
-    if ($downloadComplete) {
-        Write-Text -Type "done" -Text "Download complete."
-        return $true
-    } else {
-        foreach ($file in $Downloads.Keys) { 
-            Get-Item -ErrorAction SilentlyContinue $file | Remove-Item -ErrorAction SilentlyContinue 
-        }
-        return $false
-    }
 }
 
 Invoke-Script "Select-Tool"
