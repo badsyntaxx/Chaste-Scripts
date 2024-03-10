@@ -32,16 +32,16 @@ function Enable-BuiltInAdminAccount {
     if (`$choice -eq 0) { 
         Write-Text -Text "Enabling the administrator account..." -LineBefore
         Get-LocalUser -Name "Administrator" | Enable-LocalUser 
-        Write-Text -Type "done" -Text "Administrator account enabled."
+        `$message = "Administrator account enabled."
     } 
 
     if (`$choice -eq 1) { 
         Write-Text -Text "Disabling the administrator account..." -LineBefore
         Get-LocalUser -Name "Administrator" | Disable-LocalUser 
-        Write-Text -Type "done" -Text "Administrator account Disabled."
+        `$message = "Administrator account Disabled."
     }
 
-    Write-CloseOut -Message "The administrator account was toggled." -Script "Enable-BuiltInAdminAccount"
+    Write-CloseOut -Message `$message -Script "Enable-BuiltInAdminAccount"
 }
 
 "@

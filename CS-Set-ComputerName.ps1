@@ -27,9 +27,9 @@ function Set-ComputerName {
     `$description = Get-Input -Prompt "Description" -Validate "^(\s*|[a-zA-Z0-9 |_\-]{1,64})$" -Value `$currentDescription
 
     `$options = @(
-        "Submit   - Confirm and apply changes", 
-        "Reset    - Start rename computer over.", 
-        "Exit     - Start over back at task selection."
+        "Submit  - Confirm and apply changes", 
+        "Reset   - Start rename computer over.", 
+        "Exit    - Do nothing and exit."
     )
 
     if (`$hostname -eq "") { `$hostname = `$currentHostname } 

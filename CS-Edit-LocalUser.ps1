@@ -20,17 +20,34 @@ function Edit-LocalUser {
     Write-Host "Chaste Scripts: Edit Local User" -ForegroundColor DarkGray
     Write-Text -Type "header" -Text "Select a user" -LineBefore
 
-    `$accountNames = @()
+    `$userNames = @()
+    `$accounts = @()
     `$localUsers = Get-LocalUser
-    `$excludedAccounts = @("DefaultAccount", "Administrator", "WDAGUtilityAccount", "Guest", "defaultuser0")
+    `$excludedAccounts = @("DefaultAccount", "WDAGUtilityAccount", "Guest", "defaultuser0")
+    `$adminEnabled = Get-LocalUser -Name "Administrator" | Select-Object -ExpandProperty Enabled
+
+    if (!`$adminEnabled) { `$excludedAccounts += "Administrator" }
 
     foreach (`$user in `$localUsers) {
-        if (`$user.Name -notin `$excludedAccounts) { `$accountNames += `$user.Name }
+        if (`$user.Name -notin `$excludedAccounts) { `$userNames += `$user.Name }
     }
 
-    `$choice = Get-Option -Options `$accountNames
+    `$longestName = `$userNames | Sort-Object { `$_.Length } | Select-Object -Last 1
 
-    Select-Action -Username `$accountNames[`$choice]
+    foreach (`$name in `$userNames) {
+        `$username = Get-LocalUser -Name `$name
+        `$length = `$longestName.Length - `$name.Length
+
+        `$spaces = ""
+        for (`$i = 0; `$i -lt `$length; `$i++) { `$spaces += " " }
+
+        `$groups = Get-LocalGroup | Where-Object { `$username.SID -in (`$_ | Get-LocalGroupMember | Select-Object -ExpandProperty "SID") } | Select-Object -ExpandProperty "Name"
+        `$accounts += "`$username `$spaces - `$(`$groups -join ';')" 
+    }
+
+    `$choice = Get-Option -Options `$accounts
+
+    Select-Action -Username `$userNames[`$choice]
 }
 
 function Select-Action {
@@ -41,22 +58,18 @@ function Select-Action {
 
     Write-Text -Type "header" -Text "Select an action" -LineBefore
 
-    `$data = Get-AccountInfo `$Username
-
-    Write-Text -Type "recap" -Data `$data -LineAfter
-
     `$options = @(
-        "Change / remove password   - Change or remove the password.",
-        "Edit username              - Edit the account username.",
-        "Change group               - Edit group membership (Administrators / Users).",
-        "Delete account             - Delete the local user account.",
-        "Go back                    - Go back to user selection."
+        "Change / remove password  - Change or remove the password.",
+        "Edit username             - Edit the account username.",
+        "Change group              - Edit group membership (Administrators / Users).",
+        "Delete account            - Delete the local user account.",
+        "Go back                   - Go back to user selection."
     )
 
     `$script:confirmation = @(
-        "Submit   - Confirm and apply changes", 
-        "Reset    - Start edit user over.", 
-        "Exit     - Start over back at task selection."
+        "Submit  - Confirm and apply changes", 
+        "Reset   - Start edit user over.", 
+        "Exit    - Start over back at task selection."
     )
     
     `$choice = Get-Option -Options `$options
@@ -120,7 +133,7 @@ function Set-Name {
 
         Write-Text -Type "header" -Text "Confirm name change" -LineBefore
 
-        `$data["New Name"] = `$newName 
+        `$data = Get-AccountInfo -Username `$Username
 
         Write-Text -Type "notice" -Text "NOTICE: You're about to change this users name."
         Write-Text -Type "recap" -Data `$data -LineAfter

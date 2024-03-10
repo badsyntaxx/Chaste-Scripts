@@ -20,10 +20,10 @@ function Edit-NetworkAdapter {
     Write-Text -Type "header" -Text "Get started"
 
     `$options = @(
-        "Display adapters.        - Display all non hidden network adapters."
-        "Select network adapter.  - Select the network adapter you want to edit."
-        "Quick import             - Import IP settings directly to an adapter using .txt file."
-        "Quit                     - Do nothing and exit."
+        "Display adapters        - Display all non hidden network adapters."
+        "Select network adapter  - Select the network adapter you want to edit."
+        "Quick import            - Import IP settings directly to an adapter using .txt file."
+        "Quit                    - Do nothing and exit."
     )
 
     `$choice = Get-Option -Options `$options
@@ -104,7 +104,7 @@ function Edit-DNS {
     `$options = @(
         "Static DNS addressing  - Set this adapter to static and enter DNS data manually."
         "DHCP DNS addressing    - Set this adapter to DHCP."
-        "Back                  - Go back to network adapter selection."
+        "Back                   - Go back to network adapter selection."
     )
 
     `$choice = Get-Option -Options `$options

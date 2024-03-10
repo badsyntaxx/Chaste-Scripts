@@ -19,12 +19,12 @@ $core = @"
 function Add-LocalUser {
     try {
         Write-Host "Chaste Scripts: Create Local User" -ForegroundColor DarkGray
-        Write-Text -Type "header" -Text "Credentials" -LineBefore
+        Write-Text -Type "header" -Text "Enter credentials" -LineBefore
 
         `$name = Get-Input -Prompt "Username" -Validate "^(\s*|[a-zA-Z0-9 _\-]{1,64})$"  -CheckExistingUser
         `$password = Get-Input -Prompt "Password" -IsSecure
         
-        Write-Text -Type "header" -Text "Group membership" -LineBefore
+        Write-Text -Type "header" -Text "Set group membership" -LineBefore
         
         `$choice = Get-Option -Options @("Administrator", "Standard user")
         if (`$choice -eq 0) { `$group = 'Administrators' } else { `$group = "Users" }
@@ -33,7 +33,7 @@ function Add-LocalUser {
         `$options = @(
             "Submit  - Confirm and apply changes", 
             "Reset   - Start add user over.", 
-            "Exit    - Start over back at task selection."
+            "Exit    - Do nothing and exit."
         )
 
         `$data = [ordered]@{}
@@ -41,7 +41,7 @@ function Add-LocalUser {
         `$data["Password"] = `$password
         `$data["Group"] = `$groupDisplay 
 
-        Write-Text -Type "header" -Text "Confirm user settings" -LineBefore
+        Write-Text -Type "header" -Text "Confirm user data" -LineBefore
         Write-Text -Type "notice" -Text "NOTICE: You're about to create a new local user!"
         Write-Text -Type "recap" -Data `$data -LineAfter
 
@@ -49,7 +49,7 @@ function Add-LocalUser {
         if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "Add-LocalUser" }
         if (`$choice -eq 2) {  Write-CloseOut -Script "Add-LocalUser" }
 
-        Write-Text -Type "header" -Text "Create local user" -LineBefore
+        Write-Text -Type "header" -Text "Creating local user account" -LineBefore
 
         New-LocalUser `$name -Password `$password -Description "Local User" -AccountNeverExpires -PasswordNeverExpires -ErrorAction Stop | Out-Null
 
@@ -58,10 +58,7 @@ function Add-LocalUser {
         Add-LocalGroupMember -Group `$group -Member `$name -ErrorAction Stop
 
         Write-Text -Type "done" -Text "Group membership set to `$group."
-
-        if (`$group -eq "Administrators") { `$groupType = "An administrator" } else { `$groupType = "A standard user" }
-
-        Write-CloseOut -Message "`$groupType was created with the username '`$name'." -Script "Add-LocalUser"
+        Write-CloseOut -Message "The user account was created." -Script "Add-LocalUser"
     } catch {
         Write-Text -Type "error" -Text "Add User Error: `$(`$_.Exception.Message)"
         Read-Host "   Press any key to continue"
