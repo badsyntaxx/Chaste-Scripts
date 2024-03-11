@@ -6,7 +6,7 @@ function Select-Tool {
         "Create user           - Create a local user."
         "Edit user             - Edit / delete existing user."
         "Rename computer       - Edit this computers name and description."
-        "Edit Network Adapter  - Select and edit a network adapter."
+        "Edit Network Adapter  - Select and edit a network adapter. (under construction)"
         "Quit                  - Do nothing and exit."
     )
 

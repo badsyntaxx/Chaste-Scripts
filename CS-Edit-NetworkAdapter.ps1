@@ -17,6 +17,7 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyCont
 
 $core = @"
 function Edit-NetworkAdapter {
+    Write-Host "Chaste Scripts: Edit Network Adapter (under construction) -ForegroundColor DarkGray
     Write-Text -Type "header" -Text "Get started"
 
     `$options = @(
