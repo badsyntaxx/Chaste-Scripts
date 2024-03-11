@@ -56,16 +56,14 @@ function Get-DesiredNetAdapterSettings {
         [System.Collections.Specialized.OrderedDictionary]$Adapter
     )
 
+    Write-Text -Type "header" -Text "Edit net adapter" -LineBefore
+    Get-AdapterInfo -AdapterName $Adapter["name"]
+
     $ipData = Get-IPSettings -Adapter $Adapter
-    foreach ($d in $ipData.Keys) {
-        Write-Host "   $d`: $($ipData[$d])"
-    }
     
     $dnsData = Get-DNSSettings -AdapterName $Adapter["name"]
-    foreach ($d in $dnsData.Keys) {
-        Write-Host "   $d`: $($dnsData[$d])"
-    }
-    Start-Sleep 10
+
+    Confirm-Edits -IPData $ipData -DNSData -$dnsData
 }
 
 function Get-IPSettings {
@@ -73,9 +71,6 @@ function Get-IPSettings {
         [parameter(Mandatory = $true)]
         [System.Collections.Specialized.OrderedDictionary]$Adapter
     )
-
-    Write-Text -Type "header" -Text "Edit net adapter" -LineBefore
-    Get-AdapterInfo -AdapterName $Adapter["name"]
 
     $options = @(
         "Static IP addressing  - Set this adapter to static and enter IP data manually."
@@ -85,7 +80,7 @@ function Get-IPSettings {
 
     $choice = Get-Option -Options $options
 
-    if (0 -eq $choice) { 
+    if ($choice -eq 0) { 
         Write-Host
         $ip = Get-Input -Prompt "IPv4 Address" -Validate $ipv4Regex -Value $Adapter["ip"]
         $subnet = Get-Input -Prompt "Subnet Mask" -Validate $ipv4Regex -Value $Adapter["subnet"]       
@@ -118,8 +113,7 @@ function Get-DNSSettings {
         [string]$AdapterName
     )
 
-    Write-Text -Type "header" -Text "Edit net adapter" -LineBefore
-    Get-AdapterInfo -AdapterName $AdapterName
+    Write-Host
 
     $options = @(
         "Static DNS addressing  - Set this adapter to static and enter DNS data manually."
@@ -130,64 +124,36 @@ function Get-DNSSettings {
     $choice = Get-Option -Options $options
 
     if ($choice -eq 0) { 
-        $script:dns = New-Object System.Collections.Generic.List[System.Object]
-        $csl = ""
-        $firstLoop = $true
-        $dns = Get-Input -Prompt "Enter a DNS (Leave blank to skip)"
-        $dns.Add($prompt)
-        if ("" -ne $dns[0]) {
-            $dns = Get-Input -Prompt "Enter another DNS (Leave blank to skip)"
+        $dns = New-Object System.Collections.Generic.List[System.Object]
+        $prompt = Get-Input -Prompt "Enter a DNS (Leave blank to skip)"
+        $dns.Add($prompt) 
+        while ($prompt.Length -gt 0) {
+            $prompt = Get-Input -Prompt "Enter another DNS (Leave blank to skip)"
             $dns.Add($prompt)
-        } else { $skip = $true }
-        if ("" -ne $dns[1] -And !$skip) {
-            $dns = Get-Input -Prompt "Enter another DNS (Leave blank to skip)"
-            $dns.Add($prompt)
-        } else { $skip = $true }
-        if ("" -ne $dns[2] -And !$skip) {
-            $dns = Get-Input -Prompt "Enter another DNS (Leave blank to skip)"
-            $dns.Add($prompt)
-        } else { $skip = $true }
-        if ("" -ne $dns[3] -And !$skip) {
-            $dns = Get-Input -Prompt "Enter another DNS (Leave blank to skip)"
-            $dns.Add($prompt)
-        } else { $skip = $true }
-        if ("" -ne $dns[4] -And !$skip) {
-            $dns = Get-Input -Prompt "Enter another DNS (Leave blank to skip)"
-            $dns.Add($prompt)
-        } else { $skip = $true }
-        if ("" -ne $dns[5] -And !$skip) {
-            Write-Host "I'm going to have to stop you here. Really? This many DNS'. You're trippin."
         }
 
-        foreach ($n in $dns) {
-            if ($firstLoop) {
-                $firstLoop = $false
-                $csl = $n
-            } else {
-                if ("" -ne $n) { $csl += ",$n" } 
-            }
-        }   
+        if ($dns.Count -gt 2) { $dnsString = $dns -join "," } 
+        else { $dnsString = $dns[0] }
     }
     if (1 -eq $choice) { $script:DNSDHCP = $true }
-    if (2 -eq $choice) { Edit-IP }
+    if (2 -eq $choice) { Get-DNSSettings }
 
-    Confirm-Edits
+    return $dnsString
 }
 
 function Confirm-Edits {
-    Write-Host "Here are the IP settings you chose for '$adapterName'"
-    Write-Host "IPv4 Address:     $desiredAddress"
-    Write-Host "Subnet Mask:      $desiredSubnet"
-    Write-Host "Default Gateway:  $desiredGateway"
-    $firstLoop = $true
-    foreach ($n in $dns) {
-        if ($firstLoop) {
-            Write-Host "DNS Servers:      $n"
-        } else {
-            Write-Host "                  $n"
-        }
-        $firstLoop = $false
+    param (
+        [parameter(Mandatory = $true)]
+        [System.Collections.Specialized.OrderedDictionary]$IPData,
+        [parameter(Mandatory = $true)]
+        [string]$DNSData
+    )
+
+    foreach ($d in $IPData.Keys) {
+        Write-Host "   $d`: $($IPData[$d])"
     }
+    Write-Host $DNSData
+    Start-Sleep 10
 
     # Set-IPScheme -Automagic $true
     # Set-IPScheme -Automagic $false -Address $address -Subnet $subnet -Gateway $gateway
@@ -601,7 +567,5 @@ function Get-Download {
         return $false
     }
 }
-
-
 
 Invoke-Script "Edit-NetworkAdapter"
