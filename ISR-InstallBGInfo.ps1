@@ -18,12 +18,8 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyCont
 $core = @"
 function Install-BGInfo {
     try {
-        Write-Host "Chaste Scripts: Create Local User" -ForegroundColor DarkGray
-        
-        Write-Text -Type "header" -Text "Install BGInfo"
-        Write-Text -Type "notice" -Text "NOTICE: Type or paste link to BGInfo zip."
-        Write-Text -Type "notice" -Text "NOTICE: Try my example: https://drive.google.com/uc?export=download&id=1vU-AfOmhwdwh7h_Q0IFGXClGQ4AQjjSK"
-        `$url = Get-Input -Prompt "Link"
+        Write-Host "Chaste Scripts: Install BGInfo for Nuvia ISR" -ForegroundColor DarkGray
+        Write-Text -Type "header" -Text "Install BGInfo" -LineBefore
 
         Write-Text "Removing current wallpaper."
 
@@ -33,7 +29,7 @@ function Install-BGInfo {
 
         Write-Text -Type "done" -Text "Current wallpaper removed."
 
-        `$download = Get-Download -Uri `$url -Target "C:\Windows\Temp\BGInfo.zip"
+        `$download = Get-Download -Uri "https://drive.google.com/uc?export=download&id=1vU-AfOmhwdwh7h_Q0IFGXClGQ4AQjjSK" -Target "C:\Windows\Temp\BGInfo.zip"
     
         if (!`$download) {
             throw "Frick"

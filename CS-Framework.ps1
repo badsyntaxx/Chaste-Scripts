@@ -193,6 +193,41 @@ function Write-Text {
     if ($LineAfter) { Write-Host }
 }
 
+function Write-Box {
+    param (
+        [parameter(Mandatory = $false)]
+        [string]$Text,
+        [parameter(Mandatory = $false)]
+        [string]$Link
+    )
+
+    $horizontalLine = [string][char]0x2500
+    $verticalLine = [string][char]0x2502
+    $topLeft = [string][char]0x250C
+    $topRight = [string][char]0x2510
+    $bottomLeft = [string][char]0x2514
+    $bottomRight = [string][char]0x2518
+    $longest = [Math]::Max($Text.Length, $Link.Length)
+    $paddedText = $Text.PadRight($longest)
+    $paddedLink = $Link.PadRight($longest)
+
+    Write-Host "   $topLeft$($horizontalLine * ($longest + 4))$topRight" -ForegroundColor Cyan
+    Write-Host "   $verticalLine$(" " * ($longest + 4))$verticalLine" -ForegroundColor Cyan
+
+    Write-Host "   $verticalLine" -ForegroundColor Cyan -NoNewline
+    Write-Host "  $paddedText" -NoNewline
+    Write-Host "  $verticalLine" -ForegroundColor Cyan
+
+    if ($Link -ne "") {
+        Write-Host "   $verticalLine" -ForegroundColor Cyan -NoNewline
+        Write-Host "  $paddedLink" -NoNewline -ForegroundColor DarkCyan
+        Write-Host "  $verticalLine" -ForegroundColor Cyan
+    }
+
+    Write-Host "   $verticalLine$(" " * ($longest + 4))$verticalLine" -ForegroundColor Cyan
+    Write-Host "   $bottomLeft$($horizontalLine * ($longest + 4))$bottomRight" -ForegroundColor Cyan
+}
+
 function Write-CloseOut {
     param (
         [parameter(Mandatory = $false)]

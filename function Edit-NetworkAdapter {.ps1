@@ -44,7 +44,7 @@ function Select-Adapter {
         "ip"      = $ipData.IPAddress
         "gateway" = (Get-NetRoute | Where-Object { $_.DestinationPrefix -eq '0.0.0.0/0' }).NextHop
         "subnet"  = Convert-CIDRToMask -CIDR $ipData.PrefixLength
-        "DHCP"    = if ($interface.Dhcp -eq "Enabled") { $true } else { $false }
+        "IPDHCP"  = if ($interface.Dhcp -eq "Enabled") { $true } else { $false }
     }
 
     Get-DesiredNetAdapterSettings -Adapter $adapter
@@ -155,24 +155,6 @@ function Confirm-Edits {
     Write-Host $DNSData
     Start-Sleep 10
 
-    # Set-IPScheme -Automagic $true
-    # Set-IPScheme -Automagic $false -Address $address -Subnet $subnet -Gateway $gateway
-    # Set-DnsClientServerAddress -ResetServerAddresses
-    # $netAdapter | Set-DnsClientServerAddress -ServerAddresses $csl
-}
-
-function Set-IPScheme {
-    param (
-        [parameter(Mandatory = $true)]
-        [boolean]$Automagic,
-        [parameter(Mandatory = $false)]
-        [string]$Address,
-        [parameter(Mandatory = $false)]
-        [string]$Subnet,
-        [parameter(Mandatory = $false)]
-        [string]$Gateway
-    )
-
     Get-NetAdapter -Name $adapterName | Remove-NetIPAddress -Confirm:$false
     Remove-NetRoute -InterfaceAlias $adapterName -DestinationPrefix 0.0.0.0/0 -Confirm:$false
 
@@ -187,7 +169,8 @@ function Set-IPScheme {
         netsh interface ipv4 set address name="$adapterName" static $newAddress $newSubnet $newGateway
     }
 
-    Confirm-StartingChoice
+    Set-DnsClientServerAddress -ResetServerAddresses
+    $netAdapter | Set-DnsClientServerAddress -ServerAddresses $csl
 }
 
 function Get-AdapterInfo {
