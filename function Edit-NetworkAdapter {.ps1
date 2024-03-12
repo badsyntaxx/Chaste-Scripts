@@ -226,6 +226,7 @@ function Confirm-Edits {
         }
 
         Disable-NetAdapter -Name $Adapter["name"] -Confirm:$false
+        Start-Sleep 1
         Enable-NetAdapter -Name $Adapter["name"] -Confirm:$false
 
         Write-CloseOut -Message "Your settings have been applied." -Script "Edit-NetworkAdapter"
