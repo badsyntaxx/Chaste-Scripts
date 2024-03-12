@@ -160,24 +160,24 @@ function Confirm-Edits {
 
         if ($status -eq "Up") {
             Write-Host " $([char]0x2022)" -ForegroundColor "Green" -NoNewline
-            Write-Host " $($Original["name"])" 
+            Write-Host " $($Original["name"])" -ForegroundColor "DarkGray"
         } else {
             Write-Host " $([char]0x25BC)" -ForegroundColor "Red" -NoNewline
-            Write-Host " $($Original["name"])"
+            Write-Host " $($Original["name"])" -ForegroundColor "DarkGray"
         }
     
-        Write-Text "MAC Address . . . : $($Original["mac"])"
-        Write-Text "IPv4 Address. . . : $($Original["ip"]) $([char]0x2192) $($Adapter['ip'])"
-        Write-Text "Subnet Mask . . . : $($Original["subnet"]) $([char]0x2192) $($Adapter['subnet'])"
-        Write-Text "Default Gateway . : $($Original["gateway"]) $([char]0x2192) $($Adapter['gateway'])"
+        Write-Text -Type "compare" -OldData "IPv4 Address. . . : $($Original["ip"])" -NewData $($Adapter['ip'])
+        Write-Text -Type "compare" -OldData "Subnet Mask . . . : $($Original["subnet"])" -NewData $($Adapter['subnet'])
+        Write-Text -Type "compare" -OldData "Default Gateway . : $($Original["gateway"])" -NewData $($Adapter['gateway'])
 
-        $dnsServers = $Original["dns"]
+        $originalDNS = $Original["dns"]
+        $newDNS = $Adapter["dns"]
     
-        for ($i = 0; $i -lt $dnsServers.Count; $i++) {
+        for ($i = 0; $i -lt $originalDNS.Count; $i++) {
             if ($i -eq 0) {
-                Write-Text "DNS Servers . . . : $($dnsServers[$i])"
+                Write-Text -Type "compare" -OldData "DNS Servers . . . : $($originalDNS[$i])" -NewData $($newDNS[$i])
             } else {
-                Write-Text "                    $($dnsServers[$i])"
+                Write-Text -Type "compare" -OldData "                    $($originalDNS[$i])" -NewData $($newDNS[$i])
             }
         }
         
@@ -198,7 +198,7 @@ function Confirm-Edits {
     
         $dns = $Adapter['dns']
 
-        if ($dns.Count -gt 0) { $dnsString = $dns -join "," } 
+        if ($dns.Count -gt 0) { $dnsString = $dns -join ", " } 
         else { $dnsString = $dns[0] }
 
         Get-NetAdapter -Name $adapter["name"] | Remove-NetIPAddress -Confirm:$false -ErrorAction SilentlyContinue
@@ -368,7 +368,7 @@ function Invoke-Script {
 
     try {
         if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-            Start-Process PowerShell -Verb RunAs "-NoProfile -ExecutionPolicy Bypass -Command `"cd '$($PWD.Path)'; & '$PSCommandPath';`";`"$args`"";
+            Start-Process PowerShell -Verb RunAs "-NoProfile -ExecutionPolicy Bypass -Command `"cd '$($PWD.Path)'; & '$PSCommandPath'; `"; `"$args`"";
             Exit;
         } 
 
@@ -508,7 +508,6 @@ function Get-Option {
         Read-Host "   Press any key to continue"
     }
 }
-
 function Write-Text {
     param (
         [parameter(Mandatory = $false)]
@@ -520,7 +519,11 @@ function Write-Text {
         [parameter(Mandatory = $false)]
         [switch]$LineAfter = $false,
         [parameter(Mandatory = $false)]
-        [System.Collections.Specialized.OrderedDictionary]$Data
+        [System.Collections.Specialized.OrderedDictionary]$Data,
+        [parameter(Mandatory = $false)]
+        [string]$OldData,
+        [parameter(Mandatory = $false)]
+        [string]$NewData
     )
 
     if ($LineBefore) { Write-Host }
@@ -533,6 +536,11 @@ function Write-Text {
     if ($Type -eq 'done') { 
         Write-Host " $([char]0x2713)" -ForegroundColor "Green" -NoNewline
         Write-Host " $Text" 
+    }
+    if ($Type -eq 'compare') { 
+        Write-Host "   $OldData" -ForegroundColor "DarkGray" -NoNewline
+        Write-Host " $([char]0x2192) " -ForegroundColor "Green" -NoNewline
+        Write-Host "$NewData" -ForegroundColor "White"
     }
     if ($Type -eq 'fail') { 
         Write-Host " X " -ForegroundColor "Red" -NoNewline

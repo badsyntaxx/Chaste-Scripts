@@ -158,7 +158,11 @@ function Write-Text {
         [parameter(Mandatory = $false)]
         [switch]$LineAfter = $false,
         [parameter(Mandatory = $false)]
-        [System.Collections.Specialized.OrderedDictionary]$Data
+        [System.Collections.Specialized.OrderedDictionary]$Data,
+        [parameter(Mandatory = $false)]
+        [string]$OldData,
+        [parameter(Mandatory = $false)]
+        [string]$NewData
     )
 
     if ($LineBefore) { Write-Host }
@@ -171,6 +175,11 @@ function Write-Text {
     if ($Type -eq 'done') { 
         Write-Host " $([char]0x2713)" -ForegroundColor "Green" -NoNewline
         Write-Host " $Text" 
+    }
+    if ($Type -eq 'compare') { 
+        Write-Host "   $OldData" -ForegroundColor "DarkGray" -NoNewline
+        Write-Host " $([char]0x2192) " -ForegroundColor "Green" -NoNewline
+        Write-Host "$NewData" -ForegroundColor "White"
     }
     if ($Type -eq 'fail') { 
         Write-Host " X " -ForegroundColor "Red" -NoNewline
