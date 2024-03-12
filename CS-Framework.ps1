@@ -75,7 +75,7 @@ function Get-Input {
             }
         }
 
-        if ($userInput.Length -eq 0 -and $Value -ne "") {
+        if ($userInput.Length -eq 0 -and $Value -ne "" -and !$IsSecure) {
             $userInput = $Value
         }
 

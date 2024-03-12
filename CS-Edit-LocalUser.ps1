@@ -101,7 +101,7 @@ function Set-Password {
 
         `$data = Get-AccountInfo `$Username
 
-        Write-Text -Type "notice" -Text "`$alert"
+        Write-Text -Type "notice" -Text `$alert
         Write-Text -Type "recap" -Data `$data -LineAfter
 
         `$choice = Get-Option -Options `$confirmation
