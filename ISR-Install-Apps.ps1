@@ -21,9 +21,17 @@ function Install-ISRApps {
     Write-Text "Select user" -Type "header" -LineBefore
     Select-LocalUser
     Add-TempFolder
-    
+    Install-NinjaOne
+    Install-GoogleChrome
+    Install-GoogleChromeBookmarks
     Install-Slack
-    
+    Install-Zoom
+    Install-RingCentral
+    Install-RevoUninstaller
+    Install-AdobeAcrobatReader
+    Install-Balto
+    Install-ExplorerPatcher
+    Initialize-Cleanup
     Add-EPRegedits
     Read-Host "   Press Any Key to continue"
 }
