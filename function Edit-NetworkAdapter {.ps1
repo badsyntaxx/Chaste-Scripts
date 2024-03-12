@@ -28,7 +28,7 @@ function Select-Adapter {
 
     $netAdapter = Get-NetAdapter -Name $adapters[$choice]
     $adapterIndex = $netAdapter.InterfaceIndex
-    $ipData = Get-NetIPAddress -InterfaceIndex $adapterIndex | Select-Object -First 1
+    $ipData = Get-NetIPAddress -InterfaceIndex $adapterIndex -AddressFamily IPv4 | Select-Object -First 1
     $interface = Get-NetIPInterface -InterfaceIndex $adapterIndex
 
     $script:ipv4Regex = "^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){0,4}$"
@@ -38,7 +38,7 @@ function Select-Adapter {
         "self"    = Get-NetAdapter -Name $adapters[$choice]
         "index"   = $netAdapter.InterfaceIndex
         "ip"      = $ipData.IPAddress
-        "gateway" = (Get-NetRoute | Where-Object { $_.DestinationPrefix -eq '0.0.0.0/0' }).NextHop
+        "gateway" = Get-NetIPConfiguration -InterfaceAlias $adapters[$choice] | ForEach-Object { $_.IPv4DefaultGateway.NextHop }
         "subnet"  = Convert-CIDRToMask -CIDR $ipData.PrefixLength
         "dns"     = Get-DnsClientServerAddress -InterfaceIndex $adapterIndex | Select-Object -ExpandProperty ServerAddresses
         "IPDHCP"  = if ($interface.Dhcp -eq "Enabled") { $true } else { $false }
@@ -81,11 +81,11 @@ function Get-IPSettings {
     $desiredSettings = $Adapter
 
     if ($choice -eq 0) { 
-        Write-Host
+        Write-Text "-"
         $ip = Get-Input -Prompt "IPv4 Address" -Validate $ipv4Regex -Value $Adapter["ip"]
         $subnet = Get-Input -Prompt "Subnet Mask" -Validate $ipv4Regex -Value $Adapter["subnet"]       
         $gateway = Get-Input -Prompt "Gateway" -Validate $ipv4Regex -Value $Adapter["gateway"]
-
+        
         if ($ip -eq "") { $ip = $Adapter["ip"] }
         if ($subnet -eq "") { $subnet = $Adapter["subnet"] }
         if ($gateway -eq "") { $gateway = $Adapter["gateway"] }
@@ -109,7 +109,7 @@ function Get-DNSSettings {
     )
 
     try {
-        Write-Host
+        Write-Text "-"
 
         $options = @(
             "Static DNS addressing  - Set this adapter to static and enter DNS data manually."
@@ -118,6 +118,8 @@ function Get-DNSSettings {
         )
 
         $choice = Get-Option -Options $options
+
+        Write-Text "-"
 
         $dns = @()
 
@@ -159,19 +161,25 @@ function Confirm-Edits {
         Get-NetAdapter -Name $adapter["name"] | Remove-NetIPAddress -Confirm:$false -ErrorAction SilentlyContinue
         Remove-NetRoute -InterfaceAlias $adapter["name"] -DestinationPrefix 0.0.0.0/0 -Confirm:$false -ErrorAction SilentlyContinue
 
-        Write-Text "Settings IP to DHCP"
         if ($Adapter["IPDHCP"]) {
-            Set-NetIPInterface -InterfaceIndex $adapterIndex -Dhcp Enabled
-            netsh interface ipv4 set address name="$($adapter["name"])" source=dhcp
+            Write-Text "Enabling DHCP for IPv4." -LineBefore
+            Set-NetIPInterface -InterfaceIndex $adapterIndex -Dhcp Enabled  | Out-Null
+            netsh interface ipv4 set address name="$($adapter["name"])" source=dhcp | Out-Null
+            Write-Text -Type "done" -Text "The network adapters IP settings were set to dynamic"
         } else {
-            netsh interface ipv4 set address name="$($adapter["name"])" static $Adapter["ip"] $Adapter["subnet"] $Adapter["gateway"]
+            Write-Text "Disabling DHCP and applying static addresses." -LineBefore
+            netsh interface ipv4 set address name="$($adapter["name"])" static $Adapter["ip"] $Adapter["subnet"] $Adapter["gateway"] | Out-Null
+            Write-Text -Type "done" -Text "The network adapters IP, subnet, and gateway were set to static and your addresses were applied."
         }
 
-        Write-Text "Settings DNS to DHCP"
         if ($Adapter["DNSDHCP"]) {
-            Set-DnsClientServerAddress -InterfaceAlias $Adapter["name"] -ResetServerAddresses
+            Write-Text "Enabling DHCP for DNS."
+            Set-DnsClientServerAddress -InterfaceAlias $Adapter["name"] -ResetServerAddresses | Out-Null
+            Write-Text -Type "done" -Text "The network adapters DNS settings were set to dynamic"
         } else {
+            Write-Text "Disabling DHCP and applying static addresses."
             Set-DnsClientServerAddress -InterfaceAlias $Adapter["name"] -ServerAddresses $dnsString
+            Write-Text -Type "done" -Text "The network adapters DNS was set to static and your addresses were applied."
         }
 
         Disable-NetAdapter -Name $Adapter["name"] -Confirm:$false
@@ -194,10 +202,10 @@ function Get-AdapterInfo {
     $name = Get-NetAdapter -Name $AdapterName | Select-Object -ExpandProperty Name
     $status = Get-NetAdapter -Name $AdapterName | Select-Object -ExpandProperty Status
     $index = Get-NetAdapter -Name $AdapterName | Select-Object -ExpandProperty InterfaceIndex
-    $gateway = (Get-NetRoute | Where-Object { $_.DestinationPrefix -eq '0.0.0.0/0' }).NextHop
+    $gateway = Get-NetIPConfiguration -InterfaceAlias $adapterName | ForEach-Object { $_.IPv4DefaultGateway.NextHop }
     $interface = Get-NetIPInterface -InterfaceIndex $index
     $dhcp = $(if ($interface.Dhcp -eq "Enabled") { "DHCP" } else { "Static" })
-    $ipData = Get-NetIPAddress -InterfaceIndex $index | Select-Object -First 1
+    $ipData = Get-NetIPAddress -InterfaceIndex $index -AddressFamily IPv4 | Select-Object -First 1
     $ipAddress = $ipData.IPAddress
     $subnet = Convert-CIDRToMask -CIDR $ipData.PrefixLength
     $dnsServers = Get-DnsClientServerAddress -InterfaceIndex $index | Select-Object -ExpandProperty ServerAddresses
@@ -259,7 +267,7 @@ function Convert-CIDRToMask {
         32 { $mask = "255.255.255.255" }
     }
 
-    $mask
+    return $mask
 }
 
 function Show-Adapters {
