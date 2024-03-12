@@ -29,11 +29,7 @@ function Select-Adapter {
     $netAdapter = Get-NetAdapter -Name $adapters[$choice]
     $adapterIndex = $netAdapter.InterfaceIndex
     $ipData = Get-NetIPAddress -InterfaceIndex $adapterIndex | Select-Object -First 1
-    # $script:currentIP = $ipData.IPAddress
-    # $script:currentGateway = (Get-NetRoute | Where-Object { $_.DestinationPrefix -eq '0.0.0.0/0' }).NextHop
-    # $script:currentSubnet = Convert-CIDRToMask -CIDR $ipData.PrefixLength
     $interface = Get-NetIPInterface -InterfaceIndex $adapterIndex
-    # $script:currentAssignment = $(if ($interface.Dhcp -eq "Enabled") { "DHCP" } else { "Static" })
 
     $script:ipv4Regex = "^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){0,4}$"
 
@@ -44,6 +40,7 @@ function Select-Adapter {
         "ip"      = $ipData.IPAddress
         "gateway" = (Get-NetRoute | Where-Object { $_.DestinationPrefix -eq '0.0.0.0/0' }).NextHop
         "subnet"  = Convert-CIDRToMask -CIDR $ipData.PrefixLength
+        "dns"     = Get-DnsClientServerAddress -InterfaceIndex $adapterIndex | Select-Object -ExpandProperty ServerAddresses
         "IPDHCP"  = if ($interface.Dhcp -eq "Enabled") { $true } else { $false }
     }
 
@@ -59,11 +56,11 @@ function Get-DesiredNetAdapterSettings {
     Write-Text -Type "header" -Text "Edit net adapter" -LineBefore
     Get-AdapterInfo -AdapterName $Adapter["name"]
 
-    $ipData = Get-IPSettings -Adapter $Adapter
+    $Adapter = Get-IPSettings -Adapter $Adapter
     
-    $dnsData = Get-DNSSettings -AdapterName $Adapter["name"]
+    $Adapter = Get-DNSSettings -Adapter $Adapter
 
-    Confirm-Edits -IPData $ipData -DNSData -$dnsData
+    Confirm-Edits -Adapter $Adapter
 }
 
 function Get-IPSettings {
@@ -80,6 +77,8 @@ function Get-IPSettings {
 
     $choice = Get-Option -Options $options
 
+    $desiredSettings = $Adapter
+
     if ($choice -eq 0) { 
         Write-Host
         $ip = Get-Input -Prompt "IPv4 Address" -Validate $ipv4Regex -Value $Adapter["ip"]
@@ -89,20 +88,15 @@ function Get-IPSettings {
         if ($ip -eq "") { $ip = $Adapter["ip"] }
         if ($subnet -eq "") { $subnet = $Adapter["subnet"] }
         if ($gateway -eq "") { $gateway = $Adapter["gateway"] }
+
+        $desiredSettings["ip"] = $ip
+        $desiredSettings["subnet"] = $subnet
+        $desiredSettings["gateway"] = $gateway
+        $desiredSettings["IPDHCP"] = $false
     }
 
-    if (1 -eq $choice) { $script:IPDHCP = $true }
+    if (1 -eq $choice) { $desiredSettings["IPDHCP"] = $true }
     if (2 -eq $choice) { Get-DesiredNetAdapterSettings }
-
-    $desiredSettings = [ordered]@{
-        "name"    = $Adapter["name"]
-        "self"    = $Adapter["self"]
-        "index"   = $Adapter["index"]
-        "ip"      = $ip
-        "gateway" = $gateway
-        "subnet"  = $subnet
-        "IPDHCP"  = $Adapter["IPDHCP"]
-    }
 
     return $desiredSettings
 }
@@ -110,7 +104,7 @@ function Get-IPSettings {
 function Get-DNSSettings {
     param (
         [parameter(Mandatory = $true)]
-        [string]$AdapterName
+        [string]$Adapter
     )
 
     Write-Host
@@ -123,54 +117,63 @@ function Get-DNSSettings {
 
     $choice = Get-Option -Options $options
 
+    $dns = @()
+
     if ($choice -eq 0) { 
-        $dns = New-Object System.Collections.Generic.List[System.Object]
         $prompt = Get-Input -Prompt "Enter a DNS (Leave blank to skip)"
-        $dns.Add($prompt) 
+        $dns += $prompt
         while ($prompt.Length -gt 0) {
             $prompt = Get-Input -Prompt "Enter another DNS (Leave blank to skip)"
-            $dns.Add($prompt)
+            $dns += $prompt
         }
-
-        if ($dns.Count -gt 2) { $dnsString = $dns -join "," } 
-        else { $dnsString = $dns[0] }
+        $Adapter["dns"] = $dns
     }
-    if (1 -eq $choice) { $script:DNSDHCP = $true }
+    if (1 -eq $choice) { $Adapter["DNSDHCP"] = $true }
     if (2 -eq $choice) { Get-DNSSettings }
 
-    return $dnsString
+    return $Adapter
 }
 
 function Confirm-Edits {
     param (
         [parameter(Mandatory = $true)]
+        [System.Collections.Specialized.OrderedDictionary]$Adapter,
+        [parameter(Mandatory = $true)]
         [System.Collections.Specialized.OrderedDictionary]$IPData,
         [parameter(Mandatory = $true)]
-        [string]$DNSData
+        [array]$DNSData
     )
 
     foreach ($d in $IPData.Keys) {
         Write-Host "   $d`: $($IPData[$d])"
     }
-    Write-Host $DNSData
-    Start-Sleep 10
+    foreach ($d in $DNSData) {
+        Write-Host "   $d"
+    }
+    Start-Sleep 15
 
-    Get-NetAdapter -Name $adapterName | Remove-NetIPAddress -Confirm:$false
-    Remove-NetRoute -InterfaceAlias $adapterName -DestinationPrefix 0.0.0.0/0 -Confirm:$false
+    $dnsString = ""
+
+    if ($DNSData.Count -gt 2) { $dnsString = $DNSData -join "," } 
+    else { $dnsString = $DNSData[0] }
+
+    Get-NetAdapter -Name $adapter["name"] | Remove-NetIPAddress -Confirm:$false
+    Remove-NetRoute -InterfaceAlias $adapter["name"] -DestinationPrefix 0.0.0.0/0 -Confirm:$false
 
     if ($Automagic) {
-        Write-Host "Settings network adapter $adapterName to DHCP"
+        Write-Host "Settings network adapter $($adapter["name"]) to DHCP"
         Set-NetIPInterface -InterfaceIndex $adapterIndex -Dhcp Enabled
-        netsh interface ipv4 set address name="$adapterName" source=dhcp
+        netsh interface ipv4 set address name="$($adapter["name"])" source=dhcp
     } else {
-        if ($Address -ne "") { $newAddress = $Address } else { $newAddress = $currentIP }
-        if ($Subnet -ne "") { $newSubnet = $Subnet } else { $newSubnet = $currentSubnet }
-        if ($Gateway -ne "") { $newGateway = $Gateway } else { $newGateway = $currentGatway }
-        netsh interface ipv4 set address name="$adapterName" static $newAddress $newSubnet $newGateway
+        if ($Address -ne "") { $newAddress = $Address } else { $newAddress = $Adapter["ip"] }
+        if ($Subnet -ne "") { $newSubnet = $Subnet } else { $newSubnet = $Adapter["subnet"] }
+        if ($Gateway -ne "") { $newGateway = $Gateway } else { $newGateway = $Adapter["gateway"] }
+        netsh interface ipv4 set address name="$($adapter["name"])" static $newAddress $newSubnet $newGateway
     }
 
-    Set-DnsClientServerAddress -ResetServerAddresses
-    $netAdapter | Set-DnsClientServerAddress -ServerAddresses $csl
+    # Set-DnsClientServerAddress -ResetServerAddresses
+    Set-DnsClientServerAddress -InterfaceAlias $Adapter["name"] -ServerAddresses $dnsString
+    Start-Sleep 60
 }
 
 function Get-AdapterInfo {
