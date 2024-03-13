@@ -178,7 +178,7 @@ function Write-Text {
     }
     if ($Type -eq 'compare') { 
         Write-Host "   $OldData" -ForegroundColor "DarkGray" -NoNewline
-        Write-Host " $([char]0x2192) " -ForegroundColor "Green" -NoNewline
+        Write-Host " $([char]0x2192) " -ForegroundColor "Magenta" -NoNewline
         Write-Host "$NewData" -ForegroundColor "White"
     }
     if ($Type -eq 'fail') { 
