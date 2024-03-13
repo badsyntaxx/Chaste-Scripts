@@ -19,9 +19,8 @@ $addLocalUser = @"
 function Install-NinjaOne {
     Write-Host "Chaste Scripts" -ForegroundColor DarkGray
     Write-Text -Type "header" -Text "Install NinjaOne" -LineBefore
-    `$url = Get-Input -Prompt "Paste install link"
     Add-TempFolder
-    Install-NinjaOne -Uri `$url
+    Install-NinjaOne -Uri "https://app.ninjarmm.com/agent/installer/0274c0c3-3ec8-44fc-93cb-79e96f191e07/nuviaisrcenteroremut-5.7.8652-windows-installer.msi"
     Read-Host "   Press Any Key to continue"
 }
 
