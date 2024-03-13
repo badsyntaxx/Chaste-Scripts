@@ -17,11 +17,15 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyCont
 
 $addLocalUser = @"
 function Install-NinjaOne {
-    Write-Host "Chaste Scripts" -ForegroundColor DarkGray
-    Write-Text -Type "header" -Text "Install NinjaOne" -LineBefore
-    Add-TempFolder
-    Install-NinjaOne -Uri "https://app.ninjarmm.com/agent/installer/0274c0c3-3ec8-44fc-93cb-79e96f191e07/nuviaisrcenteroremut-5.7.8652-windows-installer.msi"
-    Read-Host "   Press Any Key to continue"
+    try {
+        Write-Host "Chaste Scripts" -ForegroundColor DarkGray
+        Write-Text -Type "header" -Text "Install NinjaOne" -LineBefore
+        Add-TempFolder
+        Install-NinjaOne -Uri "https://app.ninjarmm.com/agent/installer/0274c0c3-3ec8-44fc-93cb-79e96f191e07/nuviaisrcenteroremut-5.7.8652-windows-installer.msi"
+        Read-Host "   Press Any Key to continue"
+    } catch {
+        Write-Text "Install error: `$(`$_.Exception.Message)" -Type "error"
+    }
 }
 
 function Add-TempFolder {
@@ -35,7 +39,6 @@ function Add-TempFolder {
         Write-Text "Folder created" -Type "done"
     } catch {
         Write-Text "ERROR: `$(`$_.Exception.Message)" -Type "error"
-        Write-Text "Skipping `$AppName installation."
     }
 }
 
