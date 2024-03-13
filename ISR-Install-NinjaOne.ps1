@@ -18,7 +18,7 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyCont
 $addLocalUser = @"
 function Install-NinjaOne {
     try {
-        Write-Host "Chaste Scripts" -ForegroundColor DarkGray
+        Write-Host "Chaste Scripts: Install NinjaOne for Nuvia ISR's" -ForegroundColor DarkGray
         Write-Text -Type "header" -Text "Install NinjaOne" -LineBefore
         Add-TempFolder
         Invoke-Installation
@@ -30,7 +30,7 @@ function Install-NinjaOne {
 
 function Add-TempFolder {
     try {
-        Write-Text "Creating TEMP folder"
+        Write-Host " - Creating TEMP folder"
         Write-Text "Path: C:\Users\`$env:username\Desktop\"
         `$folderPath = "C:\Users\`$env:username\Desktop\TEMP"
         if (-not (Test-Path -PathType Container `$folderPath)) {
@@ -58,8 +58,7 @@ function Find-ExistingInstall {
         [string]`$App
     )
 
-    Write-Text -Type "header" -Text "Installing `$App" -LineBefore
-    Write-Text "Checking for existing install..."
+    Write-Host " - Checking for existing install..."
     `$installationFound = `$false
     foreach (`$path in `$paths) {
         if (Test-Path `$path) {
@@ -97,9 +96,9 @@ function Install-Program {
         if (`$download) {
             Write-Text -Text "Intalling..."
             if (`$Extenstion -eq "msi") {
-                Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$output``" `$Args" -Wait
+                #Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$output``" `$Args" -Wait
             } else {
-                Start-Process -FilePath "`$tempPath\`$output" -ArgumentList "`$Args" -Wait
+                #Start-Process -FilePath "`$tempPath\`$output" -ArgumentList "`$Args" -Wait
             }
            
             Write-Text -Type "success" -Text "`$AppName successfully installed."

@@ -268,7 +268,7 @@ function Get-Download {
     )
 
     $downloadComplete = $true 
-    Write-Text -Text "Downloading..."
+    Write-Host " - Downloading..."
     
     for ($retryCount = 1; $retryCount -le $MaxRetries; $retryCount++) {
         try {
