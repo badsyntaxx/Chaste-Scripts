@@ -21,7 +21,7 @@ function Install-NinjaOne {
         Write-Host "Chaste Scripts" -ForegroundColor DarkGray
         Write-Text -Type "header" -Text "Install NinjaOne" -LineBefore
         Add-TempFolder
-        Install-NinjaOne
+        Invoke-Installation
         Read-Host "   Press Any Key to continue"
     } catch {
         Write-Text "Install error: `$(`$_.Exception.Message)" -Type "error"
@@ -42,7 +42,7 @@ function Add-TempFolder {
     }
 }
 
-function Install-NinjaOne {
+function Invoke-Installation {
     `$url = "https://app.ninjarmm.com/agent/installer/0274c0c3-3ec8-44fc-93cb-79e96f191e07/nuviaisrcenteroremut-5.7.8652-windows-installer.msi"
     `$paths = @("C:\Program Files\NinjaRemote")
     `$appName = "NinjaOne"
@@ -97,7 +97,7 @@ function Install-Program {
         if (`$download) {
             Write-Text -Text "Intalling..."
             if (`$Extenstion -eq "msi") {
-                Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$output``" `$Args" -Wait
+               # Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$output``" `$Args" -Wait
             } else {
                 Start-Process -FilePath "`$tempPath\`$output" -ArgumentList "`$Args" -Wait
             }
