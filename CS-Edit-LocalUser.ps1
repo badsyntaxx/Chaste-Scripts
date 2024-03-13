@@ -187,8 +187,8 @@ function Set-Group {
         if (`$choice -eq 2) { Write-CloseOut -Script "Edit-LocalUser" }
 
         Remove-LocalGroupMember -Group "Administrators" -Member `$Username -ErrorAction SilentlyContinue
-        Add-LocalGroupMember -Group `$group -Member `$Username
-        
+        Add-LocalGroupMember -Group `$group -Member `$Username | Out-Null
+        Write-Host
         Write-CloseOut "The group membership for `$Username has been changed to `$group." -Script "Edit-LocalUser"
     } catch {
         Write-Text -Type "error" -Text "Set Group Error: `$(`$_.Exception.Message)"
