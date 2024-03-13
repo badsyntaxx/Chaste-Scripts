@@ -30,7 +30,7 @@ function Install-NinjaOne {
 
 function Add-TempFolder {
     try {
-        Write-Text "Creating TEMP folder" -Type "header" -LineBefore
+        Write-Text "Creating TEMP folder"
         Write-Text "Path: C:\Users\`$account\Desktop\"
         `$folderPath = "C:\Users\`$account\Desktop\TEMP"
         if (-not (Test-Path -PathType Container `$folderPath)) {
@@ -97,7 +97,7 @@ function Install-Program {
         if (`$download) {
             Write-Text -Text "Intalling..."
             if (`$Extenstion -eq "msi") {
-               # Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$output``" `$Args" -Wait
+                Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$output``" `$Args" -Wait
             } else {
                 Start-Process -FilePath "`$tempPath\`$output" -ArgumentList "`$Args" -Wait
             }
