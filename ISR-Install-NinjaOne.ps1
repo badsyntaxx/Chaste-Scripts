@@ -80,7 +80,7 @@ function Find-ExistingInstall {
 function Install-Program {
     param (
         [parameter(Mandatory = `$true)]
-        [string]`$Url,
+        [string]`$Uri,
         [parameter(Mandatory = `$true)]
         [string]`$AppName,
         [parameter(Mandatory = `$true)]
@@ -93,7 +93,7 @@ function Install-Program {
         if (`$Extenstion -eq "msi") { `$output = "`$AppName.msi" } else { `$output = "`$AppName.exe" }
         
         `$tempPath = "C:\Users\`$account\Desktop\TEMP"
-        `$download = Get-Download -Uri `$Url -Target "`$tempPath\`$output"
+        `$download = Get-Download -Uri `$Uri -Target "`$tempPath\`$output"
 
         if (`$download) {
             Write-Text -Text "Intalling..."
