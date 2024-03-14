@@ -35,10 +35,8 @@ function Add-TempFolder {
         Write-Text "Creating TEMP folder"
         Write-Text "Path: C:\Users\`$env:username\Desktop\"
 
-        `$folderPath = "C:\Users\`$env:username\Desktop"
-
-        if (-not (Test-Path -PathType Container `$folderPath)) {
-            New-Item -Path `$folderPath -Name "TEMP" -ItemType Directory | Out-Null
+        if (-not (Test-Path -PathType Container "C:\Users\`$env:username\Desktop\TEMP")) {
+            New-Item -Path "C:\Users\`$env:username\Desktop\" -Name "TEMP" -ItemType Directory | Out-Null
         }
         
         Write-Text -Type "done" -Text "Folder created." -LineAfter
