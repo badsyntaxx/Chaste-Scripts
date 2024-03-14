@@ -48,7 +48,7 @@ function Add-TempFolder {
 }
 
 function Invoke-Installation {
-    `$url = "https://app.ninjarmm.com/agent/installer/0274c0c3-3ec8-44fc-93cb-79e96f191e07/nuviaisrcenteroremut-5.7.8652-windows-installer.msi"
+    `$url = "https://app.ninjarmm.com/agent/installer/0274c0c3-3ec8-44fc-93cb-79e96f191e07/nuviaisrcenteroremut-5.7.8836-windows-installer.msi"
     `$paths = @("C:\Program Files\NinjaRemote")
     `$appName = "NinjaOne"
     `$installed = Find-ExistingInstall -Paths `$paths -App `$appName
