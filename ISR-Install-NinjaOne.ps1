@@ -109,7 +109,7 @@ function Install-Program {
             Write-Text "Download failed. Skipping." -Type "error" -LineAfter
         }
     } catch {
-        Write-Text "Installation Error: `$(`$_.Exception.Message)" -Type "error"
+        Write-Text -Type "error" -Text "Installation Error: `$(`$_.Exception.Message)"
         Write-Text "Skipping `$AppName installation."
     }
 }

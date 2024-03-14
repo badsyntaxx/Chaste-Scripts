@@ -17,55 +17,58 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyCont
 
 $core = @"
 function Set-ComputerName {
-    Write-Host "Chaste Scripts: Rename Computer" -ForegroundColor DarkGray
-    Write-Text -Type "header" -Text "Name & Description" -LineBefore
+    try {
+        Write-Host "Chaste Scripts: Rename Computer" -ForegroundColor DarkGray
+        Write-Text -Type "header" -Text "Name & Description" -LineBefore
 
-    `$currentHostname = `$env:COMPUTERNAME
-    `$currentDescription = (Get-WmiObject -Class Win32_OperatingSystem).Description
+        `$currentHostname = `$env:COMPUTERNAME
+        `$currentDescription = (Get-WmiObject -Class Win32_OperatingSystem).Description
 
-    `$hostname = Get-Input -Prompt "Hostname" -Validate "^(\s*|[a-zA-Z0-9 _\-]{1,15})$" -Value `$currentHostname
-    `$description = Get-Input -Prompt "Description" -Validate "^(\s*|[a-zA-Z0-9 |_\-]{1,64})$" -Value `$currentDescription
+        `$hostname = Get-Input -Prompt "Hostname" -Validate "^(\s*|[a-zA-Z0-9 _\-]{1,15})$" -Value `$currentHostname
+        `$description = Get-Input -Prompt "Description" -Validate "^(\s*|[a-zA-Z0-9 |_\-]{1,64})$" -Value `$currentDescription
 
-    `$options = @(
-        "Submit  - Confirm and apply changes", 
-        "Reset   - Start rename computer over.", 
-        "Exit    - Do nothing and exit."
-    )
+        `$options = @(
+            "Submit  - Confirm and apply changes", 
+            "Reset   - Start rename computer over.", 
+            "Exit    - Do nothing and exit."
+        )
 
-    if (`$hostname -eq "") { `$hostname = `$currentHostname } 
-    if (`$description -eq "") { `$description = `$currentDescription } 
+        if (`$hostname -eq "") { `$hostname = `$currentHostname } 
+        if (`$description -eq "") { `$description = `$currentDescription } 
 
-    `$data = [ordered]@{ "Hostname" = `$hostname }
-    `$data = [ordered]@{ "Hostname" = `$hostname; "Description" = `$description }
+        `$data = [ordered]@{ "Hostname" = `$hostname }
+        `$data = [ordered]@{ "Hostname" = `$hostname; "Description" = `$description }
 
-    Write-Text "Confirm name settings" -Type "header" -LineBefore
-    Write-Text -Type "notice" -Text "NOTICE: You're about to change the computer name and description."
-    Write-Text -Type "recap" -Data `$data -LineAfter
+        Write-Text "Confirm name settings" -Type "header" -LineBefore
+        Write-Text -Type "notice" -Text "NOTICE: You're about to change the computer name and description."
+        Write-Text -Type "recap" -Data `$data -LineAfter
 
-    `$choice = Get-Option -Options `$options
+        `$choice = Get-Option -Options `$options
 
-    if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "Set-ComputerName" }
-    if (`$choice -eq 2) { Write-Exit -Script "Set-ComputerName" }
+        if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "Set-ComputerName" }
+        if (`$choice -eq 2) { Write-Exit -Script "Set-ComputerName" }
 
-    if (`$hostname -ne "") {
-        Remove-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -name "Hostname" 
-        Remove-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -name "NV Hostname" 
-        Set-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Control\Computername\Computername" -name "Computername" -value `$hostname
-        Set-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Control\Computername\ActiveComputername" -name "Computername" -value `$hostname
-        Set-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -name "Hostname" -value `$hostname
-        Set-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -name "NV Hostname" -value  `$hostname
-        Set-ItemProperty -path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -name "AltDefaultDomainName" -value `$hostname
-        Set-ItemProperty -path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -name "DefaultDomainName" -value `$hostname
-    } 
+        if (`$hostname -ne "") {
+            Remove-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -name "Hostname" 
+            Remove-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -name "NV Hostname" 
+            Set-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Control\Computername\Computername" -name "Computername" -value `$hostname
+            Set-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Control\Computername\ActiveComputername" -name "Computername" -value `$hostname
+            Set-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -name "Hostname" -value `$hostname
+            Set-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -name "NV Hostname" -value  `$hostname
+            Set-ItemProperty -path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -name "AltDefaultDomainName" -value `$hostname
+            Set-ItemProperty -path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -name "DefaultDomainName" -value `$hostname
+        } 
 
-    if (`$description -ne "") {
-        Set-CimInstance -Query 'Select * From Win32_OperatingSystem' -Property @{Description = `$description }
-    } 
+        if (`$description -ne "") {
+            Set-CimInstance -Query 'Select * From Win32_OperatingSystem' -Property @{Description = `$description }
+        } 
 
-    Write-Host
-    Write-Exit -Message "The PC name changes have been applied. No restart required!" -Script "Set-ComputerName"
+        Write-Host
+        Write-Exit -Message "The PC name changes have been applied. No restart required!" -Script "Set-ComputerName"
+    } catch {
+        Write-Text -Type "error" -Text "Add User Error: `$(`$_.Exception.Message)"
+    }
 }
-
 
 "@
 
