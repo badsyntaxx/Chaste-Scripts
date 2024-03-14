@@ -196,7 +196,7 @@ function Write-Text {
             if ($value.Length -gt 0) {
                 Write-Host "   $key`:$value" -ForegroundColor "DarkGray" 
             } else {
-                Write-Host "   $key`:" -ForegroundColor "Magenta" 
+                Write-Host "   $key`:" -ForegroundColor "DarkGray" 
             }
         }
     }
