@@ -47,7 +47,7 @@ function Add-LocalUser {
 
         `$choice = Get-Option -Options `$options
         if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "Add-LocalUser" }
-        if (`$choice -eq 2) {  Write-CloseOut -Script "Add-LocalUser" }
+        if (`$choice -eq 2) {  Write-Exit -Script "Add-LocalUser" }
 
         Write-Text -Type "header" -Text "Creating local user account" -LineBefore
 
@@ -58,7 +58,7 @@ function Add-LocalUser {
         Add-LocalGroupMember -Group `$group -Member `$name -ErrorAction Stop
 
         Write-Text -Type "done" -Text "Group membership set to `$group."
-        Write-CloseOut -Message "The user account was created." -Script "Add-LocalUser"
+        Write-Exit -Message "The user account was created." -Script "Add-LocalUser"
     } catch {
         Write-Text -Type "error" -Text "Add User Error: `$(`$_.Exception.Message)"
     }

@@ -49,7 +49,7 @@ function Install-BGInfo {
         ROBOCOPY "C:\Windows\Temp\BGInfo" "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup" "Start BGInfo.bat" /NFL /NDL /NJH /NJS /nc /ns | Out-Null
         Start-Process -FilePath "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup\Start BGInfo.bat" -WindowStyle Hidden
         Remove-Item -Path "C:\Windows\Temp\BGInfo" -Recurse 
-        Write-CloseOut -Message "BGInfo installed and applied." -Script "Set-DesktopConfig"
+        Write-Exit -Message "BGInfo installed and applied." -Script "Set-DesktopConfig"
     } catch {
         Write-Text -Type "error" -Text "Add User Error: `$(`$_.Exception.Message)"
         Read-Host "   Press any key to continue"

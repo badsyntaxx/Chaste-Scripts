@@ -41,7 +41,7 @@ function Enable-BuiltInAdminAccount {
         `$message = "Administrator account Disabled."
     }
 
-    Write-CloseOut -Message `$message -Script "Enable-BuiltInAdminAccount"
+    Write-Exit -Message `$message -Script "Enable-BuiltInAdminAccount"
 }
 
 "@

@@ -107,13 +107,13 @@ function Set-Password {
         `$choice = Get-Option -Options `$confirmation
         if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { Set-Password }
         if (`$choice -eq 1) { Invoke-Script "Edit-LocalUser" }
-        if (`$choice -eq 2) { Write-CloseOut -Script "Edit-LocalUser" }
+        if (`$choice -eq 2) { Write-Exit -Script "Edit-LocalUser" }
 
         `$account = Get-LocalUser -Name `$Username
         `$account | Set-LocalUser -Password `$password
 
         Write-Host
-        Write-CloseOut -Message "The password for this account has been changed." -Script "Edit-LocalUser"
+        Write-Exit -Message "The password for this account has been changed." -Script "Edit-LocalUser"
     } catch {
         Write-Text -Type "error" -Text "Set Password Error: `$(`$_.Exception.Message)"
         Read-Host -Prompt "Press any key to continue"
@@ -141,11 +141,11 @@ function Set-Name {
         `$choice = Get-Option -Options `$confirmation
         if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { Set-Name }
         if (`$choice -eq 1) { Invoke-Script "Edit-LocalUser" }
-        if (`$choice -eq 2) { Write-CloseOut -Script "Edit-LocalUser" }
+        if (`$choice -eq 2) { Write-Exit -Script "Edit-LocalUser" }
     
         Rename-LocalUser -Name `$Username -NewName `$newName
 
-        Write-CloseOut "The name for this account has been changed." -Script "Edit-LocalUser"
+        Write-Exit "The name for this account has been changed." -Script "Edit-LocalUser"
     } catch {
         Write-Text -Type "error" -Text "Set Name Error: `$(`$_.Exception.Message)"
         Read-Host -Prompt "Press any key to continue"
@@ -184,12 +184,12 @@ function Set-Group {
 
         if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { Set-Group }
         if (`$choice -eq 1) { Invoke-Script "Edit-LocalUser" }
-        if (`$choice -eq 2) { Write-CloseOut -Script "Edit-LocalUser" }
+        if (`$choice -eq 2) { Write-Exit -Script "Edit-LocalUser" }
 
         Remove-LocalGroupMember -Group "Administrators" -Member `$Username -ErrorAction SilentlyContinue
         Add-LocalGroupMember -Group `$group -Member `$Username | Out-Null
         Write-Host
-        Write-CloseOut "The group membership for `$Username has been changed to `$group." -Script "Edit-LocalUser"
+        Write-Exit "The group membership for `$Username has been changed to `$group." -Script "Edit-LocalUser"
     } catch {
         Write-Text -Type "error" -Text "Set Group Error: `$(`$_.Exception.Message)"
         Read-Host -Prompt "Press any key to continue"
@@ -228,7 +228,7 @@ function Remove-User {
         
         `$choice = Get-Option -Options `$confirmation
         if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "Edit-LocalUser" }
-        if (`$choice -eq 2) { Write-CloseOut -Script "Edit-LocalUser" }
+        if (`$choice -eq 2) { Write-Exit -Script "Edit-LocalUser" }
 
         Remove-LocalUser -Name `$Username
 
@@ -245,7 +245,7 @@ function Remove-User {
             }
         }
 
-        Write-CloseOut "The user has been deleted." -Script "Edit-LocalUser"
+        Write-Exit "The user has been deleted." -Script "Edit-LocalUser"
     } catch {
         Write-Text -Type "error" -Text "Remove User Error: `$(`$_.Exception.Message)"
         Read-Host -Prompt "   Press any key to continue"

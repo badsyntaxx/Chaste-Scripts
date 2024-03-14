@@ -43,13 +43,13 @@ function Edit-UserPassword {
         `$choice = Get-Option -Options `$confirmation
         if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { Edit-UserPassword }
         if (`$choice -eq 1) { Invoke-Script "Edit-UserPassword" }
-        if (`$choice -eq 2) { Write-CloseOut -Script "Edit-UserPassword" }
+        if (`$choice -eq 2) { Write-Exit -Script "Edit-UserPassword" }
 
         `$account = Get-LocalUser -Name `$Username
         `$account | Set-LocalUser -Password `$password
 
         Write-Host
-        Write-CloseOut -Message "The password for this account has been changed." -Script "Edit-UserPassword"
+        Write-Exit -Message "The password for this account has been changed." -Script "Edit-UserPassword"
     } catch {
         Write-Text -Type "error" -Text "Set Password Error: `$(`$_.Exception.Message)"
     }

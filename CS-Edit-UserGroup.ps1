@@ -47,12 +47,12 @@ function Edit-UserGroup {
         `$choice = Get-Option -Options `$confirmation
         if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { Edit-UserGroup }
         if (`$choice -eq 1) { Invoke-Script "Edit-LocalUser" }
-        if (`$choice -eq 2) { Write-CloseOut -Script "Edit-LocalUser" }
+        if (`$choice -eq 2) { Write-Exit -Script "Edit-LocalUser" }
 
         Remove-LocalGroupMember -Group "Administrators" -Member `$username -ErrorAction SilentlyContinue
         Add-LocalGroupMember -Group `$group -Member `$username | Out-Null
         Write-Host
-        Write-CloseOut "The group membership for `$username has been changed to `$group." -Script "Edit-LocalUser"
+        Write-Exit "The group membership for `$username has been changed to `$group." -Script "Edit-LocalUser"
     } catch {
         Write-Text -Type "error" -Text "Set Group Error: `$(`$_.Exception.Message)"
     }

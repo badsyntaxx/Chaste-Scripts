@@ -45,7 +45,7 @@ function Set-ComputerName {
     `$choice = Get-Option -Options `$options
 
     if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "Set-ComputerName" }
-    if (`$choice -eq 2) { Write-CloseOut -Script "Set-ComputerName" }
+    if (`$choice -eq 2) { Write-Exit -Script "Set-ComputerName" }
 
     if (`$hostname -ne "") {
         Remove-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -name "Hostname" 
@@ -63,7 +63,7 @@ function Set-ComputerName {
     } 
 
     Write-Host
-    Write-CloseOut -Message "The PC name changes have been applied. No restart required!" -Script "Set-ComputerName"
+    Write-Exit -Message "The PC name changes have been applied. No restart required!" -Script "Set-ComputerName"
 }
 
 
