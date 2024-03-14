@@ -61,7 +61,6 @@ function Add-LocalUser {
         Write-CloseOut -Message "The user account was created." -Script "Add-LocalUser"
     } catch {
         Write-Text -Type "error" -Text "Add User Error: `$(`$_.Exception.Message)"
-        Read-Host "   Press any key to continue"
     }
 }
 

@@ -186,7 +186,10 @@ function Write-Text {
         Write-Host "$Text" 
     }
     if ($Type -eq 'success') { Write-Host " $([char]0x2713) $Text" -ForegroundColor "Green" }
-    if ($Type -eq 'error') { Write-Host "   $Text" -ForegroundColor "Red" }
+    if ($Type -eq 'error') { 
+        Write-Host " ! $Text`n" -ForegroundColor "Red" 
+        Read-Host "   Press any key to continue"
+    }
     if ($Type -eq 'notice') { Write-Host "   $Text" -ForegroundColor "Yellow" }
     if ($Type -eq 'plain') { Write-Host "   $Text" }
     if ($Type -eq 'recap') {
@@ -268,7 +271,7 @@ function Get-Download {
     )
 
     $downloadComplete = $true 
-    Write-Host " - Downloading..."
+    Write-Text "Downloading..."
     
     for ($retryCount = 1; $retryCount -le $MaxRetries; $retryCount++) {
         try {
@@ -295,3 +298,40 @@ function Get-Download {
     }
 }
 
+function Select-User {
+    try {
+        Write-Host "Chaste Scripts: Edit Local User" -ForegroundColor DarkGray
+        Write-Text -Type "header" -Text "Select a user" -LineBefore
+
+        $userNames = @()
+        $accounts = @()
+        $localUsers = Get-LocalUser
+        $excludedAccounts = @("DefaultAccount", "WDAGUtilityAccount", "Guest", "defaultuser0")
+        $adminEnabled = Get-LocalUser -Name "Administrator" | Select-Object -ExpandProperty Enabled
+
+        if (!$adminEnabled) { $excludedAccounts += "Administrator" }
+
+        foreach ($user in $localUsers) {
+            if ($user.Name -notin $excludedAccounts) { $userNames += $user.Name }
+        }
+
+        $longestName = $userNames | Sort-Object { $_.Length } | Select-Object -Last 1
+
+        foreach ($name in $userNames) {
+            $username = Get-LocalUser -Name $name
+            $length = $longestName.Length - $name.Length
+
+            $spaces = ""
+            for ($i = 0; $i -lt $length; $i++) { $spaces += " " }
+
+            $groups = Get-LocalGroup | Where-Object { $username.SID -in ($_ | Get-LocalGroupMember | Select-Object -ExpandProperty "SID") } | Select-Object -ExpandProperty "Name"
+            $accounts += "$username $spaces - $($groups -join ';')" 
+        }
+
+        $choice = Get-Option -Options $accounts
+
+        return $userNames[$choice]
+    } catch {
+        Write-Text -Type "error" -Text "Select user error: $($_.Exception.Message)"
+    }
+}

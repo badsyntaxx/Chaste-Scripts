@@ -2,12 +2,11 @@ function Select-Tool {
     Write-Host "Chaste Scripts`n" -ForegroundColor DarkGray
 
     $options = @(
-        "Enable Administrator  - Enable Windows built in administrator account."
-        "Create user           - Create a local user."
+        "Enable administrator  - Enable Windows built in administrator account."
+        "Add user              - Create a local user."
         "Edit user             - Edit / delete existing user."
-        "Rename computer       - Edit this computers name and description."
-        "Edit Network Adapter  - Select and edit a network adapter. (under construction)"
-        "Quit                  - Do nothing and exit."
+        "Rename Computer       - Edit this computers name and description."
+        "Edit network adapter  - Select and edit a network adapter. (under construction)"
     )
 
     Write-Text -Type "header" -Text "Selection"

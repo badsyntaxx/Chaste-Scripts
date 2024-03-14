@@ -17,39 +17,48 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyCont
 
 $addLocalUser = @"
 function Install-NinjaOne {
-    Write-Host "Chaste Scripts" -ForegroundColor DarkGray
-    Write-Text -Type "header" -Text "Install NinjaOne" -LineBefore
-    `$url = Get-Input -Prompt "Paste install link"
-    Add-TempFolder
-    Install-NinjaOne -Uri `$url
-    Read-Host "   Press Any Key to continue"
+    try {
+        Write-Host "Chaste Scripts: Install NinjaOne Silently" -ForegroundColor DarkGray
+        Write-Text -Type "header" -Text "Install NinjaOne" -LineBefore
+
+        `$url = Get-Input -Prompt "Paste install link"
+
+        Add-TempFolder
+        Invoke-Installation -Url `$url
+
+        Read-Host "   Press Any Key to continue"
+    } catch {
+        Write-Text "Install error: `$(`$_.Exception.Message)" -Type "error"
+    }
 }
 
 function Add-TempFolder {
     try {
-        Write-Text "Creating TEMP folder" -Type "header" -LineBefore
-        Write-Text "Path: C:\Users\`$account\Desktop\"
-        `$folderPath = "C:\Users\`$account\Desktop\TEMP"
+        Write-Text "Creating TEMP folder"
+        Write-Text "Path: C:\Users\`$env:username\Desktop\"
+
+        `$folderPath = "C:\Users\`$env:username\Desktop\TEMP"
+
         if (-not (Test-Path -PathType Container `$folderPath)) {
             New-Item -Path `$folderPath -Name "TEMP" -ItemType Directory | Out-Null
         }
-        Write-Text "Folder created" -Type "done"
+        
+        Write-Text -Type "done" -Text "Folder created." -LineAfter
     } catch {
         Write-Text "ERROR: `$(`$_.Exception.Message)" -Type "error"
-        Write-Text "Skipping `$AppName installation."
     }
 }
 
-function Install-NinjaOne {
+function Invoke-Installation {
     param (
-        [parameter(Mandatory = `$true)]
-        [string]`$Uri
+        [parameter(Mandatory = `$false)]
+        [string]`$Url
     )
 
     `$paths = @("C:\Program Files\NinjaRemote")
     `$appName = "NinjaOne"
     `$installed = Find-ExistingInstall -Paths `$paths -App `$appName
-    if (!`$installed) { Install-Program `$Uri `$appName "msi" "/qn" }
+    if (!`$installed) { Install-Program `$Url `$appName "/qn" }
 }
 
 function Find-ExistingInstall {
@@ -60,8 +69,8 @@ function Find-ExistingInstall {
         [string]`$App
     )
 
-    Write-Text -Type "header" -Text "Installing `$App" -LineBefore
     Write-Text "Checking for existing install..."
+
     `$installationFound = `$false
     foreach (`$path in `$paths) {
         if (Test-Path `$path) {
@@ -69,11 +78,9 @@ function Find-ExistingInstall {
             break
         }
     }
-    if (`$installationFound) {
-        Write-Text -Type "success" -Text "`$App already installed."
-    } else {
-        Write-Text "`$App not found."
-    }
+
+    if (`$installationFound) { Write-Text -Type "success" -Text "`$App already installed." -LineAfter } 
+    else { Write-Text "`$App not found."  -LineAfter}
 
     return `$installationFound
 }
@@ -81,30 +88,31 @@ function Find-ExistingInstall {
 function Install-Program {
     param (
         [parameter(Mandatory = `$true)]
-        [string]`$Url,
+        [string]`$Uri,
         [parameter(Mandatory = `$true)]
         [string]`$AppName,
-        [parameter(Mandatory = `$true)]
-        [string]`$Extenstion,
         [parameter(Mandatory = `$true)]
         [string]`$Args
     )
 
     try {
-        if (`$Extenstion -eq "msi") { `$output = "`$AppName.msi" } else { `$output = "`$AppName.exe" }
-        
-        `$tempPath = "C:\Users\`$account\Desktop\TEMP"
-        `$download = Get-Download -Uri `$Url -Target "`$tempPath\`$output"
+        `$tempPath = "C:\Users\`$env:username\Desktop\TEMP"
+        `$download = Get-Download -Uri `$Uri -Target "`$tempPath\`$AppName.msi"
+
+        Write-Text ""
 
         if (`$download) {
             Write-Text -Text "Intalling..."
-            if (`$Extenstion -eq "msi") {
-                Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$output``" `$Args" -Wait
+
+            #Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$output``" `$Args" -Wait
+
+            `$service = Get-Service -Name "NinjaRMMAgent" -ErrorAction SilentlyContinue
+
+            if (`$null -ne `$service -and `$service.Status -eq "Running") {
+                Write-Text -Type "success" -Text "`$AppName successfully installed." -LineAfter
             } else {
-                Start-Process -FilePath "`$tempPath\`$output" -ArgumentList "`$Args" -Wait
+                Write-Text -Type "error" -Text "`$AppName did not successfully install." -LineAfter
             }
-           
-            Write-Text -Type "success" -Text "`$AppName successfully installed."
         } else {
             Write-Text "Download failed. Skipping." -Type "error" -LineAfter
         }

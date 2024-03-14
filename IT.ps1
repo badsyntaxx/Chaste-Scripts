@@ -4,15 +4,14 @@ function Select-Tool {
     Write-Host "Chaste Scripts`n" -ForegroundColor DarkGray
 
     $options = @(
-        "Enable Administrator    - Enable Windows built in administrator account."
-        "Create user             - Create a local user."
-        "Edit user               - Edit / delete existing user."
-        "Rename computer         - Edit this computers name and description."
-        "Edit network adapter    - Select and edit a network adapter."
-        "Create InTechAdmin      - Create the InTechAdmin account.",
-        "Install Nuvia ISR apps  - Install all the apps a Nuvia ISR will need.",
-        "Configure desktop       - Create a professional desktop with system stats background."
-        "Quit                    - Do nothing and exit."
+        "enableadmin     - Enable Windows built in administrator account."
+        "adduser         - Create a local user."
+        "edituser        - Edit / delete existing user."
+        "renamepc        - Edit this computers name and description."
+        "editnetadapter  - Select and edit a network adapter."
+        "intechadmin     - Create the InTechAdmin account.",
+        "installbginfo   - Create a professional desktop with system stats background."
+        "installninja    - Install NinjaOne silently."
     )
 
     Write-Text -Type "header" -Text "Selection"
@@ -24,9 +23,8 @@ function Select-Tool {
     if ($choice -eq 3) { $script = "CS-Set-ComputerName.ps1" }
     if ($choice -eq 4) { $script = "CS-Edit-NetworkAdapter.ps1" }
     if ($choice -eq 5) { $script = "IT-Add-InTechAdmin.ps1" }
-    if ($choice -eq 6) { $script = "IT-Install-ISRApps.ps1" }
-    if ($choice -eq 7) { $script = "IT-Add-ISRBookmarks.ps1" }
-    if ($choice -eq 8) { Exit }
+    if ($choice -eq 6) { $script = "IT-Install-BGInfo.ps1" }
+    if ($choice -eq 7) { $script = "IT-Install-NinjaOne.ps1" }
 
     Write-Text -Type "header" -Text "Initializing script" -LineBefore
 
