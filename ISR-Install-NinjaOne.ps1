@@ -35,7 +35,7 @@ function Add-TempFolder {
         Write-Text "Creating TEMP folder"
         Write-Text "Path: C:\Users\`$env:username\Desktop\"
 
-        `$folderPath = "C:\Users\`$env:username\Desktop\TEMP"
+        `$folderPath = "C:\Users\`$env:username\Desktop"
 
         if (-not (Test-Path -PathType Container `$folderPath)) {
             New-Item -Path `$folderPath -Name "TEMP" -ItemType Directory | Out-Null
@@ -98,7 +98,7 @@ function Install-Program {
         if (`$download) {
             Write-Text -Text "Intalling..."
 
-            #Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$output``" `$Args" -Wait
+            Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$output``" `$Args" -Wait
 
             `$service = Get-Service -Name "NinjaRMMAgent" -ErrorAction SilentlyContinue
 
