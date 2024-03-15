@@ -268,10 +268,10 @@ function Write-Exit {
     }
 }
 
-<# function Get-Download {
+function Get-Download {
     param (
         [parameter(Mandatory = $false)]
-        [string]$Uri,
+        [string]$Url,
         [parameter(Mandatory = $false)]
         [string]$Target,
         [parameter(Mandatory = $false)]
@@ -286,7 +286,7 @@ function Write-Exit {
     for ($retryCount = 1; $retryCount -le $MaxRetries; $retryCount++) {
         try {
             $wc = New-Object System.Net.WebClient
-            $wc.DownloadFile($Uri, $Target)
+            $wc.DownloadFile($Url, $Target)
         } catch {
             Write-Text -Type "fail" -Text "$($_.Exception.Message)"
             $downloadComplete = $false
@@ -305,90 +305,6 @@ function Write-Exit {
     } else {
         Get-Item -ErrorAction SilentlyContinue $Target | Remove-Item -ErrorAction SilentlyContinue 
         return $false
-    }
-} #>
-
-function Get-Download {
-    param (
-        [Parameter(Mandatory, ValueFromPipelineByPropertyName)]
-        [System.Uri]
-        $Url,
-        [Parameter(Mandatory, ValueFromPipelineByPropertyName)]
-        [System.IO.FileInfo]
-        $Target,
-        [Parameter(ValueFromPipelineByPropertyName)]
-        [Int32]
-        $BufferSize = 1,
-        [Parameter(ValueFromPipelineByPropertyName)]
-        [ValidateSet('KB, MB')]
-        [String]
-        $BufferUnit = 'MB',
-        [Parameter(ValueFromPipelineByPropertyName)]
-        [ValidateSet('KB, MB')]
-        [Int32]
-        $Timeout = 10000,
-        [parameter(Mandatory = $false)]
-        [System.Collections.Specialized.OrderedDictionary]$Files,
-        [parameter(Mandatory = $false)]
-        [int]$MaxRetries = 3,
-        [parameter(Mandatory = $false)]
-        [int]$Interval = 3
-    )
-    
-    for ($retryCount = 1; $retryCount -le $MaxRetries; $retryCount++) {
-        try {
-            Write-Text "Downloading..."
-            $useBitTransfer = $null -ne (Get-Module -Name BitsTransfer -ListAvailable) -and ($PSVersionTable.PSVersion.Major -le 5)
-
-            if ($useBitTransfer) {
-                Write-Information -MessageData 'Using a fallback BitTransfer method since you are running Windows PowerShell'
-                Start-BitsTransfer -Source $Url -Destination "$($Target.FullName)"
-            } else {
-                $request = [System.Net.HttpWebRequest]::Create($Url)
-                $request.set_Timeout($Timeout) #15 second timeout
-                $response = $request.GetResponse()
-                $totalLength = [System.Math]::Floor($response.get_ContentLength() / 1024)
-                $responseStream = $response.GetResponseStream()
-                $targetStream = New-Object -TypeName ([System.IO.FileStream]) -ArgumentList "$($Target.FullName)", Create
-                switch ($BufferUnit) {
-                    'KB' { $BufferSize = $BufferSize * 1024 }
-                    'MB' { $BufferSize = $BufferSize * 1024 * 1024 }
-                    Default { $BufferSize = 1024 * 1024 }
-                }
-                Write-Verbose -Message "Buffer size: $BufferSize B ($($BufferSize/("1$BufferUnit")) $BufferUnit)"
-                $buffer = New-Object byte[] $BufferSize
-                $count = $responseStream.Read($buffer, 0, $buffer.length)
-                $downloadedBytes = $count
-                $downloadedFileName = $Url -split '/' | Select-Object -Last 1
-                while ($count -gt 0) {
-                    $targetStream.Write($buffer, 0, $count)
-                    $count = $responseStream.Read($buffer, 0, $buffer.length)
-                    $downloadedBytes = $downloadedBytes + $count
-                    Write-Progress -Activity "Downloading file '$downloadedFileName'" -Status "Downloaded ($([System.Math]::Floor($downloadedBytes/1024))K of $($totalLength)K): " -PercentComplete ((([System.Math]::Floor($downloadedBytes / 1024)) / $totalLength) * 100)
-                }
-
-                Write-Progress -Activity "Finished downloading file '$downloadedFileName'"
-
-                $targetStream.Flush()
-                $targetStream.Close()
-                $targetStream.Dispose()
-                $responseStream.Dispose()
-                return $true
-            }
-        } catch {
-            Write-Text -Type "fail" -Text "$($_.Exception.Message)"
-
-            if ($retryCount -lt $MaxRetries) {
-                Write-Text -Text "Retrying..."
-                Start-Sleep -Seconds $Interval
-            } else {
-                Write-Text -Type "error" -Text "Maximum retries reached. Download failed."
-                
-                Get-Item -ErrorAction SilentlyContinue $Target | Remove-Item -ErrorAction SilentlyContinue 
-                
-                return $false
-            }
-        }
     }
 }
 
