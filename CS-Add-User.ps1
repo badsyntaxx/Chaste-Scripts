@@ -1,7 +1,7 @@
-if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Start-Process PowerShell -Verb RunAs "-NoProfile -ExecutionPolicy Bypass -Command `"cd '$($PWD.Path)'; & '$PSCommandPath';`";`"$args`"";
-    Exit;
-} 
+if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
+    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
+    Exit
+}
 
 $Script = "Add-LocalUser"
 $isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
@@ -19,24 +19,25 @@ $core = @"
 function Add-LocalUser {
     try {
         Write-Host "`n   Chaste Scripts: Add User"
-        Write-Host "   Create a local user, setting name, password and group." -ForegroundColor DarkGray
-        Write-Text -Type "header" -Text "Enter name" -LineBefore -LineAfter
+        Write-Host "   Enter a name, a password (you can leave blank for no password) and select a group." -ForegroundColor DarkGray
+        Write-Host "   Then confirm ." -ForegroundColor DarkGray
+        Write-Text -Type "header" -Text "Enter name" -LineBefore
 
         `$name = Get-Input -Prompt "" -Validate "^([a-zA-Z0-9 _\-]{1,64})$"  -CheckExistingUser
 
-        Write-Text -Type "header" -Text "Enter password" -LineBefore -LineAfter
+        Write-Text -Type "header" -Text "Enter password" -LineBefore
 
         `$password = Get-Input -Prompt "" -IsSecure
         
-        Write-Text -Type "header" -Text "Set group membership" -LineBefore -LineAfter
+        Write-Text -Type "header" -Text "Set group membership" -LineBefore
         
         `$choice = Get-Option -Options @("Administrator", "Standard user")
         if (`$choice -eq 0) { `$group = 'Administrators' } else { `$group = "Users" }
         if (`$group -eq 'Administrators') { `$groupDisplay = 'Administrator' } else { `$groupDisplay = 'Standard user' }
 
         `$options = @(
-            "Submit  - Confirm and apply changes", 
-            "Reset   - Start over at the beginning.", 
+            "Submit  - Confirm and apply." 
+            "Reset   - Start over at the beginning."
             "Exit    - Run a different command."
         )
 
@@ -46,7 +47,8 @@ function Add-LocalUser {
             "Group:`$groupDisplay"
         )
 
-        Write-Text -Type "header" -Text "You're about to create a new local user!" -LineBefore -LineAfter
+        Write-Host
+        Write-Text -Type "header" -Text "You're about to create a new local user!" -LineBefore
         Write-Box -Text `$data
 
         `$choice = Get-Option -Options `$options -LineBefore

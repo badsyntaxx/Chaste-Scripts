@@ -1,6 +1,6 @@
-if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Start-Process PowerShell -Verb RunAs "-NoProfile -ExecutionPolicy Bypass -Command `"cd '$($PWD.Path)'; & '$PSCommandPath';`";`"$args`"";
-    Exit;
+if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
+    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
+    Exit
 } 
 
 $Script = "Remove-User"
@@ -70,10 +70,20 @@ function Remove-User {
             }
         }
 
-        Write-Exit "The user has been deleted." -Script "Edit-LocalUser"
+        Write-Text -Type "success" -Text "The user has been deleted."
+
+        `$resetOptions = @(
+            "Remove another user  - Start over and remove another user." 
+            "Exit                 - Quit this script with an opportunity to run another."
+        )
+        
+        `$choice = Get-Option -Options `$resetOptions
+
+        if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "Remove-User" }
+        if (`$choice -eq 2) { Write-Exit -Script "Remove-User" }
     } catch {
         Write-Text -Type "error" -Text "Remove User Error: `$(`$_.Exception.Message)"
-        Read-Host -Prompt "   Press any key to continue"
+        Write-Exit
     }
 }
 

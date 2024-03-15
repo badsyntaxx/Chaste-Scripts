@@ -121,12 +121,9 @@ function Get-Option {
         $fcolor = $host.UI.RawUI.ForegroundColor
   
         for ($i = 0; $i -le $Options.length; $i++) {
-            if ($i -eq $pos) {
-                Write-Host " $([char]0x203A) $($Options[$i])" -ForegroundColor "Cyan"
-            } else {
-                if ($($Options[$i])) {
-                    Write-Host "   $($Options[$i])" -ForegroundColor $fcolor
-                } 
+            if ($i -eq $pos) { Write-Host " $([char]0x203A) $($Options[$i])" -ForegroundColor "Cyan" } 
+            else {
+                if ($($Options[$i])) { Write-Host "   $($Options[$i])" -ForegroundColor $fcolor } 
             }
         }
 
@@ -152,6 +149,14 @@ function Get-Option {
             Write-Host " $([char]0x203A) $($Options[$pos])" -ForegroundColor "Cyan"
             $host.UI.RawUI.CursorPosition = $currPos
         }
+
+        $menuOldPos = New-Object System.Management.Automation.Host.Coordinates(0, ($currPos.Y - ($menuLen - $oldPos)))
+        $currPos = $host.UI.RawUI.CursorPosition
+        $host.UI.RawUI.CursorPosition = $menuOldPos
+        Write-Host " $([char]0x2713)" -ForegroundColor "Green" -NoNewline
+        Write-Host " $($Options[$pos])" -ForegroundColor "Cyan"
+        $host.UI.RawUI.CursorPosition = $currPos
+
         if ($LineAfter) { Write-Host }
         return $pos
     } catch {
@@ -179,12 +184,12 @@ function Write-Text {
     )
 
     if ($LineBefore) { Write-Host }
-    if ($Type -eq "header") { Write-Host "   ## $Text" -ForegroundColor "DarkCyan" }
-    <# if ($Type -eq "header") { 
+    if ($Type -eq "header") { Write-Host "   $Text" -ForegroundColor "DarkCyan" }
+    if ($Type -eq "header") { 
         $lines = ""
-        for ($i = 0; $i -lt 60; $i++) { $lines += "$([char]0x2500)" }
+        for ($i = 0; $i -lt $Text.Length; $i++) { $lines += "$([char]0x2500)" }
         Write-Host "   $lines" -ForegroundColor "DarkCyan"
-    } #>
+    }
     if ($Type -eq 'done') { 
         Write-Host " $([char]0x2713)" -ForegroundColor "Green" -NoNewline
         Write-Host " $Text" 
