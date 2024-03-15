@@ -32,7 +32,7 @@ function Add-LocalUser {
 
         `$options = @(
             "Submit  - Confirm and apply changes", 
-            "Reset   - Start add user over.", 
+            "Reset   - Start over at the beginning.", 
             "Exit    - Do nothing and exit."
         )
 
