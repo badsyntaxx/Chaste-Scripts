@@ -2,22 +2,35 @@ function Select-Tool {
     Write-Host "Chaste Scripts`n" -ForegroundColor DarkGray
 
     $options = @(
-        "Enable administrator  - Enable Windows built in administrator account."
-        "Add user              - Create a local user."
-        "Edit user             - Edit / delete existing user."
-        "Rename Computer       - Edit this computers name and description."
-        "Edit network adapter  - Select and edit a network adapter. (under construction)"
+        "Enable administrator  - Toggle the Windows built in administrator account."
+        "Add user              - Add a user to the system."
+        "Remove user           - Remove a user from the system."
+        "Edit user name        - Edit a users name."
+        "Edit user password    - Edit a users password."
+        "Edit user group       - Edit a users group membership."
+        "Edit hostname         - Edit this computers name and description."
+        "Edit network adapter  - Edit a network adapter.(beta)"
+        "Enter Command         - Bypass menu and enter command manually."
     )
 
     Write-Text -Type "header" -Text "Selection"
 
     $choice = Get-Option -Options $options
     if ($choice -eq 0) { $script = "CS-Enable-BuiltInAdminAccount.ps1" }
-    if ($choice -eq 1) { $script = "CS-Add-LocalUser.ps1" }
-    if ($choice -eq 2) { $script = "CS-Edit-LocalUser.ps1" }
-    if ($choice -eq 3) { $script = "CS-Set-ComputerName.ps1" }
-    if ($choice -eq 4) { $script = "CS-Edit-NetworkAdapter.ps1" }
-    if ($choice -eq 5) { Exit }
+    if ($choice -eq 1) { $script = "CS-Add-User.ps1" }
+    if ($choice -eq 2) { $script = "CS-Remove-User.ps1" }
+    if ($choice -eq 3) { $script = "CS-Edit-UserName.ps1" }
+    if ($choice -eq 4) { $script = "CS-Edit-UserPassword.ps1" }
+    if ($choice -eq 5) { $script = "CS-Edit-UserGroup.ps1" }
+    if ($choice -eq 6) { $script = "CS-Edit-Hostname.ps1" }
+    if ($choice -eq 7) { $script = "CS-Edit-NetworkAdapter.ps1" }
+    if ($choice -eq 8) { 
+        $param = Read-Host -Prompt "`r`n   Enter command"
+        Write-Host
+        if ($param.Length -gt 0) {
+            Invoke-RestMethod "chaste.dev$param" | Invoke-Expression -ErrorAction SilentlyContinue
+        }
+    }
 
     Write-Text -Text "Initializing script..." -LineBefore
     

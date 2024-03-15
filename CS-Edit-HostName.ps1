@@ -15,36 +15,46 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyCont
     $framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 }
 
+$des = @"
+   This function enables you to modify the hostname and description of a Windows computer 
+   without requiring a system reboot.
+"@
+
 $core = @"
 function Set-ComputerName {
     try {
-        Write-Host "Chaste Scripts: Rename Computer" -ForegroundColor DarkGray
-        Write-Text -Type "header" -Text "Name & Description" -LineBefore
+        Write-Host "`n   Chaste Scripts: Edit Hostname v0315241145"
+        Write-Host "$des" -ForegroundColor DarkGray
 
         `$currentHostname = `$env:COMPUTERNAME
         `$currentDescription = (Get-WmiObject -Class Win32_OperatingSystem).Description
 
-        `$hostname = Get-Input -Prompt "Hostname" -Validate "^(\s*|[a-zA-Z0-9 _\-]{1,15})$" -Value `$currentHostname
-        `$description = Get-Input -Prompt "Description" -Validate "^(\s*|[a-zA-Z0-9 |_\-]{1,64})$" -Value `$currentDescription
+        Write-Text -Type "header" -Text "Enter hostname" -LineBefore
+
+        `$hostname = Get-Input -Validate "^(\s*|[a-zA-Z0-9 _\-]{1,15})$" -Value `$currentHostname
+
+        Write-Text -Type "header" -Text "Enter description" -LineBefore
+
+        `$description = Get-Input -Validate "^(\s*|[a-zA-Z0-9 |_\-]{1,64})$" -Value `$currentDescription
 
         `$options = @(
-            "Submit  - Confirm and apply changes", 
-            "Reset   - Start rename computer over.", 
-            "Exit    - Do nothing and exit."
+            "Submit  - Confirm and apply." 
+            "Reset   - Start over at the beginning."
+            "Exit    - Run a different command."
         )
 
         if (`$hostname -eq "") { `$hostname = `$currentHostname } 
         if (`$description -eq "") { `$description = `$currentDescription } 
 
-        `$data = [ordered]@{ "Hostname" = `$hostname }
-        `$data = [ordered]@{ "Hostname" = `$hostname; "Description" = `$description }
+        `$data = @(
+            "Hostname:`$hostname"
+            "Description:`$description"
+        )
 
-        Write-Text "Confirm name settings" -Type "header" -LineBefore
-        Write-Text -Type "notice" -Text "NOTICE: You're about to change the computer name and description."
-        Write-Text -Type "recap" -Data `$data -LineAfter
+        Write-Text -Type "header" -Text "You're about to change the computer name and description." -LineBefore
+        Write-Box -Text `$data
 
-        `$choice = Get-Option -Options `$options
-
+        `$choice = Get-Option -Options `$options -LineBefore
         if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "Set-ComputerName" }
         if (`$choice -eq 2) { Write-Exit -Script "Set-ComputerName" }
 
@@ -66,7 +76,8 @@ function Set-ComputerName {
         Write-Host
         Write-Exit -Message "The PC name changes have been applied. No restart required!" -Script "Set-ComputerName"
     } catch {
-        Write-Text -Type "error" -Text "Add User Error: `$(`$_.Exception.Message)"
+        Write-Text -Type "error" -Text "Rename computer error: `$(`$_.Exception.Message)"
+        Write-Exit -Script "Set-ComputerName"
     }
 }
 

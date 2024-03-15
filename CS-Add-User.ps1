@@ -15,12 +15,17 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyCont
     $framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 }
 
+$des = @"
+   This function creates a new local user account on a Windows system with specified settings, 
+   including the username, optional password, and group. The account and password never expire.
+"@
+
 $core = @"
 function Add-LocalUser {
     try {
-        Write-Host "`n   Chaste Scripts: Add User"
-        Write-Host "   Enter a name, a password (you can leave blank for no password) and select a group." -ForegroundColor DarkGray
-        Write-Host "   Then confirm ." -ForegroundColor DarkGray
+        Write-Host "`n   Chaste Scripts: Add User v0315241122"
+        Write-Host "$des" -ForegroundColor DarkGray
+
         Write-Text -Type "header" -Text "Enter name" -LineBefore
 
         `$name = Get-Input -Prompt "" -Validate "^([a-zA-Z0-9 _\-]{1,64})$"  -CheckExistingUser
@@ -47,7 +52,6 @@ function Add-LocalUser {
             "Group:`$groupDisplay"
         )
 
-        Write-Host
         Write-Text -Type "header" -Text "You're about to create a new local user!" -LineBefore
         Write-Box -Text `$data
 

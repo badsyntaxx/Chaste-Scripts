@@ -34,6 +34,7 @@ function Remove-User {
         if (`$choice -eq 2) { Select-Action -Username `$username }
 
         Write-Text -Type "header" -Text "Confirm user deletion" -LineBefore
+
         if (`$deleteData) {
             Write-Text -Type "notice" "NOTICE: You're about to delete this account and it's data!"
         } else {
@@ -42,15 +43,15 @@ function Remove-User {
 
         `$data = Get-AccountInfo `$username
 
-        Write-Text -Type "recap" -Data `$data -LineAfter
+        Write-Box -Text `$data
 
-        `$confirmation = @(
-            "Submit   - Confirm and apply changes", 
-            "Restart  - Start edit user over.", 
-            "Exit     - Quit this script with an opportunity to run another."
+        `$options = @(
+            "Submit  - Confirm and apply." 
+            "Reset   - Start over at the beginning."
+            "Exit    - Run a different command."
         )
         
-        `$choice = Get-Option -Options `$confirmation
+        `$choice = Get-Option -Options `$options
 
         if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "Remove-User" }
         if (`$choice -eq 2) { Write-Exit -Script "Remove-User" }
@@ -102,12 +103,12 @@ function Get-AccountInfo {
 
         `$source = Get-LocalUser -Name `$Username | Select-Object -ExpandProperty PrincipalSource
 
-        `$data = [ordered]@{
-            "Name"   = `$Username
-            "Groups" = "`$(`$groups -join ';')"
-            "Path"   = `$dir
-            "Source" = `$source
-        }
+        `$data = @(
+            "Name:`$Username"
+            "Groups:`$(`$groups -join ';')"
+            "Path:`$dir"
+            "Source:`$source"
+        )
 
         return `$data
     } catch {

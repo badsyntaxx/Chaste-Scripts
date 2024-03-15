@@ -50,7 +50,7 @@ function Invoke-Installation {
     `$paths = @("C:\Program Files\NinjaRemote")
     `$appName = "NinjaOne"
     `$installed = Find-ExistingInstall -Paths `$paths -App `$appName
-    if (!`$installed) { Install-Program `$url `$appName "/qn" }
+    if (!`$installed) { Install-Program -Url `$url -AppName `$appName -Args "/L*V "C:\package.log"" }
 }
 
 function Find-ExistingInstall {
@@ -80,7 +80,7 @@ function Find-ExistingInstall {
 function Install-Program {
     param (
         [parameter(Mandatory = `$true)]
-        [string]`$Uri,
+        [string]`$Url,
         [parameter(Mandatory = `$true)]
         [string]`$AppName,
         [parameter(Mandatory = `$true)]
@@ -89,14 +89,14 @@ function Install-Program {
 
     try {
         `$tempPath = "C:\Users\`$env:username\Desktop\TEMP"
-        `$download = Get-Download -Uri `$Uri -Target "`$tempPath\`$AppName.msi"
+        `$download = Get-Download -Uri `$Url -Target "`$tempPath\`$AppName.msi"
 
         Write-Text ""
 
         if (`$download) {
             Write-Text -Text "Intalling..."
             Write-Host "`$tempPath\`$output"
-            Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$output``" `$Args" -Wait
+           # Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$output``" `$Args" -Wait
 
             `$service = Get-Service -Name "NinjaRMMAgent" -ErrorAction SilentlyContinue
 

@@ -54,7 +54,7 @@ function Get-Input {
     try {
         if ($LineBefore) { Write-Host }
 
-        $originalPosition = $host.UI.RawUI.CursorPosition
+        $currPos = $host.UI.RawUI.CursorPosition
 
         Write-Host "   $Prompt`:" -NoNewline 
         if ($IsSecure) { $userInput = Read-Host -AsSecureString } 
@@ -84,7 +84,7 @@ function Get-Input {
             $userInput = $Value
         }
 
-        [Console]::SetCursorPosition($originalPosition.X, $originalPosition.Y)
+        [Console]::SetCursorPosition($currPos.X, $currPos.Y)
         
         Write-Host " $([char]0x2713)" -ForegroundColor "Green" -NoNewline
         if ($IsSecure -and ($userInput.Length -eq 0)) {
