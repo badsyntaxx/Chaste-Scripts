@@ -50,7 +50,7 @@ function Invoke-Installation {
     `$paths = @("C:\Program Files\NinjaRemote")
     `$appName = "NinjaOne"
     `$installed = Find-ExistingInstall -Paths `$paths -App `$appName
-    if (!`$installed) { Install-Program -Url `$url -AppName `$appName -Args "/L*V ``"C:\package.log``"" }
+    if (!`$installed) { Install-Program -Url `$url -AppName `$appName -Args "/L*V" }
 }
 
 function Find-ExistingInstall {
