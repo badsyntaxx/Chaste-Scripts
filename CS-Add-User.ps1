@@ -18,13 +18,17 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyCont
 $core = @"
 function Add-LocalUser {
     try {
-        Write-Host "Chaste Scripts: Create Local User" -ForegroundColor DarkGray
-        Write-Text -Type "header" -Text "Enter credentials" -LineBefore
+        Write-Host "`n   Chaste Scripts: Add User"
+        Write-Host "   Create a local user, setting name, password and group." -ForegroundColor DarkGray
+        Write-Text -Type "header" -Text "Enter name" -LineBefore -LineAfter
 
-        `$name = Get-Input -Prompt "Username" -Validate "^(\s*|[a-zA-Z0-9 _\-]{1,64})$"  -CheckExistingUser
-        `$password = Get-Input -Prompt "Password" -IsSecure
+        `$name = Get-Input -Prompt "" -Validate "^([a-zA-Z0-9 _\-]{1,64})$"  -CheckExistingUser
+
+        Write-Text -Type "header" -Text "Enter password" -LineBefore -LineAfter
+
+        `$password = Get-Input -Prompt "" -IsSecure
         
-        Write-Text -Type "header" -Text "Set group membership" -LineBefore
+        Write-Text -Type "header" -Text "Set group membership" -LineBefore -LineAfter
         
         `$choice = Get-Option -Options @("Administrator", "Standard user")
         if (`$choice -eq 0) { `$group = 'Administrators' } else { `$group = "Users" }
@@ -33,34 +37,36 @@ function Add-LocalUser {
         `$options = @(
             "Submit  - Confirm and apply changes", 
             "Reset   - Start over at the beginning.", 
-            "Exit    - Do nothing and exit."
+            "Exit    - Run a different command."
         )
 
-        `$data = [ordered]@{}
-        `$data["Name"] = `$name
-        `$data["Password"] = `$password
-        `$data["Group"] = `$groupDisplay 
+        `$data = @(
+            "Name:`$name"
+            "Password:`$password"
+            "Group:`$groupDisplay"
+        )
 
-        Write-Text -Type "header" -Text "Confirm user data" -LineBefore
-        Write-Text -Type "notice" -Text "NOTICE: You're about to create a new local user!"
-        Write-Text -Type "recap" -Data `$data -LineAfter
+        Write-Text -Type "header" -Text "You're about to create a new local user!" -LineBefore -LineAfter
+        Write-Box -Text `$data
 
-        `$choice = Get-Option -Options `$options
+        `$choice = Get-Option -Options `$options -LineBefore
         if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "Add-LocalUser" }
         if (`$choice -eq 2) {  Write-Exit -Script "Add-LocalUser" }
 
-        Write-Text -Type "header" -Text "Creating local user account" -LineBefore
+        Write-Text -Type "notice" -Text "Creating local user..." -LineBefore
 
         New-LocalUser `$name -Password `$password -Description "Local User" -AccountNeverExpires -PasswordNeverExpires -ErrorAction Stop | Out-Null
 
-        Write-Text -Type "done" -Text "Local user created."
+        Write-Text -Type "notice" -Text "Local user created."
 
         Add-LocalGroupMember -Group `$group -Member `$name -ErrorAction Stop
 
-        Write-Text -Type "done" -Text "Group membership set to `$group."
-        Write-Exit -Message "The user account was created." -Script "Add-LocalUser"
+        Write-Text -Type "notice" -Text "Group membership set to `$group." -LineAfter
+
+        Write-Exit -Message "The user account was created." -Script "Add-LocalUser" 
     } catch {
         Write-Text -Type "error" -Text "Add User Error: `$(`$_.Exception.Message)"
+        Write-Exit
     }
 }
 

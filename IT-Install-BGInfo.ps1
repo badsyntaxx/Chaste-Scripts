@@ -24,7 +24,12 @@ function Install-BGInfo {
         Write-Text -Text "Type or paste link to BGInfo zip."
         `$boxText = "This link is the BGInfo folder I install for Nuvia ISR's"
         `$boxLink = "https://drive.google.com/uc?export=download&id=1vU-AfOmhwdwh7h_Q0IFGXClGQ4AQjjSK"
-        Write-Box -Text `$boxText -Link `$boxLink
+        `$text = @(
+            "This link is the BGInfo folder I install for Nuvia ISR's"
+            "https://drive.google.com/uc?export=download&id=1vU-AfOmhwdwh7h_Q0IFGXClGQ4AQjjSK"
+        )
+
+        Write-Box -Text `$text
 
         `$url = Get-Input -Prompt "Link"
 

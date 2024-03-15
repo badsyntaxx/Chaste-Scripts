@@ -37,20 +37,26 @@ function Get-Input {
     param (
         [parameter(Mandatory = $false)]
         [string]$Value = "",
-        [parameter(Mandatory = $true)]
+        [parameter(Mandatory = $false)]
         [string]$Prompt,
         [parameter(Mandatory = $false)]
         [regex]$Validate = $null,
         [parameter(Mandatory = $false)]
         [switch]$IsSecure = $false,
         [parameter(Mandatory = $false)]
-        [switch]$CheckExistingUser = $false
+        [switch]$CheckExistingUser = $false,
+        [parameter(Mandatory = $false)]
+        [switch]$LineBefore = $false,
+        [parameter(Mandatory = $false)]
+        [switch]$LineAfter = $false
     )
 
     try {
+        if ($LineBefore) { Write-Host }
+
         $originalPosition = $host.UI.RawUI.CursorPosition
 
-        Write-Host "   $Prompt`:" -NoNewline
+        Write-Host "   $Prompt`:" -NoNewline 
         if ($IsSecure) { $userInput = Read-Host -AsSecureString } 
         else { $userInput = Read-Host }
 
@@ -79,12 +85,15 @@ function Get-Input {
         }
 
         [Console]::SetCursorPosition($originalPosition.X, $originalPosition.Y)
+        
         Write-Host " $([char]0x2713)" -ForegroundColor "Green" -NoNewline
         if ($IsSecure -and ($userInput.Length -eq 0)) {
             Write-Host " $Prompt`:                                                       "
         } else {
             Write-Host " $Prompt`:$userInput                                             "
         }
+
+        if ($LineAfter) { Write-Host }
     
         return $userInput
     } catch {
@@ -97,10 +106,15 @@ function Get-Option {
         [parameter(Mandatory = $true)]
         [array]$Options,
         [parameter(Mandatory = $false)]
-        [int]$DefaultOption = 0
+        [int]$DefaultOption = 0,
+        [parameter(Mandatory = $false)]
+        [switch]$LineBefore = $false,
+        [parameter(Mandatory = $false)]
+        [switch]$LineAfter = $false
     )
 
     try {
+        if ($LineBefore) { Write-Host }
         $vkeycode = 0
         $pos = $DefaultOption
         $oldPos = 0
@@ -138,6 +152,7 @@ function Get-Option {
             Write-Host " $([char]0x203A) $($Options[$pos])" -ForegroundColor "Cyan"
             $host.UI.RawUI.CursorPosition = $currPos
         }
+        if ($LineAfter) { Write-Host }
         return $pos
     } catch {
         Write-Host "   $($_.Exception.Message)" -ForegroundColor "Red"
@@ -164,12 +179,12 @@ function Write-Text {
     )
 
     if ($LineBefore) { Write-Host }
-    if ($Type -eq "header") { Write-Host "   $Text" -ForegroundColor "DarkCyan" }
-    if ($Type -eq "header") { 
+    if ($Type -eq "header") { Write-Host "   ## $Text" -ForegroundColor "DarkCyan" }
+    <# if ($Type -eq "header") { 
         $lines = ""
-        for ($i = 0; $i -lt 50; $i++) { $lines += "$([char]0x2500)" }
+        for ($i = 0; $i -lt 60; $i++) { $lines += "$([char]0x2500)" }
         Write-Host "   $lines" -ForegroundColor "DarkCyan"
-    }
+    } #>
     if ($Type -eq 'done') { 
         Write-Host " $([char]0x2713)" -ForegroundColor "Green" -NoNewline
         Write-Host " $Text" 
@@ -185,8 +200,7 @@ function Write-Text {
     }
     if ($Type -eq 'success') { Write-Host " $([char]0x2713) $Text" -ForegroundColor "Green" }
     if ($Type -eq 'error') { 
-        Write-Host " ! $Text`n" -ForegroundColor "Red" 
-        Write-Exit
+        Write-Host "   $Text`n" -ForegroundColor "Red" 
     }
     if ($Type -eq 'notice') { Write-Host "   $Text" -ForegroundColor "Yellow" }
     if ($Type -eq 'plain') { Write-Host "   $Text" }
@@ -206,9 +220,7 @@ function Write-Text {
 function Write-Box {
     param (
         [parameter(Mandatory = $false)]
-        [string]$Text,
-        [parameter(Mandatory = $false)]
-        [string]$Link
+        [array]$Text
     )
 
     $horizontalLine = [string][char]0x2500
@@ -217,25 +229,20 @@ function Write-Box {
     $topRight = [string][char]0x2510
     $bottomLeft = [string][char]0x2514
     $bottomRight = [string][char]0x2518
-    $longest = [Math]::Max($Text.Length, $Link.Length)
-    $paddedText = $Text.PadRight($longest)
-    $paddedLink = $Link.PadRight($longest)
+    $longestString = $Text | Sort-Object Length -Descending | Select-Object -First 1
+    $count = $longestString.Length
 
-    Write-Host "   $topLeft$($horizontalLine * ($longest + 4))$topRight" -ForegroundColor Cyan
-    Write-Host "   $verticalLine$(" " * ($longest + 4))$verticalLine" -ForegroundColor Cyan
+    Write-Host "   $topLeft$($horizontalLine * ($count + 4))$topRight" -ForegroundColor DarkGray
+    Write-Host "   $verticalLine$(" " * ($count + 4))$verticalLine" -ForegroundColor DarkGray
 
-    Write-Host "   $verticalLine" -ForegroundColor Cyan -NoNewline
-    Write-Host "  $paddedText" -NoNewline
-    Write-Host "  $verticalLine" -ForegroundColor Cyan
-
-    if ($Link -ne "") {
-        Write-Host "   $verticalLine" -ForegroundColor Cyan -NoNewline
-        Write-Host "  $paddedLink" -NoNewline -ForegroundColor DarkCyan
-        Write-Host "  $verticalLine" -ForegroundColor Cyan
+    foreach ($line in $Text) {
+        Write-Host "   $verticalLine" -ForegroundColor DarkGray -NoNewline
+        Write-Host "  $($line.PadRight($count))" -ForegroundColor DarkGray -NoNewline
+        Write-Host "  $verticalLine" -ForegroundColor DarkGray
     }
 
-    Write-Host "   $verticalLine$(" " * ($longest + 4))$verticalLine" -ForegroundColor Cyan
-    Write-Host "   $bottomLeft$($horizontalLine * ($longest + 4))$bottomRight" -ForegroundColor Cyan
+    Write-Host "   $verticalLine$(" " * ($count + 4))$verticalLine" -ForegroundColor DarkGray
+    Write-Host "   $bottomLeft$($horizontalLine * ($count + 4))$bottomRight" -ForegroundColor DarkGray
 }
 
 function Write-Exit {
