@@ -64,11 +64,10 @@ function Find-ExistingInstall {
     Write-Text "Checking for existing install..."
 
     `$installationFound = `$false
-    foreach (`$path in `$paths) {
-        if (Test-Path `$path) {
-            `$installationFound = `$true
-            break
-        }
+    `$service = Get-Service -Name "NinjaRMMAgent" -ErrorAction SilentlyContinue
+
+    if (`$null -ne `$service -and `$service.Status -eq "Running") {
+        `$installationFound = `$true
     }
 
     if (`$installationFound) { Write-Text -Type "success" -Text "`$App already installed." -LineAfter } 
@@ -89,14 +88,15 @@ function Install-Program {
 
     try {
         `$tempPath = "C:\Users\`$env:username\Desktop\TEMP"
-        `$download = Get-Download -Uri `$Url -Target "`$tempPath\`$AppName.msi"
+        `$download = Get-Download -Url `$Url -Target "`$tempPath\`$AppName.msi"
 
         Write-Text ""
 
         if (`$download) {
             Write-Text -Text "Intalling..."
             Write-Host "`$tempPath\`$output"
-           # Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$output``" `$Args" -Wait
+            
+            Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$output``" `$Args" -Wait
 
             `$service = Get-Service -Name "NinjaRMMAgent" -ErrorAction SilentlyContinue
 
