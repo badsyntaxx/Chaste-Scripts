@@ -53,7 +53,7 @@ function Remove-User {
         `$choice = Get-Option -Options `$confirmation
 
         if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "Remove-User" }
-        if (`$choice -eq 2) { Write-CloseOut -Script "Remove-User" }
+        if (`$choice -eq 2) { Write-Exit -Script "Remove-User" }
 
         Remove-LocalUser -Name `$username
 
@@ -70,7 +70,7 @@ function Remove-User {
             }
         }
 
-        Write-CloseOut "The user has been deleted." -Script "Edit-LocalUser"
+        Write-Exit "The user has been deleted." -Script "Edit-LocalUser"
     } catch {
         Write-Text -Type "error" -Text "Remove User Error: `$(`$_.Exception.Message)"
         Read-Host -Prompt "   Press any key to continue"

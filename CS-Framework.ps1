@@ -30,7 +30,6 @@ function Invoke-Script {
         Invoke-Expression $ScriptName
     } catch {
         Write-Text -Type "error" -Text "Initialization Error: $($_.Exception.Message)"
-        Read-Host "   Press any key to continue"
     }
 }
 
@@ -90,7 +89,6 @@ function Get-Input {
         return $userInput
     } catch {
         Write-Text -Type "error" -Text "Input Error: $($_.Exception.Message)"
-        Read-Host "   Press any key to continue"
     }
 }
 
@@ -188,7 +186,7 @@ function Write-Text {
     if ($Type -eq 'success') { Write-Host " $([char]0x2713) $Text" -ForegroundColor "Green" }
     if ($Type -eq 'error') { 
         Write-Host " ! $Text`n" -ForegroundColor "Red" 
-        Read-Host "   Press any key to continue"
+        Write-Exit
     }
     if ($Type -eq 'notice') { Write-Host "   $Text" -ForegroundColor "Yellow" }
     if ($Type -eq 'plain') { Write-Host "   $Text" }
@@ -198,7 +196,7 @@ function Write-Text {
             if ($value.Length -gt 0) {
                 Write-Host "   $key`:$value" -ForegroundColor "DarkGray" 
             } else {
-                Write-Host "   $key`:" -ForegroundColor "Magenta" 
+                Write-Host "   $key`:" -ForegroundColor "DarkGray" 
             }
         }
     }
@@ -240,21 +238,21 @@ function Write-Box {
     Write-Host "   $bottomLeft$($horizontalLine * ($longest + 4))$bottomRight" -ForegroundColor Cyan
 }
 
-function Write-CloseOut {
+function Write-Exit {
     param (
         [parameter(Mandatory = $false)]
         [string]$Message = "",
-        [parameter(Mandatory = $true)]
+        [parameter(Mandatory = $false)]
         [string]$Script = ""
     )
 
     if ($Message -ne "") { Write-Text -Type "success" -Text $Message }
     $paths = @("$env:TEMP\$Script.ps1", "$env:SystemRoot\Temp\$Script.ps1")
     foreach ($p in $paths) { Get-Item -ErrorAction SilentlyContinue $p | Remove-Item -ErrorAction SilentlyContinue }
-    $param = Read-Host -Prompt "`r`n   Type a command or just hit enter to exit"
+    $param = Read-Host -Prompt "`r`n   Enter command"
     Write-Host
     if ($param.Length -gt 0) {
-        Invoke-RestMethod "chaste.dev/$param" | Invoke-Expression -ErrorAction SilentlyContinue
+        Invoke-RestMethod "chaste.dev$param" | Invoke-Expression -ErrorAction SilentlyContinue
     }
 }
 

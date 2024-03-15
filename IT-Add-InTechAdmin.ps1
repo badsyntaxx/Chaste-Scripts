@@ -57,7 +57,7 @@ function Add-InTechAdmin {
 
         Remove-Item -Path "`$path\PHRASE.txt"
         Remove-Item -Path "`$path\KEY.txt"
-        Write-CloseOut -Message "Task completed successfully." -Script "Add-IntechAdmin"
+        Write-Exit -Message "Task completed successfully." -Script "Add-IntechAdmin"
     } catch {
         Write-Text -Type "error" -Text "Create IntechAdmin Error: `$(`$_.Exception.Message)"
         Read-Host "   Press any key to continue"

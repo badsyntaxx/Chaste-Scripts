@@ -35,10 +35,8 @@ function Add-TempFolder {
         Write-Text "Creating TEMP folder"
         Write-Text "Path: C:\Users\`$env:username\Desktop\"
 
-        `$folderPath = "C:\Users\`$env:username\Desktop\TEMP"
-
-        if (-not (Test-Path -PathType Container `$folderPath)) {
-            New-Item -Path `$folderPath -Name "TEMP" -ItemType Directory | Out-Null
+        if (-not (Test-Path -PathType Container "C:\Users\`$env:username\Desktop\TEMP")) {
+            New-Item -Path "C:\Users\`$env:username\Desktop\" -Name "TEMP" -ItemType Directory | Out-Null
         }
         
         Write-Text -Type "done" -Text "Folder created." -LineAfter
@@ -48,7 +46,7 @@ function Add-TempFolder {
 }
 
 function Invoke-Installation {
-    `$url = "https://app.ninjarmm.com/agent/installer/0274c0c3-3ec8-44fc-93cb-79e96f191e07/nuviaisrcenteroremut-5.7.8652-windows-installer.msi"
+    `$url = "https://app.ninjarmm.com/agent/installer/0274c0c3-3ec8-44fc-93cb-79e96f191e07/nuviaisrcenteroremut-5.7.8836-windows-installer.msi"
     `$paths = @("C:\Program Files\NinjaRemote")
     `$appName = "NinjaOne"
     `$installed = Find-ExistingInstall -Paths `$paths -App `$appName
@@ -97,8 +95,8 @@ function Install-Program {
 
         if (`$download) {
             Write-Text -Text "Intalling..."
-
-            #Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$output``" `$Args" -Wait
+            Write-Host "`$tempPath\`$output"
+            Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$output``" `$Args" -Wait
 
             `$service = Get-Service -Name "NinjaRMMAgent" -ErrorAction SilentlyContinue
 
@@ -111,7 +109,7 @@ function Install-Program {
             Write-Text "Download failed. Skipping." -Type "error" -LineAfter
         }
     } catch {
-        Write-Text "Installation Error: `$(`$_.Exception.Message)" -Type "error"
+        Write-Text -Type "error" -Text "Installation Error: `$(`$_.Exception.Message)"
         Write-Text "Skipping `$AppName installation."
     }
 }

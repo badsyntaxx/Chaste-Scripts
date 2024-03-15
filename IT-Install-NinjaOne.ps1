@@ -104,7 +104,7 @@ function Install-Program {
         if (`$download) {
             Write-Text -Text "Intalling..."
 
-            #Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$output``" `$Args" -Wait
+            Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$output``" `$Args" -Wait
 
             `$service = Get-Service -Name "NinjaRMMAgent" -ErrorAction SilentlyContinue
 

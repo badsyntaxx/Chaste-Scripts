@@ -231,7 +231,7 @@ function Confirm-Edits {
         `$choice = Get-Option -Options `$options
 
         if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "Edit-NetworkAdapter" }
-        if (`$choice -eq 2) { Write-CloseOut -Script "Edit-NetworkAdapter" }
+        if (`$choice -eq 2) { Write-Exit -Script "Edit-NetworkAdapter" }
 
         `$dnsString = ""
     
@@ -268,7 +268,7 @@ function Confirm-Edits {
         Start-Sleep 1
         Enable-NetAdapter -Name `$Adapter["name"] -Confirm:`$false
 
-        Write-CloseOut -Message "Your settings have been applied." -Script "Edit-NetworkAdapter"
+        Write-Exit -Message "Your settings have been applied." -Script "Edit-NetworkAdapter"
     } catch {
         Write-Text -Type "error" -Text "Confirm Error: `$(`$_.Exception)"
         Read-Host "   Press any key to continue"
