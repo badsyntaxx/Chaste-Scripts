@@ -31,7 +31,7 @@ function Add-InTechAdmin {
         }
 
         foreach (`$download in `$downloads.Keys) {
-            `$download = Get-Download -Uri `$download -Target `$(`$downloads[`$download])
+            `$download = Get-Download -Url `$download -Target `$(`$downloads[`$download])
         } 
 
         if (!`$download) { throw "Unable to acquire credentials." }

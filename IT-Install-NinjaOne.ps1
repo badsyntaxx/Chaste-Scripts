@@ -97,7 +97,7 @@ function Install-Program {
 
     try {
         `$tempPath = "C:\Users\`$env:username\Desktop\TEMP"
-        `$download = Get-Download -Uri `$Uri -Target "`$tempPath\`$AppName.msi"
+        `$download = Get-Download -Url `$Uri -Target "`$tempPath\`$AppName.msi"
 
         Write-Text ""
 

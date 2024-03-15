@@ -41,7 +41,7 @@ function Install-BGInfo {
 
         Write-Text -Type "done" -Text "Current wallpaper removed."
 
-        `$download = Get-Download -Uri `$url -Target "C:\Windows\Temp\BGInfo.zip"
+        `$download = Get-Download -Url `$url -Target "C:\Windows\Temp\BGInfo.zip"
     
         if (!`$download) {
             throw "Frick"
