@@ -83,7 +83,7 @@ function Install-GoogleChromeBookmarks {
         }
     } catch {
         Write-Text "Bookmarks Error: `$(`$_.Exception.Message)" -Type "error"
-        Read-Text "Press any key to continue"
+        Write-Exit -Script "Install-Apps"
     }
 }
 
