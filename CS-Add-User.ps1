@@ -52,7 +52,8 @@ function Add-LocalUser {
             "Group:`$groupDisplay"
         )
 
-        Write-Text -Type "header" -Text "You're about to create a new local user!" -LineBefore
+        # Write-Text -Type "header" -Text "Confirm user data" -LineBefore
+        Write-Text -Type "notice" -Text "## You're about to create a new local user!" -LineBefore -LineAfter
         Write-Box -Text `$data
 
         `$choice = Get-Option -Options `$options -LineBefore
@@ -71,7 +72,7 @@ function Add-LocalUser {
 
         Write-Exit -Message "The user account was created." -Script "Add-LocalUser" 
     } catch {
-        Write-Text -Type "error" -Text "Add User Error: `$(`$_.Exception.Message)"
+        Write-Text -Type "error" -Text "Add user error: `$(`$_.Exception.Message)"
         Write-Exit
     }
 }

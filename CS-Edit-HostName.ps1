@@ -51,12 +51,14 @@ function Set-ComputerName {
             "Description:`$description"
         )
 
-        Write-Text -Type "header" -Text "You're about to change the computer name and description." -LineBefore
+        Write-Text -Type "notice" -Text "## You're about to change the computer name and description." -LineBefore -LineAfter
         Write-Box -Text `$data
 
         `$choice = Get-Option -Options `$options -LineBefore
         if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "Set-ComputerName" }
         if (`$choice -eq 2) { Write-Exit -Script "Set-ComputerName" }
+
+        Write-Text -Type "notice" -Text "Setting the computers hostname." -LineBefore
 
         if (`$hostname -ne "") {
             Remove-ItemProperty -path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -name "Hostname" 
@@ -68,6 +70,8 @@ function Set-ComputerName {
             Set-ItemProperty -path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -name "AltDefaultDomainName" -value `$hostname
             Set-ItemProperty -path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -name "DefaultDomainName" -value `$hostname
         } 
+
+        Write-Text -Type "notice" -Text "Setting the computers description." -LineAfter
 
         if (`$description -ne "") {
             Set-CimInstance -Query 'Select * From Win32_OperatingSystem' -Property @{Description = `$description }

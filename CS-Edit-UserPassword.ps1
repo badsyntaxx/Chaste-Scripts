@@ -15,72 +15,53 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyCont
     $framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 }
 
+$des = @"
+   This script allows you to modify the password of a user on a Windows system. 
+   You can leave the password blank to remove an existing password.
+"@
+
 $core = @"
 function Edit-UserPassword {
     try {
+        Write-Host "`n   Chaste Scripts: Edit User Password v0315241122"
+        Write-Host "$des" -ForegroundColor DarkGray
+
         `$username = Select-User
 
-        Write-Text -Type "header" -Text "Change or remove password" -LineBefore
+        Write-Text -Type "header" -Text "Enter password or leave blank" -LineBefore
         
-        `$password = Get-Input -Prompt "Password" -IsSecure `$true
+        `$password = Get-Input -Prompt "" -IsSecure `$true
 
-        if (`$password.Length -eq 0) { `$alert = "NOTICE: You're about to remove this users password." } 
-        else { `$alert = "NOTICE: You're about to change this users password." }
-
-        Write-Text -Type "header" -Text "Confirm password change" -LineBefore
+        if (`$password.Length -eq 0) { `$alert = "## You're about to remove this users password." } 
+        else { `$alert = "## You're about to change this users password." }
 
         `$data = Get-AccountInfo `$Username
 
-        Write-Text -Type "notice" -Text `$alert
-        Write-Text -Type "recap" -Data `$data -LineAfter
+        Write-Text -Type "notice" -Text `$alert -LineBefore -LineAfter
+        Write-Box -Text `$data
 
-        `$confirmation = @(
-            "Submit  - Confirm and apply changes", 
-            "Restart   - Start edit user over.", 
-            "Exit    - Quit this script with an opportunity to run another."
+        `$options = @(
+            "Submit  - Confirm and apply." 
+            "Reset   - Start over at the beginning."
+            "Exit    - Run a different command."
         )
 
-        `$choice = Get-Option -Options `$confirmation
+        `$choice = Get-Option -Options `$options -LineBefore
         if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { Edit-UserPassword }
         if (`$choice -eq 1) { Invoke-Script "Edit-UserPassword" }
         if (`$choice -eq 2) { Write-Exit -Script "Edit-UserPassword" }
 
+        Write-Text -Type "notice" -Text "Applying password change..." -LineBefore
+
         `$account = Get-LocalUser -Name `$Username
         `$account | Set-LocalUser -Password `$password
 
-        Write-Host
+        Write-Text -Type "notice" -Text "Password change applied." -LineAfter
+
         Write-Exit -Message "The password for this account has been changed." -Script "Edit-UserPassword"
     } catch {
-        Write-Text -Type "error" -Text "Set Password Error: `$(`$_.Exception.Message)"
-    }
-}
-
-function Get-AccountInfo {
-    param (
-        [parameter(Mandatory = `$true)]
-        [string]`$Username
-    )
-
-    try {
-        `$user = Get-LocalUser -Name `$Username
-        `$groups = Get-LocalGroup | Where-Object { `$user.SID -in (`$_ | Get-LocalGroupMember | Select-Object -ExpandProperty "SID") } | Select-Object -ExpandProperty "Name"
-        `$userProfile = Get-CimInstance Win32_UserProfile -Filter "SID = '`$(`$user.SID)'"
-        `$dir = `$userProfile.LocalPath
-        if (`$null -ne `$userProfile) { `$dir = `$userProfile.LocalPath } else { `$dir = "Awaiting first sign in." }
-
-        `$source = Get-LocalUser -Name `$Username | Select-Object -ExpandProperty PrincipalSource
-
-        `$data = [ordered]@{
-            "Name"   = `$Username
-            "Groups" = "`$(`$groups -join ';')"
-            "Path"   = `$dir
-            "Source" = `$source
-        }
-
-        return `$data
-    } catch {
-        Write-Alert -Type "error" -Text "ERROR: `$(`$_.Exception.Message)"
-        Read-Host -Prompt "Press any key to continue"
+        Write-Text -Type "error" -Text "Edit password error: `$(`$_.Exception.Message)"
+        Write-Exit -Script "Edit-UserPassword"
     }
 }
 

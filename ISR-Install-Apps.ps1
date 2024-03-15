@@ -38,16 +38,16 @@ function Install-ISRApps {
 
 function Add-TempFolder {
     try {
-        Write-Text "Creating TEMP folder" -Type "header" -LineBefore
-        Write-Text "Path: C:\Users\`$account\Desktop\"
-        `$folderPath = "C:\Users\`$account\Desktop\TEMP"
-        if (-not (Test-Path -PathType Container `$folderPath)) {
-            New-Item -Path `$folderPath -Name "TEMP" -ItemType Directory | Out-Null
+        Write-Text "Creating TEMP folder"
+        Write-Text "Path: C:\Users\`$env:username\Desktop\"
+
+        if (-not (Test-Path -PathType Container "C:\Users\`$env:username\Desktop\TEMP")) {
+            New-Item -Path "C:\Users\`$env:username\Desktop\" -Name "TEMP" -ItemType Directory | Out-Null
         }
-        Write-Text "Folder created" -Type "done"
+        
+        Write-Text -Type "done" -Text "Folder created." -LineAfter
     } catch {
         Write-Text "ERROR: `$(`$_.Exception.Message)" -Type "error"
-        Write-Text "Skipping `$AppName installation."
     }
 }
 
@@ -136,7 +136,7 @@ function Install-AdobeAcrobatReader {
 
 function Install-Balto {
     `$paths = @("C:\Users\`$account\AppData\Local\Programs\Balto\Balto.exe")
-    `$url = "https://download.baltocloud.com/Balto+Setup+6.0.1.exe"
+    `$url = "https://download.baltocloud.com/Balto+Setup+6.1.1.exe"
     `$appName = "Balto"
     `$installed = Find-ExistingInstall -Paths `$paths -App `$appName
     if (!`$installed) { Install-Program `$url `$appName "exe" "/quiet" }

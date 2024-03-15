@@ -15,67 +15,48 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyCont
     $framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 }
 
+$des = @"
+   This script allows you to modify the username of a user on a Windows system. 
+"@
+
 $core = @"
 function Edit-UserName {
     try {
+        Write-Host "`n   Chaste Scripts: Edit User Name v0315240404"
+        Write-Host "$des" -ForegroundColor DarkGray
+
         `$username = Select-User
 
-        Write-Text -Type "header" -Text "Change username" -LineBefore
+        Write-Text -Type "header" -Text "Enter username" -LineBefore
 
-        `$newName = Get-Input -Prompt "Username" -Validate "^(\s*|[a-zA-Z0-9 _\-]{1,64})$" -CheckExistingUser
-
-        Write-Text -Type "header" -Text "Confirm name change" -LineBefore
+        `$newName = Get-Input -Prompt "" -Validate "^(\s*|[a-zA-Z0-9 _\-]{1,64})$" -CheckExistingUser
 
         `$data = Get-AccountInfo -Username `$username
 
-        Write-Text -Type "notice" -Text "NOTICE: You're about to change this users name."
-        Write-Text -Type "recap" -Data `$data -LineAfter
+        Write-Text -Type "notice" -Text "## You're about to change this users name." -LineBefore -LineAfter
+        Write-Box -Text `$data
 
-        `$confirmation = @(
-            "Submit  - Confirm and apply changes", 
-            "Restart   - Start edit user over.", 
-            "Exit    - Quit this script with an opportunity to run another."
+        `$options = @(
+            "Submit  - Confirm and apply." 
+            "Reset   - Start over at the beginning."
+            "Exit    - Run a different command."
         )
 
-        `$choice = Get-Option -Options `$confirmation
+        `$choice = Get-Option -Options `$options -LineBefore
         if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { Edit-UserName }
         if (`$choice -eq 1) { Invoke-Script "Edit-UserName" }
         if (`$choice -eq 2) { Write-Exit -Script "Edit-UserName" }
+
+        Write-Text -Type "notice" -Text "Applying name change..." -LineBefore
     
         Rename-LocalUser -Name `$username -NewName `$newName
 
+        Write-Text -Type "notice" -Text "Name change applied." -LineAfter
+
         Write-Exit "The name for this account has been changed." -Script "Edit-UserName"
     } catch {
-        Write-Text -Type "error" -Text "Set Name Error: `$(`$_.Exception.Message)"
-    }
-}
-
-function Get-AccountInfo {
-    param (
-        [parameter(Mandatory = `$true)]
-        [string]`$username
-    )
-
-    try {
-        `$user = Get-LocalUser -Name `$Username
-        `$groups = Get-LocalGroup | Where-Object { `$user.SID -in (`$_ | Get-LocalGroupMember | Select-Object -ExpandProperty "SID") } | Select-Object -ExpandProperty "Name"
-        `$userProfile = Get-CimInstance Win32_UserProfile -Filter "SID = '`$(`$user.SID)'"
-        `$dir = `$userProfile.LocalPath
-        if (`$null -ne `$userProfile) { `$dir = `$userProfile.LocalPath } else { `$dir = "Awaiting first sign in." }
-
-        `$source = Get-LocalUser -Name `$Username | Select-Object -ExpandProperty PrincipalSource
-
-        `$data = [ordered]@{
-            "Name"   = `$Username
-            "Groups" = "`$(`$groups -join ';')"
-            "Path"   = `$dir
-            "Source" = `$source
-        }
-
-        return `$data
-    } catch {
-        Write-Alert -Type "error" -Text "ERROR: `$(`$_.Exception.Message)"
-        Read-Host -Prompt "Press any key to continue"
+        Write-Text -Type "error" -Text "Edit name error: `$(`$_.Exception.Message)"
+        Write-Exit -Script "Edit-UserName"
     }
 }
 

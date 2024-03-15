@@ -3,7 +3,7 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
     Exit
 } 
 
-$Script = "Remove-User"
+$script = "Remove-User"
 $isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
 $path = if ($isAdmin) { "$env:SystemRoot\Temp" } else { "$env:TEMP" }
 
@@ -15,9 +15,17 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyCont
     $framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 }
 
+$des = @"
+   This function allows you to remove a user from a Windows system, with options 
+   to delete or keep their user profile / data.
+"@
+
 $core = @"
 function Remove-User {
     try {
+        Write-Host "`n   Chaste Scripts: Remove User v0315241122"
+        Write-Host "$des" -ForegroundColor DarkGray
+
         `$username = Select-User
 
         Write-Text -Type "header" -Text "Delete user data" -LineBefore
@@ -33,12 +41,10 @@ function Remove-User {
         if (`$choice -eq 1) { `$deleteData = `$false }
         if (`$choice -eq 2) { Select-Action -Username `$username }
 
-        Write-Text -Type "header" -Text "Confirm user deletion" -LineBefore
-
         if (`$deleteData) {
-            Write-Text -Type "notice" "NOTICE: You're about to delete this account and it's data!"
+            Write-Text -Type "notice" "## You're about to delete this account and it's data!" -LineBefore -LineAfter
         } else {
-            Write-Text -Type "notice"  "NOTICE: You're about to delete this account!"
+            Write-Text -Type "notice"  "## You're about to delete this account!" -LineBefore -LineAfter
         }
 
         `$data = Get-AccountInfo `$username
@@ -51,27 +57,27 @@ function Remove-User {
             "Exit    - Run a different command."
         )
         
-        `$choice = Get-Option -Options `$options
+        `$choice = Get-Option -Options `$options -LineBefore
 
-        if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "Remove-User" }
-        if (`$choice -eq 2) { Write-Exit -Script "Remove-User" }
+        if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "$script" }
+        if (`$choice -eq 2) { Write-Exit -Script "$script" }
 
         Remove-LocalUser -Name `$username
 
-        Write-Text -Type "done" -Text "Local user removed." -LineBefore
+        Write-Text -Type "notice" -Text "Local user removed." -LineBefore
         
         if (`$deleteData) {
             `$userProfile = Get-CimInstance Win32_UserProfile -Filter "SID = '`$(`$user.SID)'"
             `$dir = `$userProfile.LocalPath
             if (`$null -ne `$dir -And (Test-Path -Path `$dir)) { 
                 Remove-Item -Path `$dir -Recurse -Force 
-                Write-Text -Type "done" -Text "User data deleted."
+                Write-Text -Type "notice" -Text "User data deleted."
             } else {
-                Write-Text "No data found."
+                Write-Text -Type "notice" -Text "No data found."
             }
         }
 
-        Write-Text -Type "success" -Text "The user has been deleted."
+        Write-Text -Type "success" -Text "The user has been deleted." -LineBefore -LineAfter
 
         `$resetOptions = @(
             "Remove another user  - Start over and remove another user." 
@@ -80,49 +86,20 @@ function Remove-User {
         
         `$choice = Get-Option -Options `$resetOptions
 
-        if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "Remove-User" }
-        if (`$choice -eq 2) { Write-Exit -Script "Remove-User" }
+        if (`$choice -eq 0) { Invoke-Script "$script" }
+        if (`$choice -eq 1) { Write-Exit -Script "$script" }
     } catch {
         Write-Text -Type "error" -Text "Remove User Error: `$(`$_.Exception.Message)"
         Write-Exit
     }
 }
 
-function Get-AccountInfo {
-    param (
-        [parameter(Mandatory = `$true)]
-        [string]`$Username
-    )
-
-    try {
-        `$user = Get-LocalUser -Name `$Username
-        `$groups = Get-LocalGroup | Where-Object { `$user.SID -in (`$_ | Get-LocalGroupMember | Select-Object -ExpandProperty "SID") } | Select-Object -ExpandProperty "Name"
-        `$userProfile = Get-CimInstance Win32_UserProfile -Filter "SID = '`$(`$user.SID)'"
-        `$dir = `$userProfile.LocalPath
-        if (`$null -ne `$userProfile) { `$dir = `$userProfile.LocalPath } else { `$dir = "Awaiting first sign in." }
-
-        `$source = Get-LocalUser -Name `$Username | Select-Object -ExpandProperty PrincipalSource
-
-        `$data = @(
-            "Name:`$Username"
-            "Groups:`$(`$groups -join ';')"
-            "Path:`$dir"
-            "Source:`$source"
-        )
-
-        return `$data
-    } catch {
-        Write-Alert -Type "error" -Text "ERROR: `$(`$_.Exception.Message)"
-        Read-Host -Prompt "Press any key to continue"
-    }
-}
-
 "@
 
-New-Item -Path "$path\$Script.ps1" -ItemType File -Force | Out-Null
+New-Item -Path "$path\$script.ps1" -ItemType File -Force | Out-Null
 
-Add-Content -Path "$path\$Script.ps1" -Value $core
-Add-Content -Path "$path\$Script.ps1" -Value $framework
-Add-Content -Path "$path\$Script.ps1" -Value "Invoke-Script '$Script'"
+Add-Content -Path "$path\$script.ps1" -Value $core
+Add-Content -Path "$path\$script.ps1" -Value $framework
+Add-Content -Path "$path\$script.ps1" -Value "Invoke-Script '$script'"
 
-PowerShell.exe -File "$path\$Script.ps1" -Verb RunAs
+PowerShell.exe -File "$path\$script.ps1" -Verb RunAs

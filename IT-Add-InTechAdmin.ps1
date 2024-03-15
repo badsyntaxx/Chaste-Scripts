@@ -15,10 +15,17 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyCont
     $framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 }
 
+$des = @"
+   This function allows you to create an InTechAdmin account.
+   The account password is encrypted and is never exposed.
+"@
+
 $addInTechAdmin = @"
 function Add-InTechAdmin {
     try {
-        Write-Host "Chaste Scripts: Create InTechAdmin Account" -ForegroundColor DarkGray
+        Write-Host "`n   Chaste Scripts: Add InTechAdmin Account v0315241122"
+        Write-Host "$des" -ForegroundColor DarkGray
+
         Write-Text -Type "header" -Text "Getting credentials" -LineBefore
 
         `$isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
@@ -30,8 +37,8 @@ function Add-InTechAdmin {
             "`$path\PHRASE.txt" = "https://drive.google.com/uc?export=download&id=1jbppZfGusqAUM2aU7V4IeK0uHG2OYgoY"
         }
 
-        foreach (`$download in `$downloads.Keys) {
-            `$download = Get-Download -Url `$download -Target `$(`$downloads[`$download])
+        foreach (`$d in `$downloads.Keys) {
+            `$download = Get-Download -Url `$d -Target `$downloads[`$d]
         } 
 
         if (!`$download) { throw "Unable to acquire credentials." }
@@ -60,7 +67,7 @@ function Add-InTechAdmin {
         Write-Exit -Message "Task completed successfully." -Script "Add-IntechAdmin"
     } catch {
         Write-Text -Type "error" -Text "Create IntechAdmin Error: `$(`$_.Exception.Message)"
-        Read-Host "   Press any key to continue"
+        Write-Exit -Script "$script"
     }
 }
 

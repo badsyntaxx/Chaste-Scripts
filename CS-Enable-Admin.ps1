@@ -15,33 +15,46 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyCont
     $framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 }
 
+$des = @"
+   This script allows you to toggle the built in admin account on a Windows system. 
+   It provides an interactive menu for you to enable or disable the account.
+"@
+
 $core = @"
 function Enable-BuiltInAdminAccount {
-    Write-Host "Chaste Scripts: Enable Administrator Account" -ForegroundColor DarkGray
-    Write-Text -Type "header" -Text "Toggle admin account" -LineBefore
 
-    `$options = @(
-        "Enable   - Enable the Windows built in administrator account.",
-        "Disable  - Disable the built in administrator account."
-    )
-    
-    `$choice = Get-Option -Options `$options
+    try { 
+        Write-Host "`n   Chaste Scripts: Edit User Name v0315240404"
+        Write-Host "$des" -ForegroundColor DarkGray
 
-    if (`$choice -ne 0 -and `$choice -ne 1) { Enable-BuiltInAdminAccount }
+        Write-Text -Type "header" -Text "Toggle admin account" -LineBefore
 
-    if (`$choice -eq 0) { 
-        Write-Text -Text "Enabling the administrator account..." -LineBefore
-        Get-LocalUser -Name "Administrator" | Enable-LocalUser 
-        `$message = "Administrator account enabled."
-    } 
+        `$options = @(
+            "Enable   - Enable the Windows built in administrator account.",
+            "Disable  - Disable the built in administrator account."
+        )
+        
+        `$choice = Get-Option -Options `$options
 
-    if (`$choice -eq 1) { 
-        Write-Text -Text "Disabling the administrator account..." -LineBefore
-        Get-LocalUser -Name "Administrator" | Disable-LocalUser 
-        `$message = "Administrator account Disabled."
+        if (`$choice -ne 0 -and `$choice -ne 1) { Enable-BuiltInAdminAccount }
+
+        if (`$choice -eq 0) { 
+            Write-Text -Text "Enabling the administrator account..." -LineBefore
+            Get-LocalUser -Name "Administrator" | Enable-LocalUser 
+            `$message = "Administrator account enabled."
+        } 
+
+        if (`$choice -eq 1) { 
+            Write-Text -Text "Disabling the administrator account..." -LineBefore
+            Get-LocalUser -Name "Administrator" | Disable-LocalUser 
+            `$message = "Administrator account Disabled."
+        }
+
+        Write-Exit -Message `$message -Script "Enable-Admin"
+    } catch {
+        Write-Text -Type "error" -Text "Enable admin error: `$(`$_.Exception.Message)"
+        Write-Exit -Script "Enable-Admin"
     }
-
-    Write-Exit -Message `$message -Script "Enable-BuiltInAdminAccount"
 }
 
 "@

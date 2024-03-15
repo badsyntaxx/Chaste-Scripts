@@ -187,7 +187,7 @@ function Write-Text {
     if ($Type -eq "header") { Write-Host "   $Text" -ForegroundColor "DarkCyan" }
     if ($Type -eq "header") { 
         $lines = ""
-        for ($i = 0; $i -lt $Text.Length; $i++) { $lines += "$([char]0x2500)" }
+        for ($i = 0; $i -lt 50; $i++) { $lines += "$([char]0x2500)" }
         Write-Host "   $lines" -ForegroundColor "DarkCyan"
     }
     if ($Type -eq 'done') { 
@@ -282,6 +282,9 @@ function Get-Download {
 
     $downloadComplete = $true 
     Write-Text "Downloading..."
+
+    Write-Text $Url
+    Write-Text $Target
     
     for ($retryCount = 1; $retryCount -le $MaxRetries; $retryCount++) {
         try {
@@ -310,7 +313,6 @@ function Get-Download {
 
 function Select-User {
     try {
-        Write-Host "Chaste Scripts: Edit Local User" -ForegroundColor DarkGray
         Write-Text -Type "header" -Text "Select a user" -LineBefore
 
         $userNames = @()
@@ -343,5 +345,34 @@ function Select-User {
         return $userNames[$choice]
     } catch {
         Write-Text -Type "error" -Text "Select user error: $($_.Exception.Message)"
+    }
+}
+
+function Get-AccountInfo {
+    param (
+        [parameter(Mandatory = $true)]
+        [string]$Username
+    )
+
+    try {
+        $user = Get-LocalUser -Name $Username
+        $groups = Get-LocalGroup | Where-Object { $user.SID -in ($_ | Get-LocalGroupMember | Select-Object -ExpandProperty "SID") } | Select-Object -ExpandProperty "Name"
+        $userProfile = Get-CimInstance Win32_UserProfile -Filter "SID = '$($user.SID)'"
+        $dir = $userProfile.LocalPath
+        if ($null -ne $userProfile) { $dir = $userProfile.LocalPath } else { $dir = "Awaiting first sign in." }
+
+        $source = Get-LocalUser -Name $Username | Select-Object -ExpandProperty PrincipalSource
+
+        $data = @(
+            "Name:$Username"
+            "Groups:$($groups -join ';')"
+            "Path:$dir"
+            "Source:$source"
+        )
+
+        return $data
+    } catch {
+        Write-Alert -Type "error" -Text "ERROR: $($_.Exception.Message)"
+        Read-Host -Prompt "Press any key to continue"
     }
 }

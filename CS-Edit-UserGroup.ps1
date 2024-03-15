@@ -15,12 +15,20 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyCont
     $framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 }
 
+$des = @"
+   This script allows you to modify the group membership of a user on a Windows system. 
+   It provides menus for selecting the user and the desired group (Administrators or Users).
+"@
+
 $core = @"
 function Edit-UserGroup {
     try {
+        Write-Host "`n   Chaste Scripts: Edit User Group v0315240354"
+        Write-Host "$des" -ForegroundColor DarkGray
+
         `$username = Select-User
 
-        Write-Host
+        Write-Text -Type "header" -Text "Select user group" -LineBefore
 
         `$options = @(
             "Administrator  - Make this user an administrator."
@@ -34,58 +42,37 @@ function Edit-UserGroup {
             1 { `$group = 'Users' }
         }
 
-        Write-Text -Type "header" -Text "Confirm group change" -LineBefore
-        Write-Text -Type "notice" -Text "NOTICE: You're about to change this users group membership."
-        Write-Text -Type "recap" -Data `$data -LineAfter
+        `$data = Get-AccountInfo -Username `$username
 
-        `$confirmation = @(
-            "Submit   - Confirm and apply changes", 
-            "Restart  - Start edit user over.", 
-            "Exit     - Quit this script with an opportunity to run another."
+        Write-Text -Type "notice" -Text "## You're about to change this users group membership." -LineBefore -LineAfter
+        Write-Box -Text `$data
+
+        `$options = @(
+            "Submit  - Confirm and apply." 
+            "Reset   - Start over at the beginning."
+            "Exit    - Run a different command."
         )
         
-        `$choice = Get-Option -Options `$confirmation
+        `$choice = Get-Option -Options `$options -LineBefore
         if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { Edit-UserGroup }
         if (`$choice -eq 1) { Invoke-Script "Edit-LocalUser" }
         if (`$choice -eq 2) { Write-Exit -Script "Edit-LocalUser" }
 
+        Write-Text -Type "notice" -Text "Applying group membership..." -LineBefore
+
         Remove-LocalGroupMember -Group "Administrators" -Member `$username -ErrorAction SilentlyContinue
-        Add-LocalGroupMember -Group `$group -Member `$username | Out-Null
+
+        Add-LocalGroupMember -Group `$group -Member `$username -ErrorAction SilentlyContinue | Out-Null
+
+        Write-Text -Type "notice" -Text "Group membership applied."
+
         Write-Host
         Write-Exit "The group membership for `$username has been changed to `$group." -Script "Edit-LocalUser"
     } catch {
-        Write-Text -Type "error" -Text "Set Group Error: `$(`$_.Exception.Message)"
+        Write-Text -Type "error" -Text "Edit group error: `$(`$_.Exception.Message)"
+        Write-Exit -Script "Edit-UserGroup"
     }
 } 
-
-function Get-AccountInfo {
-    param (
-        [parameter(Mandatory = `$true)]
-        [string]`$Username
-    )
-
-    try {
-        `$user = Get-LocalUser -Name `$Username
-        `$groups = Get-LocalGroup | Where-Object { `$user.SID -in (`$_ | Get-LocalGroupMember | Select-Object -ExpandProperty "SID") } | Select-Object -ExpandProperty "Name"
-        `$userProfile = Get-CimInstance Win32_UserProfile -Filter "SID = '`$(`$user.SID)'"
-        `$dir = `$userProfile.LocalPath
-        if (`$null -ne `$userProfile) { `$dir = `$userProfile.LocalPath } else { `$dir = "Awaiting first sign in." }
-
-        `$source = Get-LocalUser -Name `$Username | Select-Object -ExpandProperty PrincipalSource
-
-        `$data = [ordered]@{
-            "Name"   = `$Username
-            "Groups" = "`$(`$groups -join ';')"
-            "Path"   = `$dir
-            "Source" = `$source
-        }
-
-        return `$data
-    } catch {
-        Write-Alert -Type "error" -Text "ERROR: `$(`$_.Exception.Message)"
-        Read-Host -Prompt "Press any key to continue"
-    }
-}
 
 "@
 
