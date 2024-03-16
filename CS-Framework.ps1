@@ -56,7 +56,7 @@ function Get-Input {
 
         $currPos = $host.UI.RawUI.CursorPosition
 
-        Write-Host "   $Prompt`:" -NoNewline 
+        Write-Host "  $Prompt`:" -NoNewline 
         if ($IsSecure) { $userInput = Read-Host -AsSecureString } 
         else { $userInput = Read-Host }
 
@@ -86,11 +86,11 @@ function Get-Input {
 
         [Console]::SetCursorPosition($currPos.X, $currPos.Y)
         
-        Write-Host " $([char]0x2713)" -ForegroundColor "Green" -NoNewline
+        Write-Host "  $([char]0x2713) " -ForegroundColor "Green" -NoNewline
         if ($IsSecure -and ($userInput.Length -eq 0)) {
-            Write-Host " $Prompt`:                                                       "
+            Write-Host "$Prompt`:                                                       "
         } else {
-            Write-Host " $Prompt`:$userInput                                             "
+            Write-Host "$Prompt`:$userInput                                             "
         }
 
         if ($LineAfter) { Write-Host }
@@ -118,12 +118,12 @@ function Get-Option {
         $vkeycode = 0
         $pos = $DefaultOption
         $oldPos = 0
-        $fcolor = $host.UI.RawUI.ForegroundColor
   
         for ($i = 0; $i -le $Options.length; $i++) {
-            if ($i -eq $pos) { Write-Host " $([char]0x203A) $($Options[$i])" -ForegroundColor "Cyan" } 
-            else {
-                if ($($Options[$i])) { Write-Host "   $($Options[$i])" -ForegroundColor $fcolor } 
+            if ($i -eq $pos) { 
+                Write-Host "  $([char]0x203A) $($Options[$i])" -ForegroundColor "Cyan" 
+            } else {
+                if ($($Options[$i])) { Write-Host "    $($Options[$i])" -ForegroundColor "White" } 
             }
         }
 
@@ -139,29 +139,21 @@ function Get-Option {
             if ($pos -ge $Options.length) { $pos = $Options.length - 1 }
 
             $menuLen = $Options.Count
-            $fcolor = $host.UI.RawUI.ForegroundColor
             $menuOldPos = New-Object System.Management.Automation.Host.Coordinates(0, ($currPos.Y - ($menuLen - $oldPos)))
             $menuNewPos = New-Object System.Management.Automation.Host.Coordinates(0, ($currPos.Y - ($menuLen - $pos)))
       
             $host.UI.RawUI.CursorPosition = $menuOldPos
-            Write-Host "   $($Options[$oldPos])" -ForegroundColor $fcolor
+            Write-Host "    $($Options[$oldPos])" -ForegroundColor "White"
             $host.UI.RawUI.CursorPosition = $menuNewPos
-            Write-Host " $([char]0x203A) $($Options[$pos])" -ForegroundColor "Cyan"
+            Write-Host "  $([char]0x203A) $($Options[$pos])" -ForegroundColor "Cyan"
             $host.UI.RawUI.CursorPosition = $currPos
         }
-
-        $menuOldPos = New-Object System.Management.Automation.Host.Coordinates(0, ($currPos.Y - ($menuLen - $oldPos)))
-        $currPos = $host.UI.RawUI.CursorPosition
-        $host.UI.RawUI.CursorPosition = $menuOldPos
-        Write-Host " $([char]0x2713)" -ForegroundColor "Green" -NoNewline
-        Write-Host " $($Options[$pos])" -ForegroundColor "Cyan"
-        $host.UI.RawUI.CursorPosition = $currPos
 
         if ($LineAfter) { Write-Host }
         return $pos
     } catch {
-        Write-Host "   $($_.Exception.Message)" -ForegroundColor "Red"
-        Read-Host "   Press any key to continue"
+        Write-Host "  $($_.Exception.Message)" -ForegroundColor "Red"
+        Read-Host "  Press any key to continue"
     }
 }
 
@@ -184,12 +176,12 @@ function Write-Text {
     )
 
     if ($LineBefore) { Write-Host }
-    if ($Type -eq "header") { Write-Host "   $Text" -ForegroundColor "DarkCyan" }
-    if ($Type -eq "header") { 
+    if ($Type -eq "header") { Write-Host "  ## $Text" -ForegroundColor "DarkCyan" }
+    <# if ($Type -eq "header") { 
         $lines = ""
         for ($i = 0; $i -lt 50; $i++) { $lines += "$([char]0x2500)" }
         Write-Host "   $lines" -ForegroundColor "DarkCyan"
-    }
+    } #>
     if ($Type -eq 'done') { 
         Write-Host " $([char]0x2713)" -ForegroundColor "Green" -NoNewline
         Write-Host " $Text" 
@@ -200,14 +192,12 @@ function Write-Text {
         Write-Host "$NewData" -ForegroundColor "White"
     }
     if ($Type -eq 'fail') { 
-        Write-Host " X " -ForegroundColor "Red" -NoNewline
+        Write-Host " X" -ForegroundColor "Red" -NoNewline
         Write-Host "$Text" 
     }
-    if ($Type -eq 'success') { Write-Host " $([char]0x2713) $Text" -ForegroundColor "Green" }
-    if ($Type -eq 'error') { 
-        Write-Host "   $Text`n" -ForegroundColor "Red" 
-    }
-    if ($Type -eq 'notice') { Write-Host "   $Text" -ForegroundColor "Yellow" }
+    if ($Type -eq 'success') { Write-Host "  $([char]0x2713) $Text" -ForegroundColor "Green" }
+    if ($Type -eq 'error') { Write-Host "   $Text`n" -ForegroundColor "Red" }
+    if ($Type -eq 'notice') { Write-Host "  $Text" -ForegroundColor "Yellow" }
     if ($Type -eq 'plain') { Write-Host "   $Text" }
     if ($Type -eq 'recap') {
         foreach ($key in $Data.Keys) { 
@@ -237,17 +227,15 @@ function Write-Box {
     $longestString = $Text | Sort-Object Length -Descending | Select-Object -First 1
     $count = $longestString.Length
 
-    Write-Host "   $topLeft$($horizontalLine * ($count + 4))$topRight" -ForegroundColor DarkGray
-    Write-Host "   $verticalLine$(" " * ($count + 4))$verticalLine" -ForegroundColor DarkGray
+    Write-Host "  $topLeft$($horizontalLine * ($count + 2))$topRight" -ForegroundColor DarkGray
 
     foreach ($line in $Text) {
-        Write-Host "   $verticalLine" -ForegroundColor DarkGray -NoNewline
-        Write-Host "  $($line.PadRight($count))" -ForegroundColor DarkGray -NoNewline
-        Write-Host "  $verticalLine" -ForegroundColor DarkGray
+        Write-Host "  $verticalLine" -ForegroundColor DarkGray -NoNewline
+        Write-Host " $($line.PadRight($count))" -ForegroundColor DarkGray -NoNewline
+        Write-Host " $verticalLine" -ForegroundColor DarkGray
     }
 
-    Write-Host "   $verticalLine$(" " * ($count + 4))$verticalLine" -ForegroundColor DarkGray
-    Write-Host "   $bottomLeft$($horizontalLine * ($count + 4))$bottomRight" -ForegroundColor DarkGray
+    Write-Host "  $bottomLeft$($horizontalLine * ($count + 2))$bottomRight" -ForegroundColor DarkGray
 }
 
 function Write-Exit {
@@ -261,7 +249,7 @@ function Write-Exit {
     if ($Message -ne "") { Write-Text -Type "success" -Text $Message }
     $paths = @("$env:TEMP\$Script.ps1", "$env:SystemRoot\Temp\$Script.ps1")
     foreach ($p in $paths) { Get-Item -ErrorAction SilentlyContinue $p | Remove-Item -ErrorAction SilentlyContinue }
-    $param = Read-Host -Prompt "`r`n   Enter command"
+    $param = Read-Host -Prompt "`r`n  Enter command"
     Write-Host
     if ($param.Length -gt 0) {
         Invoke-RestMethod "chaste.dev$param" | Invoke-Expression -ErrorAction SilentlyContinue
