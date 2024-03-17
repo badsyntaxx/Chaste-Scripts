@@ -40,7 +40,7 @@ function Set-ComputerName {
         if (`$hostname -eq "") { `$hostname = `$currentHostname } 
         if (`$description -eq "") { `$description = `$currentDescription } 
 
-        Write-Text -Type "notice" -Text "## You're about to change the computer name and description." -LineBefore -LineAfter
+        Write-Text -Type "notice" -Text "You're about to change the computer name and description." -LineBefore -LineAfter
 
         `$options = @(
             "Submit  - Confirm and apply." 

@@ -41,7 +41,7 @@ function $script {
         if (`$choice -eq 0) { `$group = 'Administrators' } else { `$group = "Users" }
         if (`$group -eq 'Administrators') { `$groupDisplay = 'Administrator' } else { `$groupDisplay = 'Standard user' }
 
-        Write-Text -Type "notice" -Text "## You're about to create a new local user!" -LineBefore -LineAfter
+        Write-Text -Type "notice" -Text "You're about to create a new local user!" -LineBefore -LineAfter
 
         `$options = @(
             "Submit  - Confirm and apply." 

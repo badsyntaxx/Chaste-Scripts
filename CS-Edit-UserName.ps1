@@ -16,25 +16,22 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyCont
 }
 
 $des = @"
-   This script allows you to modify the username of a user on a Windows system. 
+ This script allows you to modify the username of a user on a Windows system. 
 "@
 
 $core = @"
 function Edit-UserName {
     try {
-        Write-Host "`n   Chaste Scripts: Edit User Name v0315240404"
+        Write-Host "`n Chaste Scripts: Edit User Name v0315242300"
         Write-Host "$des" -ForegroundColor DarkGray
 
         `$username = Select-User
 
-        Write-Text -Type "header" -Text "Enter username" -LineBefore
+        Write-Text -Type "header" -Text "Enter username" -LineBefore -LineAfter
 
         `$newName = Get-Input -Prompt "" -Validate "^(\s*|[a-zA-Z0-9 _\-]{1,64})$" -CheckExistingUser
 
-        `$data = Get-AccountInfo -Username `$username
-
-        Write-Text -Type "notice" -Text "## You're about to change this users name." -LineBefore -LineAfter
-        Write-Box -Text `$data
+        Write-Text -Type "notice" -Text "You're about to change this users name." -LineBefore -LineAfter
 
         `$options = @(
             "Submit  - Confirm and apply." 
@@ -42,16 +39,13 @@ function Edit-UserName {
             "Exit    - Run a different command."
         )
 
-        `$choice = Get-Option -Options `$options -LineBefore
+        `$choice = Get-Option -Options `$options -LineAfter
+
         if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { Edit-UserName }
         if (`$choice -eq 1) { Invoke-Script "Edit-UserName" }
         if (`$choice -eq 2) { Write-Exit -Script "Edit-UserName" }
-
-        Write-Text -Type "notice" -Text "Applying name change..." -LineBefore
     
         Rename-LocalUser -Name `$username -NewName `$newName
-
-        Write-Text -Type "notice" -Text "Name change applied." -LineAfter
 
         Write-Exit "The name for this account has been changed." -Script "Edit-UserName"
     } catch {

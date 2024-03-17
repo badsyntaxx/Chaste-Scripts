@@ -56,7 +56,7 @@ function Get-Input {
 
         $currPos = $host.UI.RawUI.CursorPosition
 
-        Write-Host "  $Prompt`:" -NoNewline 
+        Write-Host "    $Prompt`:" -NoNewline 
         if ($IsSecure) { $userInput = Read-Host -AsSecureString } 
         else { $userInput = Read-Host }
 
@@ -164,11 +164,13 @@ function Write-Text {
         [parameter(Mandatory = $false)]
         [string]$Type = "plain",
         [parameter(Mandatory = $false)]
+        [string]$Color = "White",
+        [parameter(Mandatory = $false)]
         [switch]$LineBefore = $false,
         [parameter(Mandatory = $false)]
         [switch]$LineAfter = $false,
         [parameter(Mandatory = $false)]
-        [System.Collections.Specialized.OrderedDictionary]$Data,
+        [array]$List,
         [parameter(Mandatory = $false)]
         [string]$OldData,
         [parameter(Mandatory = $false)]
@@ -176,12 +178,7 @@ function Write-Text {
     )
 
     if ($LineBefore) { Write-Host }
-    if ($Type -eq "header") { Write-Host "  ## $Text" -ForegroundColor "DarkCyan" }
-    <# if ($Type -eq "header") { 
-        $lines = ""
-        for ($i = 0; $i -lt 50; $i++) { $lines += "$([char]0x2500)" }
-        Write-Host "   $lines" -ForegroundColor "DarkCyan"
-    } #>
+    if ($Type -eq "header") { Write-Host " ## $Text" -ForegroundColor "DarkCyan" }
     if ($Type -eq 'done') { 
         Write-Host " $([char]0x2713)" -ForegroundColor "Green" -NoNewline
         Write-Host " $Text" 
@@ -196,18 +193,11 @@ function Write-Text {
         Write-Host "$Text" 
     }
     if ($Type -eq 'success') { Write-Host "  $([char]0x2713) $Text" -ForegroundColor "Green" }
-    if ($Type -eq 'error') { Write-Host "   $Text`n" -ForegroundColor "Red" }
-    if ($Type -eq 'notice') { Write-Host "  $Text" -ForegroundColor "Yellow" }
-    if ($Type -eq 'plain') { Write-Host "   $Text" }
-    if ($Type -eq 'recap') {
-        foreach ($key in $Data.Keys) { 
-            $value = $Data[$key]
-            if ($value.Length -gt 0) {
-                Write-Host "   $key`:$value" -ForegroundColor "DarkGray" 
-            } else {
-                Write-Host "   $key`:" -ForegroundColor "DarkGray" 
-            }
-        }
+    if ($Type -eq 'error') { Write-Host "   $Text" -ForegroundColor "Red" }
+    if ($Type -eq 'notice') { Write-Host " ## $Text" -ForegroundColor "Yellow" }
+    if ($Type -eq 'plain') { Write-Host "    $Text" -ForegroundColor $Color }
+    if ($Type -eq 'list') {
+        foreach ($item in $List) { Write-Host "    $item" -ForegroundColor "DarkGray" }
     }
     if ($LineAfter) { Write-Host }
 }
@@ -301,7 +291,7 @@ function Get-Download {
 
 function Select-User {
     try {
-        Write-Text -Type "header" -Text "Select a user" -LineBefore
+        Write-Text -Type "header" -Text "Select a user" -LineBefore -LineAfter
 
         $userNames = @()
         $accounts = @()
@@ -328,7 +318,11 @@ function Select-User {
             $accounts += "$username $spaces - $($groups -join ';')" 
         }
 
-        $choice = Get-Option -Options $accounts
+        $choice = Get-Option -Options $accounts -LineAfter
+
+        $data = Get-AccountInfo $userNames[$choice]
+
+        Write-Text -Type "list" -List $data
 
         return $userNames[$choice]
     } catch {
