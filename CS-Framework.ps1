@@ -259,10 +259,8 @@ function Get-Download {
     )
 
     $downloadComplete = $true 
-    Write-Text "Downloading..."
 
-    Write-Text $Url
-    Write-Text $Target
+    Write-Text "Downloading..."
     
     for ($retryCount = 1; $retryCount -le $MaxRetries; $retryCount++) {
         try {
@@ -270,7 +268,9 @@ function Get-Download {
             $wc.DownloadFile($Url, $Target)
         } catch {
             Write-Text -Type "fail" -Text "$($_.Exception.Message)"
+
             $downloadComplete = $false
+            
             if ($retryCount -lt $MaxRetries) {
                 Write-Text -Text "Retrying..."
                 Start-Sleep -Seconds $Interval
