@@ -242,7 +242,11 @@ function Write-Exit {
     $param = Read-Host -Prompt "`r`n  Enter command"
     Write-Host
     if ($param.Length -gt 0) {
-        Invoke-RestMethod "chaste.dev$param" | Invoke-Expression -ErrorAction SilentlyContinue
+        if ($param -eq "restart") {
+            Invoke-Script $Script
+        } else {
+            Invoke-RestMethod "chaste.dev$param" | Invoke-Expression -ErrorAction SilentlyContinue
+        }
     }
 }
 
