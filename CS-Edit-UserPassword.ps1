@@ -28,17 +28,14 @@ function Edit-UserPassword {
 
         `$username = Select-User
 
-        Write-Text -Type "header" -Text "Enter password or leave blank" -LineBefore
+        Write-Text -Type "header" -Text "Enter password or leave blank" -LineBefore -LineAfter
         
         `$password = Get-Input -Prompt "" -IsSecure `$true
 
         if (`$password.Length -eq 0) { `$alert = "## You're about to remove this users password." } 
         else { `$alert = "## You're about to change this users password." }
 
-        `$data = Get-AccountInfo `$Username
-
         Write-Text -Type "notice" -Text `$alert -LineBefore -LineAfter
-        Write-Box -Text `$data
 
         `$options = @(
             "Submit  - Confirm and apply." 
@@ -46,17 +43,12 @@ function Edit-UserPassword {
             "Exit    - Run a different command."
         )
 
-        `$choice = Get-Option -Options `$options -LineBefore
+        `$choice = Get-Option -Options `$options -LineAfter
         if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { Edit-UserPassword }
         if (`$choice -eq 1) { Invoke-Script "Edit-UserPassword" }
         if (`$choice -eq 2) { Write-Exit -Script "Edit-UserPassword" }
 
-        Write-Text -Type "notice" -Text "Applying password change..." -LineBefore
-
-        `$account = Get-LocalUser -Name `$Username
-        `$account | Set-LocalUser -Password `$password
-
-        Write-Text -Type "notice" -Text "Password change applied." -LineAfter
+        Get-LocalUser -Name `$Username | Set-LocalUser -Password `$password
 
         Write-Exit -Message "The password for this account has been changed." -Script "Edit-UserPassword"
     } catch {

@@ -28,7 +28,7 @@ function Remove-User {
 
         `$username = Select-User
 
-        Write-Text -Type "header" -Text "Delete user data" -LineBefore
+        Write-Text -Type "header" -Text "Delete user data" -LineBefore -LineAfter
         
         `$options = @(
             "Delete  - Also delete the users data.",
@@ -36,20 +36,16 @@ function Remove-User {
             "Back    - Go back to action selection."
         )
 
-        `$choice = Get-Option -Options `$options
+        `$choice = Get-Option -Options `$options -LineAfter
         if (`$choice -eq 0) { `$deleteData = `$true }
         if (`$choice -eq 1) { `$deleteData = `$false }
         if (`$choice -eq 2) { Select-Action -Username `$username }
 
         if (`$deleteData) {
-            Write-Text -Type "notice" "## You're about to delete this account and it's data!" -LineBefore -LineAfter
+            Write-Text -Type "notice" "You're about to delete this account and it's data!" -LineBefore -LineAfter
         } else {
-            Write-Text -Type "notice"  "## You're about to delete this account!" -LineBefore -LineAfter
+            Write-Text -Type "notice" "You're about to delete this account!" -LineBefore -LineAfter
         }
-
-        `$data = Get-AccountInfo `$username
-
-        Write-Box -Text `$data
 
         `$options = @(
             "Submit  - Confirm and apply." 
@@ -57,23 +53,23 @@ function Remove-User {
             "Exit    - Run a different command."
         )
         
-        `$choice = Get-Option -Options `$options -LineBefore
+        `$choice = Get-Option -Options `$options
 
         if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "$script" }
         if (`$choice -eq 2) { Write-Exit -Script "$script" }
 
         Remove-LocalUser -Name `$username
 
-        Write-Text -Type "notice" -Text "Local user removed." -LineBefore
+        Write-Text -Text "Local user removed." -Color "Yellow" -LineBefore
         
         if (`$deleteData) {
             `$userProfile = Get-CimInstance Win32_UserProfile -Filter "SID = '`$(`$user.SID)'"
             `$dir = `$userProfile.LocalPath
             if (`$null -ne `$dir -And (Test-Path -Path `$dir)) { 
                 Remove-Item -Path `$dir -Recurse -Force 
-                Write-Text -Type "notice" -Text "User data deleted."
+                Write-Text -Text "User data deleted." -Color "Yellow"
             } else {
-                Write-Text -Type "notice" -Text "No data found."
+                Write-Text -Text "No data found." -Color "Yellow"
             }
         }
 

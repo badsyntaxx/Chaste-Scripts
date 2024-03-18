@@ -3,7 +3,7 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
     Exit
 } 
 
-$Script = "Edit-UserGroup"
+$script = "Edit-UserGroup"
 $isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
 $path = if ($isAdmin) { "$env:SystemRoot\Temp" } else { "$env:TEMP" }
 
@@ -21,14 +21,14 @@ $des = @"
 "@
 
 $core = @"
-function Edit-UserGroup {
+function $script {
     try {
         Write-Host "`n   Chaste Scripts: Edit User Group v0315240354"
         Write-Host "$des" -ForegroundColor DarkGray
 
         `$username = Select-User
 
-        Write-Text -Type "header" -Text "Select user group" -LineBefore
+        Write-Text -Type "header" -Text "Select user group" -LineBefore -LineAfter
 
         `$options = @(
             "Administrator  - Make this user an administrator."
@@ -44,8 +44,7 @@ function Edit-UserGroup {
 
         `$data = Get-AccountInfo -Username `$username
 
-        Write-Text -Type "notice" -Text "## You're about to change this users group membership." -LineBefore -LineAfter
-        Write-Box -Text `$data
+        Write-Text -Type "notice" -Text "You're about to change this users group membership." -LineBefore -LineAfter
 
         `$options = @(
             "Submit  - Confirm and apply." 
@@ -53,33 +52,29 @@ function Edit-UserGroup {
             "Exit    - Run a different command."
         )
         
-        `$choice = Get-Option -Options `$options -LineBefore
-        if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { Edit-UserGroup }
+        `$choice = Get-Option -Options `$options -LineAfter
+
+        if (`$choice -ne 0 -and `$choice -ne 1 -and `$choice -ne 2) { $script }
         if (`$choice -eq 1) { Invoke-Script "Edit-LocalUser" }
         if (`$choice -eq 2) { Write-Exit -Script "Edit-LocalUser" }
-
-        Write-Text -Type "notice" -Text "Applying group membership..." -LineBefore
 
         Remove-LocalGroupMember -Group "Administrators" -Member `$username -ErrorAction SilentlyContinue
 
         Add-LocalGroupMember -Group `$group -Member `$username -ErrorAction SilentlyContinue | Out-Null
 
-        Write-Text -Type "notice" -Text "Group membership applied."
-
-        Write-Host
         Write-Exit "The group membership for `$username has been changed to `$group." -Script "Edit-LocalUser"
     } catch {
         Write-Text -Type "error" -Text "Edit group error: `$(`$_.Exception.Message)"
-        Write-Exit -Script "Edit-UserGroup"
+        Write-Exit -Script "$script"
     }
 } 
 
 "@
 
-New-Item -Path "$path\$Script.ps1" -ItemType File -Force | Out-Null
+New-Item -Path "$path\$script.ps1" -ItemType File -Force | Out-Null
 
-Add-Content -Path "$path\$Script.ps1" -Value $core
-Add-Content -Path "$path\$Script.ps1" -Value $framework
-Add-Content -Path "$path\$Script.ps1" -Value "Invoke-Script '$Script'"
+Add-Content -Path "$path\$script.ps1" -Value $core
+Add-Content -Path "$path\$script.ps1" -Value $framework
+Add-Content -Path "$path\$script.ps1" -Value "Invoke-Script '$script'"
 
-PowerShell.exe -File "$path\$Script.ps1" -Verb RunAs
+PowerShell.exe -File "$path\$script.ps1" -Verb RunAs

@@ -22,30 +22,36 @@ $des = @"
 
 $core = @"
 function Enable-BuiltInAdminAccount {
-
     try { 
         Write-Host "`n   Chaste Scripts: Edit User Name v0315240404"
         Write-Host "$des" -ForegroundColor DarkGray
 
-        Write-Text -Type "header" -Text "Toggle admin account" -LineBefore
+        Write-Text -Type "header" -Text "Toggle admin account" -LineBefore -LineAfter
+
+        `$admin = Get-LocalUser -Name "Administrator"
+
+        Write-Host "    Administrator:" -NoNewLine
+
+        if (`$admin.Enabled) { Write-Host "Enabled" -ForegroundColor Yellow} 
+        else { Write-Host "Disabled" -ForegroundColor Yellow }
+
+        Write-Host
 
         `$options = @(
             "Enable   - Enable the Windows built in administrator account.",
             "Disable  - Disable the built in administrator account."
         )
         
-        `$choice = Get-Option -Options `$options
+        `$choice = Get-Option -Options `$options -LineAfter
 
         if (`$choice -ne 0 -and `$choice -ne 1) { Enable-BuiltInAdminAccount }
 
         if (`$choice -eq 0) { 
-            Write-Text -Text "Enabling the administrator account..." -LineBefore
             Get-LocalUser -Name "Administrator" | Enable-LocalUser 
             `$message = "Administrator account enabled."
         } 
 
         if (`$choice -eq 1) { 
-            Write-Text -Text "Disabling the administrator account..." -LineBefore
             Get-LocalUser -Name "Administrator" | Disable-LocalUser 
             `$message = "Administrator account Disabled."
         }
