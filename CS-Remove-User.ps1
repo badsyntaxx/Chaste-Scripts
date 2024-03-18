@@ -60,33 +60,23 @@ function Remove-User {
 
         Remove-LocalUser -Name `$username
 
-        Write-Text -Text "Local user removed." -Color "Yellow" -LineBefore
+        Write-Text -Type "done" -Text "Local user removed." -LineBefore
         
         if (`$deleteData) {
             `$userProfile = Get-CimInstance Win32_UserProfile -Filter "SID = '`$(`$user.SID)'"
             `$dir = `$userProfile.LocalPath
             if (`$null -ne `$dir -And (Test-Path -Path `$dir)) { 
                 Remove-Item -Path `$dir -Recurse -Force 
-                Write-Text -Text "User data deleted." -Color "Yellow"
+                Write-Text -Type "done" -Text "User data deleted."
             } else {
-                Write-Text -Text "No data found." -Color "Yellow"
+                Write-Text -Type "done" -Text "No data found." -LineAfter
             }
         }
 
-        Write-Text -Type "success" -Text "The user has been deleted." -LineBefore -LineAfter
-
-        `$resetOptions = @(
-            "Remove another user  - Start over and remove another user." 
-            "Exit                 - Quit this script with an opportunity to run another."
-        )
-        
-        `$choice = Get-Option -Options `$resetOptions
-
-        if (`$choice -eq 0) { Invoke-Script "$script" }
-        if (`$choice -eq 1) { Write-Exit -Script "$script" }
+        Write-Exit -Message "The user has been deleted." -LineBefore -LineAfter -Script "$script"
     } catch {
         Write-Text -Type "error" -Text "Remove User Error: `$(`$_.Exception.Message)"
-        Write-Exit
+        Write-Exit -Script "$script"
     }
 }
 

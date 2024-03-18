@@ -263,58 +263,143 @@ function Write-Exit {
 
 function Get-Download {
     param (
-        [parameter(Mandatory = $true)]
+        [Parameter(Mandatory)]
         [string]$Url,
-        [parameter(Mandatory = $true)]
+        [Parameter(Mandatory)]
         [string]$Target,
         [parameter(Mandatory = $false)]
         [int]$MaxRetries = 3,
         [parameter(Mandatory = $false)]
         [int]$Interval = 3
     )
-
-    $downloadComplete = $true 
-    Write-Text "Downloading..."
-
-    Write-Text $Url
-    Write-Text $Target
-    
-    for ($retryCount = 1; $retryCount -le $MaxRetries; $retryCount++) {
-        try {
-            $wc = New-Object System.Net.WebClient
-            $wc.DownloadFileAsync($Url, $Target)
-
-            # Show progress bar
-            $progressParams = @{
-                Activity = "Downloading"
-                Status = "In Progress"
-                PercentComplete = 0
-            }
-
-            while ($wc.IsBusy) {
-                $progressParams.PercentComplete = ($wc.BytesReceived / $wc.TotalBytesToReceive) * 100
-                Write-Progress @progressParams
-                Start-Sleep -Seconds 1
-            }
-        } catch {
-            Write-Text -Type "fail" -Text "$($_.Exception.Message)"
-            $downloadComplete = $false
+    Begin {
+        function Show-Progress {
+            param (
+                # Enter total value
+                [Parameter(Mandatory)]
+                [Single]$TotalValue,
+                # Enter current value
+                [Parameter(Mandatory)]
+                [Single]$CurrentValue,
+                # Enter custom progresstext
+                [Parameter(Mandatory)]
+                [string]$ProgressText,
+                # Enter value suffix
+                [Parameter()]
+                [string]$ValueSuffix,
+                # Enter bar lengh suffix
+                [Parameter()]
+                [int]$BarSize = 40,
+                # show complete bar
+                [Parameter()]
+                [switch]$Complete
+            )
             
-            if ($retryCount -lt $MaxRetries) {
-                Write-Host "Retrying..."
-                Start-Sleep -Seconds $Interval
-            } else {
-                Write-Text -Type "error" -Text "Maximum retries reached. Download failed."
+            # calc %
+            $percent = $CurrentValue / $TotalValue
+            $percentComplete = $percent * 100
+            if ($ValueSuffix) {
+                $ValueSuffix = " $ValueSuffix" # add space in front
             }
+            if ($psISE) {
+                Write-Progress "$ProgressText $CurrentValue$ValueSuffix of $TotalValue$ValueSuffix" -id 0 -percentComplete $percentComplete            
+            } else {
+                # build progressbar with string function
+                $curBarSize = $BarSize * $percent
+                $progbar = ""
+                $progbar = $progbar.PadRight($curBarSize, [char]9608)
+                $progbar = $progbar.PadRight($BarSize, [char]9617)
+        
+                if (!$Complete.IsPresent) {
+                    Write-Host -NoNewLine "`r    $ProgressText $progbar $($percentComplete.ToString("##0.00").PadLeft(6))%"
+                } else {
+                    Write-Host -NoNewLine "`r    $ProgressText $progbar $($percentComplete.ToString("##0.00").PadLeft(6))%"                    
+                }              
+            }   
         }
     }
+    Process {
+        $downloadComplete = $true 
+        for ($retryCount = 1; $retryCount -le $MaxRetries; $retryCount++) {
+            try {
+                $storeEAP = $ErrorActionPreference
+                $ErrorActionPreference = 'Stop'
+        
+                # invoke request
+                $request = [System.Net.HttpWebRequest]::Create($Url)
+                $response = $request.GetResponse()
+  
+                if ($response.StatusCode -eq 401 -or $response.StatusCode -eq 403 -or $response.StatusCode -eq 404) {
+                    throw "Remote file either doesn't exist, is unauthorized, or is forbidden for '$Url'."
+                }
+  
+                if ($Target -match '^\.\\') {
+                    $Target = Join-Path (Get-Location -PSProvider "FileSystem") ($Target -Split '^\.')[1]
+                }
+            
+                if ($Target -and !(Split-Path $Target)) {
+                    $Target = Join-Path (Get-Location -PSProvider "FileSystem") $Target
+                }
 
-    if ($downloadComplete) {
-        Write-Host "Download complete."
-        return $true
-    } else {
-        Remove-Item -ErrorAction SilentlyContinue $Target
-        return $false
+                if ($Target) {
+                    $fileDirectory = $([System.IO.Path]::GetDirectoryName($Target))
+                    if (!(Test-Path($fileDirectory))) {
+                        [System.IO.Directory]::CreateDirectory($fileDirectory) | Out-Null
+                    }
+                }
+
+                [long]$fullSize = $response.ContentLength
+                $fullSizeMB = $fullSize / 1024 / 1024
+  
+                # define buffer
+                [byte[]]$buffer = new-object byte[] 1048576
+                [long]$total = [long]$count = 0
+  
+                # create reader / writer
+                $reader = $response.GetResponseStream()
+                $writer = new-object System.IO.FileStream $Target, "Create"
+  
+                # start download
+                $finalBarCount = 0 #show final bar only one time
+                do {
+                    $count = $reader.Read($buffer, 0, $buffer.Length)
+          
+                    $writer.Write($buffer, 0, $count)
+              
+                    $total += $count
+                    $totalMB = $total / 1024 / 1024
+          
+                    if ($fullSize -gt 0) {
+                        Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText "Downloading" -ValueSuffix "MB"
+                    }
+
+                    if ($total -eq $fullSize -and $count -eq 0 -and $finalBarCount -eq 0) {
+                        Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText "Downloading" -ValueSuffix "MB" -Complete
+                        $finalBarCount++
+                        #Write-Host "$finalBarCount"
+                    }
+                } while ($count -gt 0)
+                Write-Host
+                if ($downloadComplete) { return $true } else { return $false }
+            } catch {
+                Write-Text -Type "fail" -Text "$($_.Exception.Message)"
+                $downloadComplete = $false
+            
+                if ($retryCount -lt $MaxRetries) {
+                    Write-Host "Retrying..."
+                    Start-Sleep -Seconds $Interval
+                } else {
+                    Write-Text -Type "error" -Text "Maximum retries reached. Download failed."
+                }
+            } finally {
+                # cleanup
+                if ($reader) { $reader.Close() }
+                if ($writer) { $writer.Flush(); $writer.Close() }
+        
+                $ErrorActionPreference = $storeEAP
+                [GC]::Collect()
+            } 
+        }   
     }
 }
 

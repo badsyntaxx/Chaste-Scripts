@@ -43,7 +43,7 @@ function Add-InTechAdmin {
 
         `$password = Get-Content -Path "`$path\PHRASE.txt" | ConvertTo-SecureString -Key (Get-Content -Path "`$path\KEY.txt")
 
-        Write-Text -Type "done" -Text "Credentials decrypted."
+        Write-Text -Type "done" -Text "Credentials acquired."
 
         `$account = Get-LocalUser -Name `$accountName -ErrorAction SilentlyContinue
 
@@ -56,23 +56,23 @@ function Add-InTechAdmin {
 
             Add-LocalGroupMember -Group "Administrators" -Member `$accountName -ErrorAction stop
 
-            Write-Text -Type "done" -Text "Group assignment successful."
+            Write-Text -Type "done" -Text "Group assignment successful." -LineAfter
 
-            Write-Text -Type "don" -Text "The InTechAdmin account has been created." -LineBefore -LineAfter
+            `$finalMessage = "Success! The InTechAdmin account has been created."
         } else {
             Write-Text -Type "notice" -Text "InTechAdmin account already exists!" -LineBefore -LineAfter
 
-            Write-Text "Updating password..."
+            Write-Text -Text "Updating password..." -LineAfter
             
             `$account | Set-LocalUser -Password `$password
 
-            Write-Text -Type "done" -Text "Password updated." -LineAfter
+            `$finalMessage = "Success! The InTechAdmin password was updated."
         }
 
         Remove-Item -Path "`$path\PHRASE.txt"
         Remove-Item -Path "`$path\KEY.txt"
 
-        Write-Exit -Message "Task completed successfully." -Script "Add-IntechAdmin"
+        Write-Exit -Message `$finalMessage -Script "Add-IntechAdmin"
     } catch {
         Write-Text -Type "error" -Text "Create IntechAdmin Error: `$(`$_.Exception.Message)"
         Write-Exit -Script "$script"
