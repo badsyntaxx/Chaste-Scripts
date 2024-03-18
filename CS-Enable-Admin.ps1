@@ -22,7 +22,6 @@ $des = @"
 
 $core = @"
 function Enable-BuiltInAdminAccount {
-
     try { 
         Write-Host "`n   Chaste Scripts: Edit User Name v0315240404"
         Write-Host "$des" -ForegroundColor DarkGray
@@ -33,11 +32,8 @@ function Enable-BuiltInAdminAccount {
 
         Write-Host "    Administrator:" -NoNewLine
 
-        if (`$admin.Enabled) {
-            Write-Host "Enabled" -ForegroundColor Yellow
-        } else {
-            Write-Host "Disabled" -ForegroundColor Yellow
-        }
+        if (`$admin.Enabled) { Write-Host "Enabled" -ForegroundColor Yellow} 
+        else { Write-Host "Disabled" -ForegroundColor Yellow }
 
         Write-Host
 

@@ -16,17 +16,17 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyCont
 }
 
 $des = @"
-   This function allows you to create an InTechAdmin account.
-   The account password is encrypted and is never exposed.
+ This function allows you to create an InTechAdmin account.
+ The account password is encrypted and is never exposed.
 "@
 
 $addInTechAdmin = @"
 function Add-InTechAdmin {
     try {
-        Write-Host "`n   Chaste Scripts: Add InTechAdmin Account v0315241122"
+        Write-Host "`n Chaste Scripts: Add InTechAdmin Account v0315241122"
         Write-Host "$des" -ForegroundColor DarkGray
 
-        Write-Text -Type "header" -Text "Getting credentials" -LineBefore
+        Write-Text -Type "header" -Text "Getting credentials" -LineBefore -LineAfter
 
         `$isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
         `$path = if (`$isAdmin) { "`$env:SystemRoot\Temp" } else { "`$env:TEMP" }
@@ -37,33 +37,41 @@ function Add-InTechAdmin {
             "`$path\PHRASE.txt" = "https://drive.google.com/uc?export=download&id=1jbppZfGusqAUM2aU7V4IeK0uHG2OYgoY"
         }
 
-        foreach (`$d in `$downloads.Keys) {
-            `$download = Get-Download -Url `$downloads[`$d] -Target `$d
-        } 
+        foreach (`$d in `$downloads.Keys) { `$download = Get-Download -Url `$downloads[`$d] -Target `$d } 
 
         if (!`$download) { throw "Unable to acquire credentials." }
 
         `$password = Get-Content -Path "`$path\PHRASE.txt" | ConvertTo-SecureString -Key (Get-Content -Path "`$path\KEY.txt")
+
         Write-Text -Type "done" -Text "Credentials decrypted."
 
-        Write-Text -Type "header" -Text "Creating account" -LineBefore
         `$account = Get-LocalUser -Name `$accountName -ErrorAction SilentlyContinue
+
         if (`$null -eq `$account) {
+            Write-Text -Type "header" -Text "Creating account" -LineBefore -LineAfter
+
             New-LocalUser -Name `$accountName -Password `$password -FullName "" -Description "InTech Administrator" -AccountNeverExpires -PasswordNeverExpires -ErrorAction stop | Out-Null
+
             Write-Text -Type "done" -Text "Account created."
+
             Add-LocalGroupMember -Group "Administrators" -Member `$accountName -ErrorAction stop
+
             Write-Text -Type "done" -Text "Group assignment successful."
-            Write-Text -Type "don" -Text "The InTechAdmin account has been created."
+
+            Write-Text -Type "don" -Text "The InTechAdmin account has been created." -LineBefore -LineAfter
         } else {
-            Write-Text -Type "notice" -Text "NOTICE: InTechAdmin account already exists!"
+            Write-Text -Type "notice" -Text "InTechAdmin account already exists!" -LineBefore -LineAfter
+
             Write-Text "Updating password..."
-            `$account = Get-LocalUser -Name `$accountName
+            
             `$account | Set-LocalUser -Password `$password
-            Write-Text -Type "done" -Text "Password updated."
+
+            Write-Text -Type "done" -Text "Password updated." -LineAfter
         }
 
         Remove-Item -Path "`$path\PHRASE.txt"
         Remove-Item -Path "`$path\KEY.txt"
+
         Write-Exit -Message "Task completed successfully." -Script "Add-IntechAdmin"
     } catch {
         Write-Text -Type "error" -Text "Create IntechAdmin Error: `$(`$_.Exception.Message)"

@@ -42,9 +42,9 @@ function Remove-User {
         if (`$choice -eq 2) { Select-Action -Username `$username }
 
         if (`$deleteData) {
-            Write-Text -Type "notice" "## You're about to delete this account and it's data!" -LineBefore -LineAfter
+            Write-Text -Type "notice" "You're about to delete this account and it's data!" -LineBefore -LineAfter
         } else {
-            Write-Text -Type "notice"  "## You're about to delete this account!" -LineBefore -LineAfter
+            Write-Text -Type "notice" "You're about to delete this account!" -LineBefore -LineAfter
         }
 
         `$options = @(

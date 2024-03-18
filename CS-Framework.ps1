@@ -180,7 +180,7 @@ function Write-Text {
     if ($LineBefore) { Write-Host }
     if ($Type -eq "header") { Write-Host " ## $Text" -ForegroundColor "DarkCyan" }
     if ($Type -eq 'done') { 
-        Write-Host " $([char]0x2713)" -ForegroundColor "Green" -NoNewline
+        Write-Host "  $([char]0x2713)" -ForegroundColor "Green" -NoNewline
         Write-Host " $Text" 
     }
     if ($Type -eq 'compare') { 
@@ -189,11 +189,11 @@ function Write-Text {
         Write-Host "$NewData" -ForegroundColor "White"
     }
     if ($Type -eq 'fail') { 
-        Write-Host " X" -ForegroundColor "Red" -NoNewline
+        Write-Host "  X " -ForegroundColor "Red" -NoNewline
         Write-Host "$Text" 
     }
     if ($Type -eq 'success') { Write-Host "  $([char]0x2713) $Text" -ForegroundColor "Green" }
-    if ($Type -eq 'error') { Write-Host "   $Text" -ForegroundColor "Red" }
+    if ($Type -eq 'error') { Write-Host "  X $Text" -ForegroundColor "Red" }
     if ($Type -eq 'notice') { Write-Host " ## $Text" -ForegroundColor "Yellow" }
     if ($Type -eq 'plain') { Write-Host "    $Text" -ForegroundColor $Color }
     if ($Type -eq 'list') {
@@ -217,15 +217,19 @@ function Write-Box {
     $longestString = $Text | Sort-Object Length -Descending | Select-Object -First 1
     $count = $longestString.Length
 
-    Write-Host "  $topLeft$($horizontalLine * ($count + 2))$topRight" -ForegroundColor DarkGray
+    Write-Host " $topLeft$($horizontalLine * ($count + 2))$topRight" -ForegroundColor Cyan
 
     foreach ($line in $Text) {
-        Write-Host "  $verticalLine" -ForegroundColor DarkGray -NoNewline
-        Write-Host " $($line.PadRight($count))" -ForegroundColor DarkGray -NoNewline
-        Write-Host " $verticalLine" -ForegroundColor DarkGray
+        Write-Host " $verticalLine" -ForegroundColor Cyan -NoNewline
+        if ($line.Contains("http")) {
+            Write-Host " $($line.PadRight($count))" -ForegroundColor DarkCyan -NoNewline
+        } else {
+            Write-Host " $($line.PadRight($count))" -ForegroundColor White -NoNewline
+        }
+        Write-Host " $verticalLine" -ForegroundColor Cyan
     }
 
-    Write-Host "  $bottomLeft$($horizontalLine * ($count + 2))$bottomRight" -ForegroundColor DarkGray
+    Write-Host " $bottomLeft$($horizontalLine * ($count + 2))$bottomRight" -ForegroundColor Cyan
 }
 
 function Write-Exit {
@@ -233,20 +237,27 @@ function Write-Exit {
         [parameter(Mandatory = $false)]
         [string]$Message = "",
         [parameter(Mandatory = $false)]
-        [string]$Script = ""
+        [string]$Script = "",
+        [parameter(Mandatory = $false)]
+        [switch]$LineBefore = $false,
+        [parameter(Mandatory = $false)]
+        [switch]$LineAfter = $false
     )
 
     if ($Message -ne "") { Write-Text -Type "success" -Text $Message }
+
     $paths = @("$env:TEMP\$Script.ps1", "$env:SystemRoot\Temp\$Script.ps1")
+
     foreach ($p in $paths) { Get-Item -ErrorAction SilentlyContinue $p | Remove-Item -ErrorAction SilentlyContinue }
+
     $param = Read-Host -Prompt "`r`n  Enter command"
+
     Write-Host
     if ($param.Length -gt 0) {
-        if ($param -eq "restart") {
-            Invoke-Script $Script
-        } else {
-            Invoke-RestMethod "chaste.dev$param" | Invoke-Expression -ErrorAction SilentlyContinue
-        }
+        if ($param -eq "restart") { Invoke-Script $Script } 
+        else { Invoke-RestMethod "chaste.dev$param" | Invoke-Expression -ErrorAction SilentlyContinue }
+    } else {
+        Exit
     }
 }
 
@@ -271,7 +282,8 @@ function Get-Download {
             $wc = New-Object System.Net.WebClient
             $wc.DownloadFile($Url, $Target)
         } catch {
-            Write-Text -Type "fail" -Text "$($_.Exception.Message)"
+            Write-Text -Type "fail" -Text "Download failed."
+            # Write-Text -Type "fail" -Text "$($_.Exception.Message)"
 
             $downloadComplete = $false
             
@@ -279,7 +291,7 @@ function Get-Download {
                 Write-Text -Text "Retrying..."
                 Start-Sleep -Seconds $Interval
             } else {
-                Write-Text -Type "error" -Text "Maximum retries reached. Download failed."
+                Write-Text -Type "error" -Text "Maximum retries reached. Download failed." -LineBefore
             }
         }
     }

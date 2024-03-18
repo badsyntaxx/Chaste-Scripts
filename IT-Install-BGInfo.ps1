@@ -15,51 +15,62 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyCont
     $framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
 }
 
+$des = @"
+ This function allows you to install BGInfo. Just paste a link to your BGInfo.zip.
+"@
+
 $core = @"
 function Install-BGInfo {
     try {
-        Write-Host "Chaste Scripts: Install BGInfo" -ForegroundColor DarkGray
-        Write-Text -Type "header" -Text "Install BGInfo" -LineBefore
+        Write-Host "`n Chaste Scripts: Install BGInfo v0317241028"
+        Write-Host "$des`n" -ForegroundColor DarkGray
 
-        Write-Text -Text "Type or paste link to BGInfo zip."
         `$boxText = "This link is the BGInfo folder I install for Nuvia ISR's"
         `$boxLink = "https://drive.google.com/uc?export=download&id=1vU-AfOmhwdwh7h_Q0IFGXClGQ4AQjjSK"
         `$text = @(
-            "This link is the BGInfo folder I install for Nuvia ISR's"
+            "What this script does."
+            " "
+            "1.Once a link to a BGInfo.zip is provided, it will download the archive."
+            "2.Open the archive and copy the BGInfo folder to 'Program Files'."
+            "3.Add a 'Start BGInfo.bat' to the common startup folder."
+            "4.Run the .bat file and apply the background."
+            " "
+            "Example BGInfo.zip:"
             "https://drive.google.com/uc?export=download&id=1vU-AfOmhwdwh7h_Q0IFGXClGQ4AQjjSK"
+            " "
+            "My example BGInfo.zip is the one I use for Nuvia ISR's. It contains some"
+            "VB scripts to compact some network information, because BGInfos default"
+            "view shows too much empty data for my taste."
         )
 
         Write-Box -Text `$text
 
-        `$url = Get-Input -Prompt "Link"
+        `$url = Get-Input -Prompt "" -LineBefore -LineAfter
 
-        Write-Text "Removing current wallpaper."
-
-        `$key = "HKCU:\Control Panel\Desktop"
-        Set-ItemProperty -Path `$key -Name WallPaper -Value ""
+        Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name WallPaper -Value ""
         Set-ItemProperty -Path "HKCU:Control Panel\Colors" -Name Background -Value "0 0 0"
-
-        Write-Text -Type "done" -Text "Current wallpaper removed."
 
         `$download = Get-Download -Url `$url -Target "C:\Windows\Temp\BGInfo.zip"
     
-        if (!`$download) {
-            throw "Frick"
-        }
+        if (!`$download) { Write-Exit -Script "Install-BGInfo" }
 
         Expand-Archive -LiteralPath "C:\Windows\Temp\BGInfo.zip" -DestinationPath "C:\Windows\Temp\"
 
         Remove-Item -Path "C:\Windows\Temp\BGInfo.zip" -Recurse
+
         ROBOCOPY "C:\Windows\Temp\BGInfo" "C:\Program Files\BGInfo" /E /NFL /NDL /NJH /NJS /nc /ns | Out-Null
         ROBOCOPY "C:\Windows\Temp\BGInfo" "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup" "Start BGInfo.bat" /NFL /NDL /NJH /NJS /nc /ns | Out-Null
+
         Start-Process -FilePath "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup\Start BGInfo.bat" -WindowStyle Hidden
+
         Remove-Item -Path "C:\Windows\Temp\BGInfo" -Recurse 
-        Write-Exit -Message "BGInfo installed and applied." -Script "Set-DesktopConfig"
+
+        Write-Host
+        Write-Exit -Message "BGInfo installed and applied." -Script "Set-DesktopConfig" -LineBefore
     } catch {
-        Write-Text -Type "error" -Text "Add User Error: `$(`$_.Exception.Message)"
-        Read-Host "   Press any key to continue"
+        Write-Text -Type "error" -Text "Install BGInfo error: `$(`$_.Exception.Message)"
+        Write-Exit -Script "Install-BGInfo"
     }
-    
 }
 
 "@
