@@ -270,9 +270,9 @@ function Write-Exit {
 
 function Get-Download {
     param (
-        [parameter(Mandatory = $false)]
+        [parameter(Mandatory = $true)]
         [string]$Url,
-        [parameter(Mandatory = $false)]
+        [parameter(Mandatory = $true)]
         [string]$Target,
         [parameter(Mandatory = $false)]
         [int]$MaxRetries = 3,
@@ -280,33 +280,43 @@ function Get-Download {
         [int]$Interval = 3
     )
 
-    $downloadComplete = $true 
-    Write-Text "Downloading..."
+    $downloadComplete = $true
+    Write-Host "Downloading from: $Url"  # Display the address bar
 
-    Write-Text $Url
-    Write-Text $Target
-    
     for ($retryCount = 1; $retryCount -le $MaxRetries; $retryCount++) {
         try {
             $wc = New-Object System.Net.WebClient
-            $wc.DownloadFile($Url, $Target)
+            $wc.DownloadFileAsync($Url, $Target)
+
+            # Show progress bar
+            $progressParams = @{
+                Activity = "Downloading"
+                Status = "In Progress"
+                PercentComplete = 0
+            }
+
+            while ($wc.IsBusy) {
+                $progressParams.PercentComplete = ($wc.BytesReceived / $wc.TotalBytesToReceive) * 100
+                Write-Progress @progressParams
+                Start-Sleep -Seconds 1
+            }
         } catch {
-            Write-Text -Type "fail" -Text "$($_.Exception.Message)"
+            Write-Host -ForegroundColor Red "Error: $($_.Exception.Message)"
             $downloadComplete = $false
             if ($retryCount -lt $MaxRetries) {
-                Write-Text -Text "Retrying..."
+                Write-Host "Retrying..."
                 Start-Sleep -Seconds $Interval
             } else {
-                Write-Text -Type "error" -Text "Maximum retries reached. Download failed."
+                Write-Host -ForegroundColor Red "Maximum retries reached. Download failed."
             }
         }
     }
 
     if ($downloadComplete) {
-        Write-Text -Type "done" -Text "Download complete."
+        Write-Host "Download complete."
         return $true
     } else {
-        Get-Item -ErrorAction SilentlyContinue $Target | Remove-Item -ErrorAction SilentlyContinue 
+        Remove-Item -ErrorAction SilentlyContinue $Target
         return $false
     }
 }
