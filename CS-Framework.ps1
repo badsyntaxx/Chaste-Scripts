@@ -33,6 +33,18 @@ function Invoke-Script {
     }
 }
 
+function Get-Command {
+    try {
+        $command = Get-Input -Prompt "Enter command"
+        $command = $command -replace ' ', '/'
+        
+        Invoke-Restmethod "chaste.dev/$command" | Invoke-Expression
+    } catch {
+        Write-Text -Type "error" -Text "$($_.Exception.Message)"
+        Read-Host "   Press any key to continue"
+    }
+}
+
 function Get-Input {
     param (
         [parameter(Mandatory = $false)]
@@ -250,15 +262,7 @@ function Write-Exit {
 
     foreach ($p in $paths) { Get-Item -ErrorAction SilentlyContinue $p | Remove-Item -ErrorAction SilentlyContinue }
 
-    $param = Read-Host -Prompt "`r`n  Enter command"
-
-    Write-Host
-    if ($param.Length -gt 0) {
-        if ($param -eq "restart") { Invoke-Script $Script } 
-        else { Invoke-RestMethod "chaste.dev$param" | Invoke-Expression -ErrorAction SilentlyContinue }
-    } else {
-        Exit
-    }
+    Get-Command
 }
 
 function Get-Download {
