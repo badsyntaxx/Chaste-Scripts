@@ -22,6 +22,7 @@ $des = @"
 $core = @"
 function Install-BGInfo {
     try {
+        Get-Item -ErrorAction SilentlyContinue "$path\$script.ps1" | Remove-Item -ErrorAction SilentlyContinue
         Write-Host "`n Chaste Scripts: Install BGInfo v0317241028"
         Write-Host "$des`n" -ForegroundColor DarkGray
 

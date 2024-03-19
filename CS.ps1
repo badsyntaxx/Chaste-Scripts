@@ -23,9 +23,9 @@ $des = @"
 $core = @"
 function $script {
     try {
+        Get-Item -ErrorAction SilentlyContinue "$path\$script.ps1" | Remove-Item -ErrorAction SilentlyContinue
         Write-Host "`n Chaste Scripts: v0319241206"
         Write-Host "$des" -ForegroundColor DarkGray
-        Write-Host
         Get-Command
     } catch {
         Write-Text -Type "error" -Text "`$(`$_.Exception.Message)" -LineBefore -LineAfter

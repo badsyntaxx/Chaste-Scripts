@@ -23,6 +23,7 @@ $des = @"
 $core = @"
 function Edit-UserPassword {
     try {
+        Get-Item -ErrorAction SilentlyContinue "$path\$script.ps1" | Remove-Item -ErrorAction SilentlyContinue
         Write-Host "`n   Chaste Scripts: Edit User Password v0315241122"
         Write-Host "$des" -ForegroundColor DarkGray
 

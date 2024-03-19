@@ -23,6 +23,7 @@ $des = @"
 $core = @"
 function $script {
     try {
+        Get-Item -ErrorAction SilentlyContinue "$path\$script.ps1" | Remove-Item -ErrorAction SilentlyContinue
         Write-Host "`n   Chaste Scripts: Edit User Group v0315240354"
         Write-Host "$des" -ForegroundColor DarkGray
 

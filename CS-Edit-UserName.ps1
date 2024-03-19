@@ -22,6 +22,7 @@ $des = @"
 $core = @"
 function Edit-UserName {
     try {
+        Get-Item -ErrorAction SilentlyContinue "$path\$script.ps1" | Remove-Item -ErrorAction SilentlyContinue
         Write-Host "`n Chaste Scripts: Edit User Name v0315242300"
         Write-Host "$des" -ForegroundColor DarkGray
 

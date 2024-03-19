@@ -23,6 +23,7 @@ $des = @"
 $core = @"
 function Enable-BuiltInAdminAccount {
     try { 
+        Get-Item -ErrorAction SilentlyContinue "$path\$script.ps1" | Remove-Item -ErrorAction SilentlyContinue
         Write-Host "`n   Chaste Scripts: Edit User Name v0315240404"
         Write-Host "$des" -ForegroundColor DarkGray
 

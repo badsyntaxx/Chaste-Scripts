@@ -23,6 +23,7 @@ $des = @"
 $core = @"
 function Set-ComputerName {
     try {
+        Get-Item -ErrorAction SilentlyContinue "$path\$script.ps1" | Remove-Item -ErrorAction SilentlyContinue
         Write-Host "`n Chaste Scripts: Edit Hostname v0315240737"
         Write-Host "$des" -ForegroundColor DarkGray
 

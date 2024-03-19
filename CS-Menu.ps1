@@ -10,7 +10,6 @@ function Select-Tool {
         "Edit user group       - Edit a users group membership."
         "Edit hostname         - Edit this computers name and description."
         "Edit network adapter  - Edit a network adapter.(beta)"
-        "Enter Command         - Bypass menu and enter command manually."
     )
 
     Write-Text -Type "header" -Text "Selection"
@@ -24,13 +23,6 @@ function Select-Tool {
     if ($choice -eq 5) { $script = "CS-Edit-UserGroup.ps1" }
     if ($choice -eq 6) { $script = "CS-Edit-Hostname.ps1" }
     if ($choice -eq 7) { $script = "CS-Edit-NetworkAdapter.ps1" }
-    if ($choice -eq 8) { 
-        $param = Read-Host -Prompt "`r`n   Enter command"
-        Write-Host
-        if ($param.Length -gt 0) {
-            Invoke-RestMethod "chaste.dev$param" | Invoke-Expression -ErrorAction SilentlyContinue
-        }
-    }
 
     Write-Text -Text "Initializing script..." -LineBefore
     
@@ -55,7 +47,7 @@ function Initialize-Action {
         PowerShell.exe -NoExit -File "$path\$Script" -Verb RunAs
     } catch {
         Write-Text -Type "error" -Text "$($_.Exception.Message)"
-        Read-Host "   Press any key to continue"
+        Write-Exit -Script "Menu"
     }
 }
 
@@ -79,7 +71,7 @@ function Invoke-Script {
         Invoke-Expression $ScriptName
     } catch {
         Write-Text -Type "error" -Text "Initialization Error: $($_.Exception.Message)"
-        Read-Host "   Press any key to continue"
+        Write-Exit
     }
 }
 
@@ -132,7 +124,7 @@ function Get-Option {
         Write-Output $pos
     } catch {
         Write-Host "   $($_.Exception.Message)" -ForegroundColor "Red"
-        Read-Host "   Press any key to continue"
+        Write-Exit
     }
 }
 

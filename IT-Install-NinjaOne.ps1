@@ -26,7 +26,7 @@ function Install-NinjaOne {
         Add-TempFolder
         Invoke-Installation -Url `$url
 
-        Read-Host "   Press Any Key to continue"
+        Write-Exit
     } catch {
         Write-Text "Install error: `$(`$_.Exception.Message)" -Type "error"
     }

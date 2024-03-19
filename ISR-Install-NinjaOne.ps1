@@ -19,12 +19,12 @@ $addLocalUser = @"
 function Install-NinjaOne {
     try {
         Write-Host "Chaste Scripts: Install NinjaOne for Nuvia ISR's" -ForegroundColor DarkGray
-        Write-Text -Type "header" -Text "Install NinjaOne" -LineBefore 
+        Write-Text -Type "header" -Text "Install NinjaOne" -LineBefore -LineAfter
 
         Add-TempFolder
         Invoke-Installation
 
-        Read-Host "   Press Any Key to continue"
+        Write-Exit
     } catch {
         Write-Text "Install error: `$(`$_.Exception.Message)" -Type "error"
     }
@@ -32,7 +32,7 @@ function Install-NinjaOne {
 
 function Add-TempFolder {
     try {
-        Write-Text "Creating TEMP folder"
+        Write-Text "Creating TEMP folder..."
         Write-Text "Path: C:\Users\`$env:username\Desktop\"
 
         if (-not (Test-Path -PathType Container "C:\Users\`$env:username\Desktop\TEMP")) {
@@ -41,7 +41,7 @@ function Add-TempFolder {
         
         Write-Text -Type "done" -Text "Folder created." -LineAfter
     } catch {
-        Write-Text "ERROR: `$(`$_.Exception.Message)" -Type "error"
+        Write-Text "Error creating temp folder: `$(`$_.Exception.Message)" -Type "error"
     }
 }
 
@@ -90,12 +90,8 @@ function Install-Program {
         `$tempPath = "C:\Users\`$env:username\Desktop\TEMP"
         `$download = Get-Download -Url `$Url -Target "`$tempPath\`$AppName.msi"
 
-        Write-Text ""
-
         if (`$download) {
-            Write-Text -Text "Intalling..."
-
-            Write-Host "Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$AppName.msi``" `$Args" -Wait"
+            Write-Text -Text "Intalling..." -LineBefore
 
             Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$AppName.msi``" `$Args" -Wait
 

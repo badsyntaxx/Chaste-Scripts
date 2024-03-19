@@ -3,7 +3,7 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
     Exit
 } 
 
-$Script = "Install-ISRApps"
+$script = "Install-ISRApps"
 $isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
 $path = if ($isAdmin) { "$env:SystemRoot\Temp" } else { "$env:TEMP" }
 
@@ -32,7 +32,7 @@ function Install-ISRApps {
     Install-ExplorerPatcher
     Initialize-Cleanup
     Add-EPRegedits
-    Read-Host "   Press Any Key to continue"
+    Write-Exit -Script "$script"
 }
 
 function Add-TempFolder {
@@ -286,11 +286,11 @@ function Install-Program {
 
 "@
 
-New-Item -Path "$path\$Script.ps1" -ItemType File -Force | Out-Null
+New-Item -Path "$path\$script.ps1" -ItemType File -Force | Out-Null
 
-Add-Content -Path "$path\$Script.ps1" -Value $addLocalUser
-Add-Content -Path "$path\$Script.ps1" -Value $framework
-Add-Content -Path "$path\$Script.ps1" -Value "Invoke-Script '$Script'"
+Add-Content -Path "$path\$script.ps1" -Value $addLocalUser
+Add-Content -Path "$path\$script.ps1" -Value $framework
+Add-Content -Path "$path\$script.ps1" -Value "Invoke-Script '$script'"
 
-PowerShell.exe -File "$path\$Script.ps1" -Verb RunAs
+PowerShell.exe -File "$path\$script.ps1" -Verb RunAs
 

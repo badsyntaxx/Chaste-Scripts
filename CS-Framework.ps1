@@ -35,13 +35,13 @@ function Invoke-Script {
 
 function Get-Command {
     try {
-        $command = Get-Input -Prompt "Enter command"
+        $command = Get-Input -Prompt "Enter command" -LineBefore
         $command = $command -replace ' ', '/'
         
         Invoke-Restmethod "chaste.dev/$command" | Invoke-Expression
     } catch {
-        Write-Text -Type "error" -Text "$($_.Exception.Message)"
-        Read-Host "   Press any key to continue"
+        Write-Text -Type "error" -Text "$($_.Exception.Message)" -LineBefore -LineAfter
+        Get-Command
     }
 }
 
@@ -165,7 +165,7 @@ function Get-Option {
         return $pos
     } catch {
         Write-Host "  $($_.Exception.Message)" -ForegroundColor "Red"
-        Read-Host "  Press any key to continue"
+        Write-Exit
     }
 }
 
@@ -256,7 +256,7 @@ function Write-Exit {
         [switch]$LineAfter = $false
     )
 
-    if ($Message -ne "") { Write-Text -Type "success" -Text $Message }
+    if ($Message -ne "") { Write-Text -Type "success" -Text $Message -LineAfter }
 
     $paths = @("$env:TEMP\$Script.ps1", "$env:SystemRoot\Temp\$Script.ps1")
 
@@ -467,7 +467,7 @@ function Get-AccountInfo {
 
         return $data
     } catch {
-        Write-Alert -Type "error" -Text "ERROR: $($_.Exception.Message)"
-        Read-Host -Prompt "Press any key to continue"
+        Write-Alert -Type "error" -Text "Error getting account info: $($_.Exception.Message)"
+        Write-Exit
     }
 }
