@@ -25,38 +25,44 @@ function Install-BGInfo {
         Write-Host "`n Chaste Scripts: Install BGInfo v0317241028"
         Write-Host "$des`n" -ForegroundColor DarkGray
 
-        `$boxText = "This link is the BGInfo folder I install for Nuvia ISR's"
-        `$boxLink = "https://drive.google.com/uc?export=download&id=1vU-AfOmhwdwh7h_Q0IFGXClGQ4AQjjSK"
         `$text = @(
             "What this script does."
             " "
-            "1.Once a link to a BGInfo.zip is provided, it will download the archive."
-            "2.Open the archive and copy the BGInfo folder to 'Program Files'."
-            "3.Add a 'Start BGInfo.bat' to the common startup folder."
-            "4.Run the .bat file and apply the background."
+            "1. Downloads a BGInfo.zip containing BGInfo install."
+            "2. Opens the archive and copies the BGInfo folder to 'Program Files'."
+            "3. Adds a 'Start BGInfo.bat' to the common startup folder."
+            "4. Runs the .bat file and apply the background."
             " "
-            "Example BGInfo.zip:"
-            "https://drive.google.com/uc?export=download&id=1vU-AfOmhwdwh7h_Q0IFGXClGQ4AQjjSK"
-            " "
-            "My example BGInfo.zip is the one I use for Nuvia ISR's. It contains some"
-            "VB scripts to compact some network information, because BGInfos default"
-            "view shows too much empty data for my taste."
         )
 
         Write-Box -Text `$text
 
-        `$url = Get-Input -Prompt "" -LineBefore -LineAfter
+        `$options = (
+            "Default",
+            "Nuvia ISR"
+        )
+
+        `$choice = Get-Option -Options `$options -LineBefore -LineAfter
+
+        if (`$choice -eq 0) { 
+            `$url = "https://drive.google.com/uc?export=download&id=1wBYV4MFbC68YhIUFcFeul8iuMsy1Qo_N" 
+            `$target = "Default" 
+        }
+        if (`$choice -eq 1) { 
+            `$url = "https://drive.google.com/uc?export=download&id=18gFWHawWknKufHXjcmMUB0SwGoSlbBEk" 
+            `$target = "NuviaISR" 
+        }
+
+        `$download = Get-Download -Url `$url -Target "C:\Windows\Temp\`$target_BGInfo.zip"
+
+        if (!`$download) { Write-Exit -Script "Install-BGInfo" }
 
         Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name WallPaper -Value ""
         Set-ItemProperty -Path "HKCU:Control Panel\Colors" -Name Background -Value "0 0 0"
 
-        `$download = Get-Download -Url `$url -Target "C:\Windows\Temp\BGInfo.zip"
-    
-        if (!`$download) { Write-Exit -Script "Install-BGInfo" }
+        Expand-Archive -LiteralPath "C:\Windows\Temp\`$target_BGInfo.zip" -DestinationPath "C:\Windows\Temp\"
 
-        Expand-Archive -LiteralPath "C:\Windows\Temp\BGInfo.zip" -DestinationPath "C:\Windows\Temp\"
-
-        Remove-Item -Path "C:\Windows\Temp\BGInfo.zip" -Recurse
+        Remove-Item -Path "C:\Windows\Temp\`$target_BGInfo.zip" -Recurse
 
         ROBOCOPY "C:\Windows\Temp\BGInfo" "C:\Program Files\BGInfo" /E /NFL /NDL /NJH /NJS /nc /ns | Out-Null
         ROBOCOPY "C:\Windows\Temp\BGInfo" "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup" "Start BGInfo.bat" /NFL /NDL /NJH /NJS /nc /ns | Out-Null
@@ -66,7 +72,7 @@ function Install-BGInfo {
         Remove-Item -Path "C:\Windows\Temp\BGInfo" -Recurse 
 
         Write-Host
-        Write-Exit -Message "BGInfo installed and applied." -Script "Set-DesktopConfig" -LineBefore
+        Write-Exit -Message "BGInfo installed and applied." -Script "Install-BGInfo" -LineBefore
     } catch {
         Write-Text -Type "error" -Text "Install BGInfo error: `$(`$_.Exception.Message)"
         Write-Exit -Script "Install-BGInfo"

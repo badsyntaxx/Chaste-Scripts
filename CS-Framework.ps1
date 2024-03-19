@@ -275,22 +275,16 @@ function Get-Download {
     Begin {
         function Show-Progress {
             param (
-                # Enter total value
                 [Parameter(Mandatory)]
                 [Single]$TotalValue,
-                # Enter current value
                 [Parameter(Mandatory)]
                 [Single]$CurrentValue,
-                # Enter custom progresstext
                 [Parameter(Mandatory)]
                 [string]$ProgressText,
-                # Enter value suffix
                 [Parameter()]
                 [string]$ValueSuffix,
-                # Enter bar lengh suffix
                 [Parameter()]
                 [int]$BarSize = 40,
-                # show complete bar
                 [Parameter()]
                 [switch]$Complete
             )
@@ -301,21 +295,21 @@ function Get-Download {
             if ($ValueSuffix) {
                 $ValueSuffix = " $ValueSuffix" # add space in front
             }
-            if ($psISE) {
-                Write-Progress "$ProgressText $CurrentValue$ValueSuffix of $TotalValue$ValueSuffix" -id 0 -percentComplete $percentComplete            
+  
+            # build progressbar with string function
+            $curBarSize = $BarSize * $percent
+            $progbar = ""
+            $progbar = $progbar.PadRight($curBarSize, [char]9608)
+            $progbar = $progbar.PadRight($BarSize, [char]9617)
+
+
+
+            if (!$Complete.IsPresent) {
+                Write-Host -NoNewLine "`r    $ProgressText $progbar $($percentComplete.ToString("##0.00").PadLeft(6))%"
             } else {
-                # build progressbar with string function
-                $curBarSize = $BarSize * $percent
-                $progbar = ""
-                $progbar = $progbar.PadRight($curBarSize, [char]9608)
-                $progbar = $progbar.PadRight($BarSize, [char]9617)
-        
-                if (!$Complete.IsPresent) {
-                    Write-Host -NoNewLine "`r    $ProgressText $progbar $($percentComplete.ToString("##0.00").PadLeft(6))%"
-                } else {
-                    Write-Host -NoNewLine "`r    $ProgressText $progbar $($percentComplete.ToString("##0.00").PadLeft(6))%"                    
-                }              
-            }   
+                Write-Host -NoNewLine "`r    $ProgressText $progbar $($percentComplete.ToString("##0.00").PadLeft(6))%"                    
+            }              
+             
         }
     }
     Process {
@@ -376,20 +370,21 @@ function Get-Download {
                     if ($total -eq $fullSize -and $count -eq 0 -and $finalBarCount -eq 0) {
                         Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText "Downloading" -ValueSuffix "MB" -Complete
                         $finalBarCount++
-                        #Write-Host "$finalBarCount"
                     }
                 } while ($count -gt 0)
                 Write-Host
                 if ($downloadComplete) { return $true } else { return $false }
             } catch {
-                Write-Text -Type "fail" -Text "$($_.Exception.Message)"
+                # Write-Text -Type "fail" -Text "$($_.Exception.Message)"
+                Write-Text -Type "fail" -Text "Download failed..."
+                
                 $downloadComplete = $false
             
                 if ($retryCount -lt $MaxRetries) {
-                    Write-Host "Retrying..."
+                    Write-Text "Retrying..."
                     Start-Sleep -Seconds $Interval
                 } else {
-                    Write-Text -Type "error" -Text "Maximum retries reached. Download failed."
+                    Write-Text -Type "error" -Text "Maximum retries reached. Download failed." -LineBefore
                 }
             } finally {
                 # cleanup

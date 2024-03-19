@@ -47,6 +47,10 @@ function Edit-UserName {
     
         Rename-LocalUser -Name `$username -NewName `$newName
 
+        `$data = Get-AccountInfo `$newName
+
+        Write-Text -Type "list" -List `$data -LineAfter
+
         Write-Exit "The name for this account has been changed." -Script "Edit-UserName"
     } catch {
         Write-Text -Type "error" -Text "Edit name error: `$(`$_.Exception.Message)"

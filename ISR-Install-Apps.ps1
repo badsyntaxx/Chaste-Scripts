@@ -18,10 +18,9 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyCont
 $addLocalUser = @"
 function Install-ISRApps {
     Write-Host "Chaste Scripts" -ForegroundColor DarkGray
-    Write-Text "Select user" -Type "header" -LineBefore
-    Select-LocalUser
+    Write-Text "Select user" -Type "header" -LineBefore -LineAfter
     Add-TempFolder
-    Install-NinjaOne
+    # Install-NinjaOne
     Install-GoogleChrome
     Install-GoogleChromeBookmarks
     Install-Slack
@@ -45,7 +44,7 @@ function Add-TempFolder {
             New-Item -Path "C:\Users\`$env:username\Desktop\" -Name "TEMP" -ItemType Directory | Out-Null
         }
         
-        Write-Text -Type "done" -Text "Folder created." -LineAfter
+        Write-Text -Type "done" -Text "Folder created."
     } catch {
         Write-Text "ERROR: `$(`$_.Exception.Message)" -Type "error"
     }
@@ -56,7 +55,7 @@ function Install-NinjaOne {
     `$url = "https://app.ninjarmm.com/agent/installer/0274c0c3-3ec8-44fc-93cb-79e96f191e07/nuviaisrcenteroremut-5.7.8652-windows-installer.msi"
     `$appName = "NinjaOne"
     `$installed = Find-ExistingInstall -Paths `$paths -App `$appName
-    if (!`$installed) { Install-Program `$url `$appName "msi" "/qn" }
+    if (!`$installed) { Install-Program `$url `$appName "msi" "/quiet" }
 }
 
 function Install-GoogleChrome {
@@ -69,12 +68,12 @@ function Install-GoogleChrome {
     `$url = "https://dl.google.com/dl/chrome/install/googlechromestandaloneenterprise64.msi"
     `$appName = "Google Chrome"
     `$installed = Find-ExistingInstall -Paths `$paths -App `$appName
-    if (!`$installed) { Install-Program `$url `$appName "msi" "/qn" }
+    if (!`$installed) { Install-Program `$url `$appName "msi" "/quiet" }
 }
 
 function Install-GoogleChromeBookmarks {
     try {
-        Write-Text "Adding Nuvia bookmarks..." -LineBefore
+        Write-Text "Adding Nuvia bookmarks..."
         `$tempPath = "C:\Users\`$account\Desktop\TEMP"
         `$download = Get-Download -Url "https://drive.google.com/uc?export=download&id=1WmvSnxtDSLOt0rgys947sOWW-v9rzj9U" -Target "`$tempPath\Bookmarks"
         if (`$download) {
@@ -95,7 +94,7 @@ function Install-Slack {
     `$url = "https://downloads.slack-edge.com/releases/windows/4.36.138/prod/x64/slack-standalone-4.36.138.0.msi"
     `$appName = "Slack"
     `$installed = Find-ExistingInstall -Paths `$paths -App `$appName
-    if (!`$installed) { Install-Program `$url `$appName "msi" "/qn" }
+    if (!`$installed) { Install-Program `$url `$appName "msi" "/quiet" }
 }
 
 function Install-Zoom {
@@ -107,7 +106,7 @@ function Install-Zoom {
     `$url = "https://zoom.us/client/latest/ZoomInstallerFull.msi?archType=x64"
     `$appName = "Zoom"
     `$installed = Find-ExistingInstall -Paths `$paths -App `$appName
-    if (!`$installed) { Install-Program `$url `$appName "msi" "/qn" }
+    if (!`$installed) { Install-Program `$url `$appName "msi" "/quiet" }
 }
 
 function Install-RingCentral {
@@ -115,7 +114,7 @@ function Install-RingCentral {
     `$url = "https://app.ringcentral.com/download/RingCentral-x64.msi"
     `$appName = "Ring Central"
     `$installed = Find-ExistingInstall -Paths `$paths -App `$appName
-    if (!`$installed) { Install-Program `$url `$appName "msi" "/qn" }
+    if (!`$installed) { Install-Program `$url `$appName "msi" "/quiet" }
 }
 
 function Install-RevoUninstaller {
@@ -127,7 +126,10 @@ function Install-RevoUninstaller {
 }
 
 function Install-AdobeAcrobatReader {
-    `$paths = @("C:\Program Files\Adobe\Acrobat DC\Acrobat\Acrobat.exe")
+    `$paths = @(
+        "C:\Program Files\Adobe\Acrobat DC\Acrobat\Acrobat.exe"
+        "C:\Program Files (x86)\Adobe\Acrobat Reader DC\Reader\AcroRd32.exe"
+    )
     `$url = "https://ardownload2.adobe.com/pub/adobe/reader/win/AcrobatDC/2300820555/AcroRdrDC2300820555_en_US.exe"
     `$appName = "Adobe Acrobat Reader"
     `$installed = Find-ExistingInstall -Paths `$paths -App `$appName
@@ -222,21 +224,6 @@ function Add-EPRegedits {
     Write-Text "Explorer configured" -Type "done" -LineAfter
 }
 
-function Select-LocalUser {
-    `$accountNames = @()
-    `$localUsers = Get-LocalUser
-    `$excludedAccounts = @("DefaultAccount", "Administrator", "WDAGUtilityAccount", "Guest", "defaultuser0")
-
-    foreach (`$user in `$localUsers) {
-        if (`$user.Name -notin `$excludedAccounts) { `$accountNames += `$user.Name }
-    }
-
-    
-    `$choice = Get-Option -Options `$accountNames
-
-    `$script:account = `$accountNames[`$choice]
-}
-
 function Find-ExistingInstall {
     param (
         [parameter(Mandatory = `$true)]
@@ -245,20 +232,18 @@ function Find-ExistingInstall {
         [string]`$App
     )
 
-    Write-Text -Type "header" -Text "Installing `$App" -LineBefore
-    Write-Text "Checking for existing install..."
+    Write-Text -Type "header" -Text "Installing `$App" -LineBefore -LineAfter
+
     `$installationFound = `$false
+
     foreach (`$path in `$paths) {
         if (Test-Path `$path) {
             `$installationFound = `$true
             break
         }
     }
-    if (`$installationFound) {
-        Write-Text -Type "success" -Text "`$App already installed."
-    } else {
-        Write-Text "`$App not found."
-    }
+
+    if (`$installationFound) { Write-Text -Type "success" -Text "`$App already installed." }
 
     return `$installationFound
 }
@@ -282,7 +267,7 @@ function Install-Program {
         `$download = Get-Download -Url `$Url -Target "`$tempPath\`$output"
 
         if (`$download) {
-            Write-Text -Text "Intalling..."
+            Write-Text -Text "Installing..." -LineAfter
             if (`$Extenstion -eq "msi") {
                 Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$output``" `$Args" -Wait
             } else {
@@ -291,10 +276,10 @@ function Install-Program {
            
             Write-Text -Type "success" -Text "`$AppName successfully installed."
         } else {
-            Write-Text "Download failed. Skipping." -Type "error" -LineAfter
+            Write-Text -Type "error" "Download failed. Skipping." -LineAfter
         }
     } catch {
-        Write-Text "Installation Error: `$(`$_.Exception.Message)" -Type "error"
+        Write-Text -Type "error" "Installation error: `$(`$_.Exception.Message)"
         Write-Text "Skipping `$AppName installation."
     }
 }

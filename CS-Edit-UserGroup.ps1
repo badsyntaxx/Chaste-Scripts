@@ -62,6 +62,10 @@ function $script {
 
         Add-LocalGroupMember -Group `$group -Member `$username -ErrorAction SilentlyContinue | Out-Null
 
+        `$data = Get-AccountInfo `$username
+
+        Write-Text -Type "list" -List `$data -LineAfter
+
         Write-Exit "The group membership for `$username has been changed to `$group." -Script "Edit-LocalUser"
     } catch {
         Write-Text -Type "error" -Text "Edit group error: `$(`$_.Exception.Message)"

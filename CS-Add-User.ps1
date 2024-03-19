@@ -58,6 +58,10 @@ function $script {
 
         Add-LocalGroupMember -Group `$group -Member `$name -ErrorAction Stop
 
+        `$data = Get-AccountInfo `$name
+
+        Write-Text -Type "list" -List `$data -LineAfter
+
         Write-Exit -Message "The user account was created." -Script "$script" 
     } catch {
         Write-Text -Type "error" -Text "Add user error: `$(`$_.Exception.Message)"
