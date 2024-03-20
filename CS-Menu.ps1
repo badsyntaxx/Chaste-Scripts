@@ -1,5 +1,5 @@
 function Select-Tool {
-    Write-Host "Chaste Scripts`n" -ForegroundColor DarkGray
+    Write-Host "Chaste Scripts: Menu`n" -ForegroundColor DarkGray
 
     $options = @(
         "Enable administrator  - Toggle the Windows built in administrator account."
@@ -12,9 +12,10 @@ function Select-Tool {
         "Edit network adapter  - Edit a network adapter.(beta)"
     )
 
-    Write-Text -Type "header" -Text "Selection"
+    Write-Text -Type "header" -Text "Selection" -LineAfter
 
     $choice = Get-Option -Options $options
+
     if ($choice -eq 0) { $script = "CS-Enable-BuiltInAdminAccount.ps1" }
     if ($choice -eq 1) { $script = "CS-Add-User.ps1" }
     if ($choice -eq 2) { $script = "CS-Remove-User.ps1" }

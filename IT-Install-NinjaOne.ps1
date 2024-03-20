@@ -18,13 +18,11 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyCont
 $addLocalUser = @"
 function Install-NinjaOne {
     try {
-        Write-Host "Chaste Scripts: Install NinjaOne Silently" -ForegroundColor DarkGray
-        Write-Text -Type "header" -Text "Install NinjaOne" -LineBefore
-
-        `$url = Get-Input -Prompt "Paste install link"
+        Write-Host "Chaste Scripts: Install NinjaOne" -ForegroundColor DarkGray
+        Write-Text -Type "header" -Text "Install NinjaOne" -LineBefore -LineAfter
 
         Add-TempFolder
-        Invoke-Installation -Url `$url
+        Invoke-Installation
 
         Write-Exit
     } catch {
@@ -34,31 +32,25 @@ function Install-NinjaOne {
 
 function Add-TempFolder {
     try {
-        Write-Text "Creating TEMP folder"
+        Write-Text "Creating TEMP folder..."
         Write-Text "Path: C:\Users\`$env:username\Desktop\"
 
-        `$folderPath = "C:\Users\`$env:username\Desktop\TEMP"
-
-        if (-not (Test-Path -PathType Container `$folderPath)) {
-            New-Item -Path `$folderPath -Name "TEMP" -ItemType Directory | Out-Null
+        if (-not (Test-Path -PathType Container "C:\Users\`$env:username\Desktop\TEMP")) {
+            New-Item -Path "C:\Users\`$env:username\Desktop\" -Name "TEMP" -ItemType Directory | Out-Null
         }
         
         Write-Text -Type "done" -Text "Folder created." -LineAfter
     } catch {
-        Write-Text "ERROR: `$(`$_.Exception.Message)" -Type "error"
+        Write-Text "Error creating temp folder: `$(`$_.Exception.Message)" -Type "error"
     }
 }
 
 function Invoke-Installation {
-    param (
-        [parameter(Mandatory = `$false)]
-        [string]`$Url
-    )
-
+    `$url = "https://app.ninjarmm.com/agent/installer/3b7909f8-b6bf-4fc9-9fd4-fa5d332415f7/intechtogetherunassigned-5.7.8836-windows-installer.msi"
     `$paths = @("C:\Program Files\NinjaRemote")
     `$appName = "NinjaOne"
     `$installed = Find-ExistingInstall -Paths `$paths -App `$appName
-    if (!`$installed) { Install-Program `$Url `$appName "/qn" }
+    if (!`$installed) { Install-Program -Url `$url -AppName `$appName -Args "/qn" }
 }
 
 function Find-ExistingInstall {
@@ -72,11 +64,10 @@ function Find-ExistingInstall {
     Write-Text "Checking for existing install..."
 
     `$installationFound = `$false
-    foreach (`$path in `$paths) {
-        if (Test-Path `$path) {
-            `$installationFound = `$true
-            break
-        }
+    `$service = Get-Service -Name "NinjaRMMAgent" -ErrorAction SilentlyContinue
+
+    if (`$null -ne `$service -and `$service.Status -eq "Running") {
+        `$installationFound = `$true
     }
 
     if (`$installationFound) { Write-Text -Type "success" -Text "`$App already installed." -LineAfter } 
@@ -88,23 +79,21 @@ function Find-ExistingInstall {
 function Install-Program {
     param (
         [parameter(Mandatory = `$true)]
-        [string]`$Uri,
+        [string]`$Url,
         [parameter(Mandatory = `$true)]
         [string]`$AppName,
-        [parameter(Mandatory = `$true)]
-        [string]`$Args
+        [parameter(Mandatory = `$false)]
+        [string]`$Args = ""
     )
 
     try {
         `$tempPath = "C:\Users\`$env:username\Desktop\TEMP"
-        `$download = Get-Download -Url `$Uri -Target "`$tempPath\`$AppName.msi"
-
-        Write-Text ""
+        `$download = Get-Download -Url `$Url -Target "`$tempPath\`$AppName.msi"
 
         if (`$download) {
-            Write-Text -Text "Intalling..."
+            Write-Text -Text "Intalling..." -LineBefore
 
-            Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$output``" `$Args" -Wait
+            # Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$AppName.msi``" `$Args" -Wait
 
             `$service = Get-Service -Name "NinjaRMMAgent" -ErrorAction SilentlyContinue
 
@@ -117,8 +106,8 @@ function Install-Program {
             Write-Text "Download failed. Skipping." -Type "error" -LineAfter
         }
     } catch {
-        Write-Text "Installation Error: `$(`$_.Exception.Message)" -Type "error"
-        Write-Text "Skipping `$AppName installation."
+        Write-Text -Type "error" -Text "Installation Error: `$(`$_.Exception.Message)"
+        Write-Exit -Script "Install-NinjaOne"
     }
 }
 
