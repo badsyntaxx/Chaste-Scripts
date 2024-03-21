@@ -27,18 +27,46 @@ function $script {
         Write-Host "`n Chaste Scripts: Add User v0315241122"
         Write-Host "$des" -ForegroundColor DarkGray
 
-        Write-Text -Type "header" -Text "What type of user do you want to add?" -LineBefore -LineAfter
+        Write-Text -Type "header" -Text "Enter name" -LineBefore -LineAfter
+
+        `$name = Get-Input -Prompt "" -Validate "^([a-zA-Z0-9 _\-]{1,64})$"  -CheckExistingUser
+
+        Write-Text -Type "header" -Text "Enter password" -LineBefore -LineAfter
+
+        `$password = Get-Input -Prompt "" -IsSecure
+        
+        Write-Text -Type "header" -Text "Set group membership" -LineBefore -LineAfter
+        
+        `$choice = Get-Option -Options @("Administrator", "Standard user")
+        
+        if (`$choice -eq 0) { `$group = 'Administrators' } else { `$group = "Users" }
+        if (`$group -eq 'Administrators') { `$groupDisplay = 'Administrator' } else { `$groupDisplay = 'Standard user' }
+
+        Write-Text -Type "notice" -Text "You're about to create a new local user!" -LineBefore -LineAfter
 
         `$choice = Get-Option -Options @(
-            'Local  - Create a local user.', 
-            'Domain - Create a domain user.'
-        )
+            "Submit  - Confirm and apply." 
+            "Reset   - Start over at the beginning."
+            "Exit    - Run a different command."
+        ) -LineAfter
 
-        if (`$choice -eq 0) { 
-            irm chaste.dev/add/user/local | iex
-        }
-        if (`$choice -eq 1) { 
-            irm chaste.dev/add/user/domain | iex
+        if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "$script" }
+        if (`$choice -eq 2) {  Write-Exit -Script "$script" }
+
+        New-LocalUser `$name -Password `$password -Description "Local User" -AccountNeverExpires -PasswordNeverExpires -ErrorAction Stop | Out-Null
+
+        Add-LocalGroupMember -Group `$group -Member `$name -ErrorAction Stop
+
+        `$newUserName = Get-LocalUser -Name `$name | Select-Object -ExpandProperty Name
+
+        `$data = Get-AccountInfo `$newUserName
+
+        Write-Text -Type "list" -List `$data -LineAfter
+
+        if (`$null -ne `$newUserName) {
+            Write-Exit -Message "The user account was created." -Script "$script"
+        } else {
+            throw "There was an unknown error when creating the user."
         }
     } catch {
         Write-Text -Type "error" -Text "Add user error: `$(`$_.Exception.Message)"
