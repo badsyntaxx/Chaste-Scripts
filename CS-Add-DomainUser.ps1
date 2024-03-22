@@ -3,7 +3,7 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
     Exit
 }
 
-$script = "Add-User"
+$script = "Add-DomainUser"
 $isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
 $path = if ($isAdmin) { "$env:SystemRoot\Temp" } else { "$env:TEMP" }
 
@@ -16,7 +16,7 @@ if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyCont
 }
 
 $des = @"
- This function creates a new local user account on a Windows system with specified settings, 
+ This function creates a new domain user account on a Windows system with specified settings, 
  including the username, optional password, and group. The account and password never expire.
 "@
 
@@ -24,19 +24,19 @@ $core = @"
 function $script {
     try {
         Get-Item -ErrorAction SilentlyContinue "$path\$script.ps1" | Remove-Item -ErrorAction SilentlyContinue
-        Write-Host "`n Chaste Scripts: Add User v0315241122"
+        Write-Host "`n Chaste Scripts: Add Domain User v0321240710"
         Write-Host "$des" -ForegroundColor DarkGray
 
         Write-Text -Type "header" -Text "Enter name" -LineBefore -LineAfter
-
         `$name = Get-Input -Prompt "" -Validate "^([a-zA-Z0-9 _\-]{1,64})$"  -CheckExistingUser
 
-        Write-Text -Type "header" -Text "Enter password" -LineBefore -LineAfter
+        Write-Text -Type "header" -Text "Enter sam name" -LineBefore -LineAfter
+        `$saNname = Get-Input -Prompt "" -Validate "^([a-zA-Z0-9 _\-]{1,20})$"  -CheckExistingUser
 
+        Write-Text -Type "header" -Text "Enter password" -LineBefore -LineAfter
         `$password = Get-Input -Prompt "" -IsSecure
         
         Write-Text -Type "header" -Text "Set group membership" -LineBefore -LineAfter
-        
         `$choice = Get-Option -Options @("Administrator", "Standard user")
         
         if (`$choice -eq 0) { `$group = 'Administrators' } else { `$group = "Users" }
@@ -44,18 +44,22 @@ function $script {
 
         Write-Text -Type "notice" -Text "You're about to create a new local user!" -LineBefore -LineAfter
 
-        `$options = @(
+        `$choice = Get-Option -Options @(
             "Submit  - Confirm and apply." 
             "Reset   - Start over at the beginning."
             "Exit    - Run a different command."
-        )
-
-        `$choice = Get-Option -Options `$options -LineAfter
+        ) -LineAfter
 
         if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "$script" }
         if (`$choice -eq 2) {  Write-Exit -Script "$script" }
 
-        New-LocalUser `$name -Password `$password -Description "Local User" -AccountNeverExpires -PasswordNeverExpires -ErrorAction Stop | Out-Null
+        New-ADUser -Name `$name 
+        -SamAccountName `$SamAccountName 
+        -GivenName `$GivenName 
+        -Surname `$Surname 
+        -UserPrincipalName `"`UserPrincipalName@`$domainName.com`" 
+        -AccountPassword `$password 
+        -Enabled `$true
 
         Add-LocalGroupMember -Group `$group -Member `$name -ErrorAction Stop
 

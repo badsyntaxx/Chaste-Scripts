@@ -43,13 +43,11 @@ function Set-ComputerName {
 
         Write-Text -Type "notice" -Text "You're about to change the computer name and description." -LineBefore -LineAfter
 
-        `$options = @(
+        `$choice = Get-Option -Options @(
             "Submit  - Confirm and apply." 
             "Reset   - Start over at the beginning."
             "Exit    - Run a different command."
         )
-
-        `$choice = Get-Option -Options `$options
 
         if (`$choice -ne 0 -and `$choice -ne 2) { Invoke-Script "Set-ComputerName" }
         if (`$choice -eq 2) { Write-Exit -Script "Set-ComputerName" }
