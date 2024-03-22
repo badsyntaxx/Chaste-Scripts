@@ -6,21 +6,18 @@ function Select-Tool {
 
     Write-Host "`n Chaste Scripts: Menu v0319241206"
     Write-Host "$scriptDescription" -ForegroundColor DarkGray
-    Write-Host
-    $options = [ordered]@{
-        "Enable administrator" = "Toggle the Windows built in administrator account."
-        "Add user"             = "Add a user to the system."
-        "Remove user"          = "Remove a user from the system."
-        "Edit user name"       = "Edit a users name."
-        "Edit user password"   = "Edit a users password."
-        "Edit user group"      = "Edit a users group membership."
-        "Edit hostname"        = "Edit this computers name and description."
-        "Edit network adapter" = "Edit a network adapter.(beta)"
-    }
 
-    Write-Text -Type "header" -Text "Selection" -LineAfter
-
-    $choice = Get-Option -Options $options
+    Write-Text -Type "header" -Text "Selection" -LineAfter -LineBefore
+    $choice = Get-Option -Options $([ordered]@{
+            "Enable administrator" = "Toggle the Windows built in administrator account."
+            "Add user"             = "Add a user to the system."
+            "Remove user"          = "Remove a user from the system."
+            "Edit user name"       = "Edit a users name."
+            "Edit user password"   = "Edit a users password."
+            "Edit user group"      = "Edit a users group membership."
+            "Edit hostname"        = "Edit this computers name and description."
+            "Edit network adapter" = "Edit a network adapter.(beta)"
+        })
 
     if ($choice -eq 0) { $script = "Enable-BuiltInAdminAccount.ps1" }
     if ($choice -eq 1) { $script = "Add-User.ps1" }
@@ -46,13 +43,19 @@ function Initialize-Action {
         $scriptPath = $env:TEMP
 
         Get-Script -Url "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-$Script" -Target "$scriptPath\$Script"
-        $script = Get-Content -Path "$scriptPath\$Script" -Raw
+        Read-Host "Wait mroe"
+        Write-Host "$scriptPath\$Script"
+        Read-Host "Wait"
+        $rawScript = Get-Content -Path "$scriptPath\$Script" -Raw
+        Write-Host $rawScript
+        Read-Host 'wait'
         # Get-Item -ErrorAction SilentlyContinue "$scriptPath\$Script" | Remove-Item -ErrorAction SilentlyContinue
         
-        Start-Process powershell.exe "-NoProfile -NoExit -ExecutionPolicy Bypass -File `"$scriptPath\$Script`"" -WorkingDirectory $pwd -Verb RunAs
+        Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$rawScript`"" -WorkingDirectory $pwd -Verb RunAs
+        Read-Host " wait"
     } catch {
-        Write-Text -Type "error" -Text "$($_.Exception.Message)"
-        Write-Exit -Script "Menu"
+        Write-Text -Type "error" -Text "Initialization error: $($_.Exception.Message)"
+        Read-Host "Press key"
     }
 }
 
@@ -150,41 +153,40 @@ function Write-Text {
         [parameter(Mandatory = $false)]
         [string]$Type = "plain",
         [parameter(Mandatory = $false)]
+        [string]$Color = "White",
+        [parameter(Mandatory = $false)]
         [switch]$LineBefore = $false,
         [parameter(Mandatory = $false)]
         [switch]$LineAfter = $false,
         [parameter(Mandatory = $false)]
-        [System.Collections.Specialized.OrderedDictionary]$Data
+        [array]$List,
+        [parameter(Mandatory = $false)]
+        [string]$OldData,
+        [parameter(Mandatory = $false)]
+        [string]$NewData
     )
 
     if ($LineBefore) { Write-Host }
-    if ($Type -eq "header") { Write-Host "   $Text" -ForegroundColor "DarkCyan" }
-    if ($Type -eq "header") { 
-        $lines = ""
-        for ($i = 0; $i -lt 50; $i++) { $lines += "$([char]0x2500)" }
-        Write-Host "   $lines" -ForegroundColor "DarkCyan"
-    }
+    if ($Type -eq "header") { Write-Host " ## $Text" -ForegroundColor "DarkCyan" }
     if ($Type -eq 'done') { 
-        Write-Host " $([char]0x2713)" -ForegroundColor "Green" -NoNewline
+        Write-Host "  $([char]0x2713)" -ForegroundColor "Green" -NoNewline
         Write-Host " $Text" 
     }
+    if ($Type -eq 'compare') { 
+        Write-Host "   $OldData" -ForegroundColor "DarkGray" -NoNewline
+        Write-Host " $([char]0x2192) " -ForegroundColor "Magenta" -NoNewline
+        Write-Host "$NewData" -ForegroundColor "White"
+    }
     if ($Type -eq 'fail') { 
-        Write-Host " X " -ForegroundColor "Red" -NoNewline
+        Write-Host "  X " -ForegroundColor "Red" -NoNewline
         Write-Host "$Text" 
     }
-    if ($Type -eq 'success') { Write-Host " $([char]0x2713) $Text" -ForegroundColor "Green" }
-    if ($Type -eq 'error') { Write-Host "   $Text" -ForegroundColor "Red" }
-    if ($Type -eq 'notice') { Write-Host "   $Text" -ForegroundColor "Yellow" }
-    if ($Type -eq 'plain') { Write-Host "   $Text" }
-    if ($Type -eq 'recap') {
-        foreach ($key in $Data.Keys) { 
-            $value = $Data[$key]
-            if ($value.Length -gt 0) {
-                Write-Host "   $key`:$value" -ForegroundColor "DarkGray" 
-            } else {
-                Write-Host "   $key`:" -ForegroundColor "Magenta" 
-            }
-        }
+    if ($Type -eq 'success') { Write-Host "  $([char]0x2713) $Text" -ForegroundColor "Green" }
+    if ($Type -eq 'error') { Write-Host "  X $Text" -ForegroundColor "Red" }
+    if ($Type -eq 'notice') { Write-Host " ## $Text" -ForegroundColor "Yellow" }
+    if ($Type -eq 'plain') { Write-Host "    $Text" -ForegroundColor $Color }
+    if ($Type -eq 'list') {
+        foreach ($item in $List) { Write-Host "    $item" -ForegroundColor "DarkGray" }
     }
     if ($LineAfter) { Write-Host }
 }
