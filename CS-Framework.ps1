@@ -129,6 +129,7 @@ function Get-Option {
     )
 
     try {
+        if ($LineBefore) { Write-Host }
         $vkeycode = 0
         $pos = $DefaultOption
         $oldPos = 0
@@ -138,11 +139,8 @@ function Get-Option {
         for ($i = 0; $i -lt $orderedKeys.Count; $i++) {
             $key = $orderedKeys[$i]
             $padding = " " * ($longestKeyLength - $key.Length)
-            if ($i -eq $pos) {
-                Write-Host "  $([char]0x203A) $key $padding - $($Options[$key])" -ForegroundColor "Cyan"
-            } else {
-                Write-Host "    $key $padding - $($Options[$key])" -ForegroundColor "White"
-            }
+            if ($i -eq $pos) { Write-Host "  $([char]0x203A) $key $padding - $($Options[$key])" -ForegroundColor "Cyan" } 
+            else { Write-Host "    $key $padding - $($Options[$key])" -ForegroundColor "White" }
         }
 
         $currPos = $host.UI.RawUI.CursorPosition
@@ -154,8 +152,6 @@ function Get-Option {
             $oldPos = $pos;
             if ($vkeycode -eq 38) { $pos-- }
             if ($vkeycode -eq 40) { $pos++ }
-            if ($pos -lt 0) { $pos = 0 }
-            if ($pos -ge $Options.length) { $pos = $Options.length - 1 }
 
             if ($pos -lt 0) { $pos = 0 }
             if ($pos -ge $orderedKeys.Count) { $pos = $orderedKeys.Count - 1 }
@@ -165,7 +161,6 @@ function Get-Option {
             $menuNewPos = New-Object System.Management.Automation.Host.Coordinates(0, ($currPos.Y - ($menuLen - $pos)))
             $oldKey = $orderedKeys[$oldPos]
             $newKey = $orderedKeys[$pos]
-            # $padding = " " * ($longestKeyLength - $oldKey.Length)
             
             $host.UI.RawUI.CursorPosition = $menuOldPos
             Write-Host "    $($orderedKeys[$oldPos]) $(" " * ($longestKeyLength - $oldKey.Length)) - $($Options[$orderedKeys[$oldPos]])" -ForegroundColor "White"
@@ -174,11 +169,8 @@ function Get-Option {
             $host.UI.RawUI.CursorPosition = $currPos
         }
 
-        if ($ReturnValue) {
-            return $Options[$orderedKeys[$pos]]
-        } else {
-            return $pos
-        }
+        if ($LineAfter) { Write-Host }
+        if ($ReturnValue) { return $orderedKeys[$pos] } else { return $pos }
     } catch {
         Write-Host "  $($_.Exception.Message)" -ForegroundColor "Red"
         Write-Exit
@@ -274,9 +266,14 @@ function Write-Exit {
 
     if ($Message -ne "") { Write-Text -Type "success" -Text $Message -LineAfter }
 
-    $paths = @("$env:TEMP\$Script.ps1", "$env:SystemRoot\Temp\$Script.ps1")
+    $choice = Get-Option -Options $([ordered]@{
+            'Again' = 'Start over and run this task again.'
+            'Exit'  = 'Exit this function but stay in Chaste Scripts'
+        })
 
-    foreach ($p in $paths) { Get-Item -ErrorAction SilentlyContinue $p | Remove-Item -ErrorAction SilentlyContinue }
+    if ($choice -eq 0) {
+        Invoke-Script $Script
+    }
 
     Get-Command
 }
@@ -423,7 +420,6 @@ function Select-User {
         Write-Text -Type "header" -Text "Select a user" -LineBefore -LineAfter
 
         $userNames = @()
-        $accounts = @()
         $localUsers = Get-LocalUser
         $excludedAccounts = @("DefaultAccount", "WDAGUtilityAccount", "Guest", "defaultuser0")
         $adminEnabled = Get-LocalUser -Name "Administrator" | Select-Object -ExpandProperty Enabled
@@ -434,26 +430,19 @@ function Select-User {
             if ($user.Name -notin $excludedAccounts) { $userNames += $user.Name }
         }
 
-        $longestName = $userNames | Sort-Object { $_.Length } | Select-Object -Last 1
-
+        $accounts = [ordered]@{}
         foreach ($name in $userNames) {
             $username = Get-LocalUser -Name $name
-            $length = $longestName.Length - $name.Length
-
-            $spaces = ""
-            for ($i = 0; $i -lt $length; $i++) { $spaces += " " }
-
             $groups = Get-LocalGroup | Where-Object { $username.SID -in ($_ | Get-LocalGroupMember | Select-Object -ExpandProperty "SID") } | Select-Object -ExpandProperty "Name"
-            $accounts += "$username $spaces - $($groups -join ';')" 
+            $groupString = $groups -join ';'
+            $accounts["$username"] = "$groupString"
         }
 
-        $choice = Get-Option -Options $accounts -LineAfter
-
-        $data = Get-AccountInfo $userNames[$choice]
-
+        $choice = Get-Option -Options $accounts -ReturnValue -LineAfter
+        $data = Get-AccountInfo $choice
         Write-Text -Type "list" -List $data
 
-        return $userNames[$choice]
+        return $choice
     } catch {
         Write-Text -Type "error" -Text "Select user error: $($_.Exception.Message)"
     }
