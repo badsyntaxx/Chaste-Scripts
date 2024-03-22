@@ -106,8 +106,8 @@ function Get-Option {
             $vkeycode = $press.virtualkeycode
             Write-host "$($press.character)" -NoNewLine
             $oldPos = $pos;
-            If ($vkeycode -eq 38) { $pos-- }
-            If ($vkeycode -eq 40) { $pos++ }
+            if ($vkeycode -eq 38) { $pos-- }
+            if ($vkeycode -eq 40) { $pos++ }
             if ($pos -lt 0) { $pos = 0 }
             if ($pos -ge $Options.length) { $pos = $Options.length - 1 }
 
