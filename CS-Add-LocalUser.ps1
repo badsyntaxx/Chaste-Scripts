@@ -28,19 +28,24 @@ function $script {
         Write-Host "$des" -ForegroundColor DarkGray
 
         Write-Text -Type "header" -Text "Enter name" -LineBefore -LineAfter
-
         `$name = Get-Input -Prompt "" -Validate "^([a-zA-Z0-9 _\-]{1,64})$"  -CheckExistingUser
 
         Write-Text -Type "header" -Text "Enter password" -LineBefore -LineAfter
-
         `$password = Get-Input -Prompt "" -IsSecure
         
         Write-Text -Type "header" -Text "Set group membership" -LineBefore -LineAfter
-        
-        `$choice = Get-Option -Options @("Administrator", "Standard user")
-        
-        if (`$choice -eq 0) { `$group = 'Administrators' } else { `$group = "Users" }
-        if (`$group -eq 'Administrators') { `$groupDisplay = 'Administrator' } else { `$groupDisplay = 'Standard user' }
+        `$options = [ordered]@{
+            'Administrators' = 'Set this users group membership to administrators.'
+            'Users'          = 'Set this users group membership to standard users.' 
+            'Show more'      = 'Show more advanced options.'
+        }
+
+        `$choice = Get-Option -Options `$options -ReturnValue -LineAfter
+
+        if (`$choice -eq 'Show more       - Show more advanced options.') {
+            `$groups = Get-LocalGroup | ForEach-Object { return [PSCustomObject]@("`$_") }
+            `$choice = Get-Option -Options `$groups -ReturnValue
+        }
 
         Write-Text -Type "notice" -Text "You're about to create a new local user!" -LineBefore -LineAfter
 
