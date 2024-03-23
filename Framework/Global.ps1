@@ -91,6 +91,22 @@ function Write-Text {
     if ($LineAfter) { Write-Host }
 }
 
+function Write-Welcome {
+    param (
+        [parameter(Mandatory = $true)]
+        [string]$File,
+        [parameter(Mandatory = $true)]
+        [string]$Title,
+        [parameter(Mandatory = $true)]
+        [string]$Description
+    )
+
+    Get-Item -ErrorAction SilentlyContinue "$env:TEMP\$File" | Remove-Item -ErrorAction SilentlyContinue
+    Write-Host
+    Write-Host " Chaste Scripts: $Title"
+    Write-Host "$Description" -ForegroundColor DarkGray
+}
+
 function Write-Exit {
     param (
         [parameter(Mandatory = $false)]
