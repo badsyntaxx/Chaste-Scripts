@@ -24,7 +24,7 @@ $core = @"
 function $script {
     try {
         Get-Item -ErrorAction SilentlyContinue "$path\$script.ps1" | Remove-Item -ErrorAction SilentlyContinue
-        Write-Host "`n Chaste Scripts: Add Domain User v0321240710"
+        Write-Host " Chaste Scripts: Add Domain User v0321240710"
         Write-Host "$des" -ForegroundColor DarkGray
 
         Write-Text -Type "header" -Text "Enter name" -LineBefore -LineAfter

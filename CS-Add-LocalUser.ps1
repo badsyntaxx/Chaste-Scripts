@@ -7,13 +7,13 @@ function Invoke-This {
     $scriptName = "Add-LocalUser"
     $scriptPath = $env:TEMP
 
-    if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyContinue) {
+    <#  if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyContinue) {
         $framework = Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -Raw
-    } else {
-        Get-Script -Url "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1" -Target "$scriptPath\CS-Framework.ps1"
-        $framework = Get-Content -Path "$scriptPath\CS-Framework.ps1" -Raw
-        Get-Item -ErrorAction SilentlyContinue "$scriptPath\CS-Framework.ps1" | Remove-Item -ErrorAction SilentlyContinue
-    }
+    } else { #>
+    Get-Script -Url "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1" -Target "$scriptPath\CS-Framework.ps1"
+    $framework = Get-Content -Path "$scriptPath\CS-Framework.ps1" -Raw
+    Get-Item -ErrorAction SilentlyContinue "$scriptPath\CS-Framework.ps1" | Remove-Item -ErrorAction SilentlyContinue
+    # }
 
     $scriptDescription = @"
  This function creates a new local user account on a Windows system with specified settings, 
@@ -24,7 +24,7 @@ function Invoke-This {
 function $scriptName {
     try {
         Get-Item -ErrorAction SilentlyContinue "$scriptPath\$scriptName.ps1" | Remove-Item -ErrorAction SilentlyContinue
-        Write-Host "`n Chaste Scripts: Add User v0315241122"
+        Write-Host " Chaste Scripts: Add User v0315241122"
         Write-Host "$scriptDescription" -ForegroundColor DarkGray
 
         Write-Text -Type "header" -Text "Enter name" -LineBefore -LineAfter
@@ -75,7 +75,6 @@ function $scriptName {
 
     Start-Process powershell.exe "-NoProfile -NoExit -ExecutionPolicy Bypass -File `"$scriptPath\$scriptName.ps1`"" -WorkingDirectory $pwd -Verb RunAs
 }
-
 function Get-Script {
     param (
         [Parameter(Mandatory)]
@@ -83,38 +82,57 @@ function Get-Script {
         [Parameter(Mandatory)]
         [string]$Target
     )
-        
-    $request = [System.Net.HttpWebRequest]::Create($Url)
-    $response = $request.GetResponse()
+    
+    try {
+        $request = [System.Net.HttpWebRequest]::Create($Url)
+        $response = $request.GetResponse()
   
-    if ($response.StatusCode -eq 401 -or $response.StatusCode -eq 403 -or $response.StatusCode -eq 404) {
-        throw "Remote file either doesn't exist, is unauthorized, or is forbidden for '$Url'."
-    }
-  
-    if ($Target -match '^\.\\') {
-        $Target = Join-Path (Get-Location -PSProvider "FileSystem") ($Target -Split '^\.')[1]
-    }
-            
-    if ($Target -and !(Split-Path $Target)) {
-        $Target = Join-Path (Get-Location -PSProvider "FileSystem") $Target
-    }
-
-    if ($Target) {
-        $fileDirectory = $([System.IO.Path]::GetDirectoryName($Target))
-        if (!(Test-Path($fileDirectory))) {
-            [System.IO.Directory]::CreateDirectory($fileDirectory) | Out-Null
+        if ($response.StatusCode -eq 401 -or $response.StatusCode -eq 403 -or $response.StatusCode -eq 404) {
+            throw "Remote file either doesn't exist, is unauthorized, or is forbidden for '$Url'."
         }
-    }
   
-    [byte[]]$buffer = new-object byte[] 1048576
+        if ($Target -match '^\.\\') {
+            $Target = Join-Path (Get-Location -PSProvider "FileSystem") ($Target -Split '^\.')[1]
+        }
+            
+        if ($Target -and !(Split-Path $Target)) {
+            $Target = Join-Path (Get-Location -PSProvider "FileSystem") $Target
+        }
 
-    $reader = $response.GetResponseStream()
-    $writer = new-object System.IO.FileStream $Target, "Create"
+        if ($Target) {
+            $fileDirectory = $([System.IO.Path]::GetDirectoryName($Target))
+            if (!(Test-Path($fileDirectory))) {
+                [System.IO.Directory]::CreateDirectory($fileDirectory) | Out-Null
+            }
+        }
 
-    do {
-        $count = $reader.Read($buffer, 0, $buffer.Length)
-        $writer.Write($buffer, 0, $count)
-    } while ($count -gt 0)                
-}  
+        [byte[]]$buffer = new-object byte[] 1048576
+        [long]$total = [long]$count = 0
+  
+        $reader = $response.GetResponseStream()
+        $writer = new-object System.IO.FileStream $Target, "Create"
+  
+        do {
+            $count = $reader.Read($buffer, 0, $buffer.Length)
+            $writer.Write($buffer, 0, $count)
+            $total += $count
+        } while ($count -gt 0)
+        if ($count -eq 0) { return $true } else { return $false }
+    } catch {
+        Write-Host "Loading failed..."
+            
+        if ($retryCount -lt $MaxRetries) {
+            Write-Host "Retrying..."
+            Start-Sleep -Seconds $Interval
+        } else {
+            Write-Host "Maximum retries reached. Loading failed." -LineBefore
+        }
+    } finally {
+        if ($reader) { $reader.Close() }
+        if ($writer) { $writer.Flush(); $writer.Close() }
+        [GC]::Collect()
+    } 
+}   
+
 
 Invoke-This

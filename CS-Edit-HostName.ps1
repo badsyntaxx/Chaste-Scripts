@@ -25,7 +25,7 @@ function Invoke-This {
 function $scriptName {
     try {
         Get-Item -ErrorAction SilentlyContinue "$scriptPath\$scriptName.ps1" | Remove-Item -ErrorAction SilentlyContinue
-        Write-Host "`n Chaste Scripts: Edit Hostname v0315240737"
+        Write-Host " Chaste Scripts: Edit Hostname v0315240737"
         Write-Host "$scriptDescription" -ForegroundColor DarkGray
 
         `$currentHostname = `$env:COMPUTERNAME

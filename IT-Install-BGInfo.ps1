@@ -23,7 +23,7 @@ function Invoke-This {
 function $scriptName {
     try {
         Get-Item -ErrorAction SilentlyContinue "$scriptPath\$scriptName.ps1" | Remove-Item -ErrorAction SilentlyContinue
-        Write-Host "`n Chaste Scripts: Install BGInfo v0317241028"
+        Write-Host " Chaste Scripts: Install BGInfo v0317241028"
         Write-Host "$scriptDescription`n" -ForegroundColor DarkGray
 
         `$text = @(

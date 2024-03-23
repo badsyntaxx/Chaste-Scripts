@@ -25,7 +25,7 @@ function Invoke-This {
 function $scriptName {
     try {
         Get-Item -ErrorAction SilentlyContinue "$scriptPath\$scriptName.ps1" | Remove-Item -ErrorAction SilentlyContinue
-        Write-Host "`n Chaste Scripts: Add InTechAdmin Account v0315241122"
+        Write-Host " Chaste Scripts: Add InTechAdmin Account v0315241122"
         Write-Host "$scriptDescription" -ForegroundColor DarkGray
 
         Write-Text -Type "header" -Text "Getting credentials" -LineBefore -LineAfter

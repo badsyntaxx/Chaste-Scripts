@@ -4,7 +4,7 @@ function Select-Tool {
  typing out commands.
 "@
 
-    Write-Host "`n Chaste Scripts: Menu v0319241206"
+    Write-Host " Chaste Scripts: Menu v0319241206"
     Write-Host "$scriptDescription" -ForegroundColor DarkGray
 
     Write-Text -Type "header" -Text "Selection" -LineAfter -LineBefore

@@ -7,13 +7,13 @@ function Invoke-This {
     $scriptName = "Invoke-ChasteScripts"
     $scriptPath = $env:TEMP
 
-    if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyContinue) {
+    <# if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyContinue) {
         $framework = Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -Raw
-    } else {
-        Get-Script -Url "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1" -Target "$scriptPath\CS-Framework.ps1"
-        $framework = Get-Content -Path "$scriptPath\CS-Framework.ps1" -Raw
-        Get-Item -ErrorAction SilentlyContinue "$scriptPath\CS-Framework.ps1" | Remove-Item -ErrorAction SilentlyContinue
-    }
+    } else { #>
+    Get-Download -Url "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1" -Target "$scriptPath\CS-Framework.ps1"
+    $framework = Get-Content -Path "$scriptPath\CS-Framework.ps1" -Raw
+    Get-Item -ErrorAction SilentlyContinue "$scriptPath\CS-Framework.ps1" | Remove-Item -ErrorAction SilentlyContinue
+    # }
 
     $scriptDescription = @"
  This is the root of Chaste Scripts. Here you can type commands to invoke Windows functions like 
@@ -23,8 +23,8 @@ function Invoke-This {
     $core = @"
 function $scriptName {
     try {
-        Get-Item -ErrorAction SilentlyContinue "$scriptPath\$scriptName.ps1" | Remove-Item -ErrorAction SilentlyContinue
-        Write-Host "`n Chaste Scripts: v0319241206"
+        # Get-Item -ErrorAction SilentlyContinue "$scriptPath\$scriptName.ps1" | Remove-Item -ErrorAction SilentlyContinue
+        Write-Host " Chaste Scripts: v0319241206"
         Write-Host "$scriptDescription" -ForegroundColor DarkGray
         Get-Command
     } catch {
@@ -37,10 +37,10 @@ function $scriptName {
 
     New-Item -Path "$scriptPath\$scriptName.ps1" -ItemType File -Force | Out-Null
 
-    Add-Content -Path "$scriptPath\$scriptName.ps1" -Value $core
-    Add-Content -Path "$scriptPath\$scriptName.ps1" -Value $framework
-    Add-Content -Path "$scriptPath\$scriptName.ps1" -Value "Invoke-Script '$scriptName'"
-
+    Add-Content -Path "$scriptPath\$scriptName.ps1" -Value $core | Out-Null
+    Add-Content -Path "$scriptPath\$scriptName.ps1" -Value $framework | Out-Null
+    Add-Content -Path "$scriptPath\$scriptName.ps1" -Value "Invoke-Script '$scriptName'" | Out-Null
+    Start-Sleep 3
     Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath\$scriptName.ps1`"" -WorkingDirectory $pwd -Verb RunAs
     
 }

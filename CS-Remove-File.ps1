@@ -23,7 +23,7 @@ $core = @"
 function Remove-File {
     try {
         Get-Item -ErrorAction SilentlyContinue "$path\$script.ps1" | Remove-Item -ErrorAction SilentlyContinue
-        Write-Host "`n Chaste Scripts: Remove File v0320241243"
+        Write-Host " Chaste Scripts: Remove File v0320241243"
         Write-Host "$des" -ForegroundColor DarkGray
 
         Write-Text -Type 'header' -Text 'Enter or paste the path and file' -LineBefore -LineAfter

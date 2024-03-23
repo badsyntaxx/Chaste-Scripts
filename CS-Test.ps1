@@ -15,7 +15,7 @@ $core = @"
 function $scriptName {
     try {
         Get-Item -ErrorAction SilentlyContinue "$scriptPath\$scriptName.ps1" | Remove-Item -ErrorAction SilentlyContinue
-        Write-Host "`n Chaste Scripts: v0319241206"
+        Write-Host " Chaste Scripts: v0319241206"
         Write-Host "$scriptDescription" -ForegroundColor DarkGray
         Get-Command
     } catch {
