@@ -67,18 +67,13 @@ function $scriptName {
     )
 
     foreach ($dependency in $dependencies) {
-        <#  if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyContinue) {
-        $framework = Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -Raw
-    } else { #>
         Get-Script -Url "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/Framework/$dependency.ps1" -Target "$env:TEMP\$dependency.ps1"
         $rawScript = Get-Content -Path "$env:TEMP\$dependency.ps1" -Raw
         Add-Content -Path "$env:TEMP\$scriptName.ps1" -Value $rawScript
         Get-Item -ErrorAction SilentlyContinue "$env:TEMP\$dependency.ps1" | Remove-Item -ErrorAction SilentlyContinue
-        # }
     }
 
     Add-Content -Path "$env:TEMP\$scriptName.ps1" -Value $core
-    # Add-Content -Path "$env:TEMP\$scriptName.ps1" -Value $framework
     Add-Content -Path "$env:TEMP\$scriptName.ps1" -Value "Invoke-Script '$scriptName'"
 
     Start-Process powershell.exe "-NoProfile -NoExit -ExecutionPolicy Bypass -File `"$env:TEMP\$scriptName.ps1`"" -WorkingDirectory $pwd -Verb RunAs
