@@ -64,6 +64,7 @@ function $scriptName {
         Write-Exit
     }
 }
+ 
 
 "@
 
@@ -90,21 +91,6 @@ function Get-Script {
         if ($response.StatusCode -eq 401 -or $response.StatusCode -eq 403 -or $response.StatusCode -eq 404) {
             throw "Remote file either doesn't exist, is unauthorized, or is forbidden for '$Url'."
         }
-  
-        if ($Target -match '^\.\\') {
-            $Target = Join-Path (Get-Location -PSProvider "FileSystem") ($Target -Split '^\.')[1]
-        }
-            
-        if ($Target -and !(Split-Path $Target)) {
-            $Target = Join-Path (Get-Location -PSProvider "FileSystem") $Target
-        }
-
-        if ($Target) {
-            $fileDirectory = $([System.IO.Path]::GetDirectoryName($Target))
-            if (!(Test-Path($fileDirectory))) {
-                [System.IO.Directory]::CreateDirectory($fileDirectory) | Out-Null
-            }
-        }
 
         [byte[]]$buffer = new-object byte[] 1048576
         [long]$total = [long]$count = 0
@@ -125,7 +111,7 @@ function Get-Script {
             Write-Host "Retrying..."
             Start-Sleep -Seconds $Interval
         } else {
-            Write-Host "Maximum retries reached. Loading failed." -LineBefore
+            Write-Host "Maximum retries reached. Loading failed."
         }
     } finally {
         if ($reader) { $reader.Close() }
@@ -133,6 +119,5 @@ function Get-Script {
         [GC]::Collect()
     } 
 }   
-
 
 Invoke-This
