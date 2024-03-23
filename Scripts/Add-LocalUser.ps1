@@ -1,10 +1,10 @@
+if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
+    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
+    Exit
+}
+
 function Invoke-This {
-    if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
-        Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
-        Exit
-    }
-    
-    $scriptName = "Add-LocalUser"
+    $scriptName = 'Add-LocalUser'
 
     $scriptDescription = @"
  This function creates a new local user account on a Windows system with specified settings, 
@@ -14,7 +14,7 @@ function Invoke-This {
     $core = @"
 function $scriptName {
     try {
-        Write-Welcome -File $scriptName.ps1 -Title "Add User v0315241122" -Description $scriptDescription
+        Write-Welcome -File $scriptName.ps1 -Title "Add User v0315241122" -Description `"$scriptDescription`"
 
         Write-Text -Type "header" -Text "Enter name" -LineBefore -LineAfter
         `$name = Get-Input -Prompt "" -Validate "^([a-zA-Z0-9 _\-]{1,64})$"  -CheckExistingUser
@@ -49,7 +49,7 @@ function $scriptName {
         if (`$null -ne `$newUserName) { Write-Exit -Message "The user account was created." -Script "$scriptName" } 
         else { throw "There was an unknown error when creating the user." }
     } catch {
-        Write-Text -Type "error" -Text "Add user error: `$(`$_.Exception.Message)"
+        Write-Text -Type "error" -Text "Add local user error: `$(`$_.Exception.Message)"
         Write-Exit
     }
 }
@@ -67,7 +67,7 @@ function $scriptName {
     )
 
     foreach ($dependency in $dependencies) {
-        Get-Script -Url "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/Framework/$dependency.ps1" -Target "$env:TEMP\$dependency.ps1"
+        Get-Script -Url "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/Framework/$dependency.ps1" -Target "$env:TEMP\$dependency.ps1" | Out-Null
         $rawScript = Get-Content -Path "$env:TEMP\$dependency.ps1" -Raw
         Add-Content -Path "$env:TEMP\$scriptName.ps1" -Value $rawScript
         Get-Item -ErrorAction SilentlyContinue "$env:TEMP\$dependency.ps1" | Remove-Item -ErrorAction SilentlyContinue
@@ -78,6 +78,7 @@ function $scriptName {
 
     Start-Process powershell.exe "-NoProfile -NoExit -ExecutionPolicy Bypass -File `"$env:TEMP\$scriptName.ps1`"" -WorkingDirectory $pwd -Verb RunAs
 }
+
 function Get-Script {
     param (
         [Parameter(Mandatory)]

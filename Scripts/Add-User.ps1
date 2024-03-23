@@ -1,26 +1,16 @@
+if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
+    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
+    Exit
+}
+
 function Invoke-This {
-    try {
-        if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
-            Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
-            Exit
-        }
-    
-        $scriptName = "Add-User"
-        $scriptPath = $env:TEMP
+    $scriptName = 'Add-User'
 
-        if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyContinue) {
-            $framework = Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -Raw
-        } else {
-            Get-Script -Url "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1" -Target "$scriptPath\CS-Framework.ps1"
-            $framework = Get-Content -Path "$scriptPath\CS-Framework.ps1" -Raw
-            Get-Item -ErrorAction SilentlyContinue "$scriptPath\CS-Framework.ps1" | Remove-Item -ErrorAction SilentlyContinue
-        }
-
-        $scriptDescription = @"
+    $scriptDescription = @"
  Create new local and / or domain users.
 "@
 
-        $core = @"
+    $core = @"
 function $scriptName {
     try {
         Get-Item -ErrorAction SilentlyContinue "$scriptPath\$scriptName.ps1" | Remove-Item -ErrorAction SilentlyContinue
@@ -46,18 +36,29 @@ function $scriptName {
     }
 }
 
+
 "@
 
-        New-Item -Path "$scriptPath\$scriptName.ps1" -ItemType File -Force | Out-Null
+    New-Item -Path "$env:TEMP\$scriptName.ps1" -ItemType File -Force | Out-Null
 
-        Add-Content -Path "$scriptPath\$scriptName.ps1" -Value $core
-        Add-Content -Path "$scriptPath\$scriptName.ps1" -Value $framework
-        Add-Content -Path "$scriptPath\$scriptName.ps1" -Value "Invoke-Script '$scriptName'"
+    $dependencies = @(
+        'Global'
+        'Get-Input'
+        'Get-Option'
+        'Get-UserData'
+    )
 
-        Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath\$scriptName.ps1`"" -WorkingDirectory $pwd -Verb RunAs
-    } catch {
-        Write-Host "$($_.Exception.Message)"
+    foreach ($dependency in $dependencies) {
+        Get-Script -Url "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/Framework/$dependency.ps1" -Target "$env:TEMP\$dependency.ps1" | Out-Null
+        $rawScript = Get-Content -Path "$env:TEMP\$dependency.ps1" -Raw
+        Add-Content -Path "$env:TEMP\$scriptName.ps1" -Value $rawScript
+        Get-Item -ErrorAction SilentlyContinue "$env:TEMP\$dependency.ps1" | Remove-Item -ErrorAction SilentlyContinue
     }
+
+    Add-Content -Path "$env:TEMP\$scriptName.ps1" -Value $core
+    Add-Content -Path "$env:TEMP\$scriptName.ps1" -Value "Invoke-Script '$scriptName'"
+
+    Start-Process powershell.exe "-NoProfile -NoExit -ExecutionPolicy Bypass -File `"$env:TEMP\$scriptName.ps1`"" -WorkingDirectory $pwd -Verb RunAs
 }
 
 function Get-Script {
@@ -74,21 +75,6 @@ function Get-Script {
   
         if ($response.StatusCode -eq 401 -or $response.StatusCode -eq 403 -or $response.StatusCode -eq 404) {
             throw "Remote file either doesn't exist, is unauthorized, or is forbidden for '$Url'."
-        }
-  
-        if ($Target -match '^\.\\') {
-            $Target = Join-Path (Get-Location -PSProvider "FileSystem") ($Target -Split '^\.')[1]
-        }
-            
-        if ($Target -and !(Split-Path $Target)) {
-            $Target = Join-Path (Get-Location -PSProvider "FileSystem") $Target
-        }
-
-        if ($Target) {
-            $fileDirectory = $([System.IO.Path]::GetDirectoryName($Target))
-            if (!(Test-Path($fileDirectory))) {
-                [System.IO.Directory]::CreateDirectory($fileDirectory) | Out-Null
-            }
         }
 
         [byte[]]$buffer = new-object byte[] 1048576
