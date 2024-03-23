@@ -47,7 +47,7 @@ function $scriptName {
         
         `$group = Get-Option -Options `$moreGroups -ReturnValue
         
-        `$data = Get-AccountInfo -Username `$username
+        `$data = Get-UserData -Username `$username
 
         Write-Text -Type "notice" -Text "You're about to change this users group membership." -LineBefore -LineAfter
         `$choice = Get-Option -Options `$([ordered]@{
@@ -64,7 +64,7 @@ function $scriptName {
 
         Add-LocalGroupMember -Group `$group -Member `$username -ErrorAction SilentlyContinue | Out-Null
 
-        `$data = Get-AccountInfo `$username
+        `$data = Get-UserData `$username
 
         Write-Text -Type "list" -List `$data -LineAfter
 

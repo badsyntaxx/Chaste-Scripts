@@ -63,7 +63,7 @@ function $script {
 
         Add-LocalGroupMember -Group `$group -Member `$name -ErrorAction Stop
 
-        `$data = Get-AccountInfo `$name
+        `$data = Get-UserData `$name
 
         Write-Text -Type "list" -List `$data -LineAfter
 

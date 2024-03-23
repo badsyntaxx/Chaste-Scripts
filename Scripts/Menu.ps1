@@ -19,44 +19,20 @@ function Select-Tool {
             "Edit network adapter" = "Edit a network adapter.(beta)"
         })
 
-    if ($choice -eq 0) { $script = "Enable-Admin.ps1" }
-    if ($choice -eq 1) { $script = "Add-User.ps1" }
-    if ($choice -eq 2) { $script = "Remove-User.ps1" }
-    if ($choice -eq 3) { $script = "Edit-UserName.ps1" }
-    if ($choice -eq 4) { $script = "Edit-UserPassword.ps1" }
-    if ($choice -eq 5) { $script = "Edit-UserGroup.ps1" }
-    if ($choice -eq 6) { $script = "Edit-Hostname.ps1" }
-    if ($choice -eq 7) { $script = "Edit-NetworkAdapter.ps1" }
+    if ($choice -eq 0) { $script = "Enable-Admin" }
+    if ($choice -eq 1) { $script = "Add-User" }
+    if ($choice -eq 2) { $script = "Remove-User" }
+    if ($choice -eq 3) { $script = "Edit-UserName" }
+    if ($choice -eq 4) { $script = "Edit-UserPassword" }
+    if ($choice -eq 5) { $script = "Edit-UserGroup" }
+    if ($choice -eq 6) { $script = "Edit-Hostname" }
+    if ($choice -eq 7) { $script = "Edit-NetworkAdapter" }
 
     Write-Text -Text "Initializing script..." -LineBefore
     
-    Initialize-Action -Script $script
-}
+    Get-Script -Url "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-$script.ps1" -Target "$env:TEMP\CS-Menu.ps1"
 
-function Initialize-Action {
-    param (
-        [parameter(Mandatory = $true)]
-        [string]$Script
-    )
-
-    try {
-        $scriptPath = $env:TEMP
-
-        $dl = Get-Script -Url "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-$Script" -Target "$scriptPath\Temp.ps1"
-
-        if (!$dl) {
-            throw "There was an unknown error getting the script."
-        }
-
-        Write-Host "$scriptPath\Temp.ps1"
-
-        $rawScript = Get-Content -Path "$scriptPath\Temp.ps1" -Raw
-        
-        Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$rawScript`"" -WorkingDirectory $pwd -Verb RunAs
-    } catch {
-        Write-Text -Type "error" -Text "Initialization error: $($_.Exception.Message)"
-        Read-Host "Press key"
-    }
+    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$env:TEMP\CS-Menu.ps1`"" -WorkingDirectory $pwd -Verb RunAs
 }
 
 function Invoke-Script {

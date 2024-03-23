@@ -1,49 +1,4 @@
-function Invoke-This {
-    if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
-        Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
-        Exit
-    }
-    
-    $scriptName = "Invoke-ChasteScripts"
-    $scriptPath = $env:TEMP
 
-    <# if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyContinue) {
-        $framework = Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -Raw
-    } else { #>
-    Get-Download -Url "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1" -Target "$scriptPath\CS-Framework.ps1"
-    $framework = Get-Content -Path "$scriptPath\CS-Framework.ps1" -Raw
-    Get-Item -ErrorAction SilentlyContinue "$scriptPath\CS-Framework.ps1" | Remove-Item -ErrorAction SilentlyContinue
-    # }
-
-    $scriptDescription = @"
- This is the root of Chaste Scripts. Here you can type commands to invoke Windows functions like 
- ``"add user``" or ``"edit hostname``". Or, type ``"menu``" to get a list of actions you can take.
-"@
-
-    $core = @"
-function $scriptName {
-    try {
-        # Get-Item -ErrorAction SilentlyContinue "$scriptPath\$scriptName.ps1" | Remove-Item -ErrorAction SilentlyContinue
-        Write-Host " Chaste Scripts: v0319241206"
-        Write-Host "$scriptDescription" -ForegroundColor DarkGray
-        Get-Command
-    } catch {
-        Write-Text -Type "error" -Text "`$(`$_.Exception.Message)" -LineBefore -LineAfter
-        Write-Exit -Script "$scriptName"
-    }
-}
-
-"@
-
-    New-Item -Path "$scriptPath\$scriptName.ps1" -ItemType File -Force | Out-Null
-
-    Add-Content -Path "$scriptPath\$scriptName.ps1" -Value $core | Out-Null
-    Add-Content -Path "$scriptPath\$scriptName.ps1" -Value $framework | Out-Null
-    Add-Content -Path "$scriptPath\$scriptName.ps1" -Value "Invoke-Script '$scriptName'" | Out-Null
-    Start-Sleep 3
-    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath\$scriptName.ps1`"" -WorkingDirectory $pwd -Verb RunAs
-    
-}
 
 function Get-Download {
     param (
@@ -85,8 +40,6 @@ function Get-Download {
             $progbar = ""
             $progbar = $progbar.PadRight($curBarSize, [char]9608)
             $progbar = $progbar.PadRight($BarSize, [char]9617)
-
-
 
             if (!$Complete.IsPresent) {
                 Write-Host -NoNewLine "`r    $ProgressText $progbar $($percentComplete.ToString("##0.00").PadLeft(6))%"
@@ -148,11 +101,11 @@ function Get-Download {
                     $totalMB = $total / 1024 / 1024
           
                     if ($fullSize -gt 0) {
-                        Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText "Loading" -ValueSuffix "MB"
+                        Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText "Downloading" -ValueSuffix "MB"
                     }
 
                     if ($total -eq $fullSize -and $count -eq 0 -and $finalBarCount -eq 0) {
-                        Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText "Loading" -ValueSuffix "MB" -Complete
+                        Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText "Downloading" -ValueSuffix "MB" -Complete
                         $finalBarCount++
                     }
                 } while ($count -gt 0)
@@ -160,15 +113,15 @@ function Get-Download {
                 if ($downloadComplete) { return $true } else { return $false }
             } catch {
                 # Write-Text -Type "fail" -Text "$($_.Exception.Message)"
-                Write-Host "    Loading script failed..." -ForegroundColor Red
+                Write-Text -Type "fail" -Text "Download failed..."
                 
                 $downloadComplete = $false
             
                 if ($retryCount -lt $MaxRetries) {
-                    Write-Host "    Retrying..."
+                    Write-Text "Retrying..."
                     Start-Sleep -Seconds $Interval
                 } else {
-                    Write-Host "Maximum retries reached. Contact Chase." -LineBefore
+                    Write-Text -Type "error" -Text "Maximum retries reached. Download failed." -LineBefore
                 }
             } finally {
                 # cleanup
@@ -181,5 +134,3 @@ function Get-Download {
         }   
     }
 }
-
-Invoke-This
