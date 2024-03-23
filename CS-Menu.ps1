@@ -19,9 +19,9 @@ function Select-Tool {
             "Edit network adapter" = "Edit a network adapter.(beta)"
         })
 
-    if ($choice -eq 0) { $script = "Enable-BuiltInAdminAccount.ps1" }
-    if ($choice -eq 1) { $script = "Add-User.ps1" }
-    if ($choice -eq 2) { $script = "Remove-User.ps1" }
+    if ($choice -eq 0) { $script = "irm chaste.dev/enable/admin | iex" }
+    if ($choice -eq 1) { $script = "irm chaste.dev/add/user | iex" }
+    if ($choice -eq 2) { $script = "irm chaste.dev/remove/user | iex" }
     if ($choice -eq 3) { $script = "Edit-UserName.ps1" }
     if ($choice -eq 4) { $script = "Edit-UserPassword.ps1" }
     if ($choice -eq 5) { $script = "Edit-UserGroup.ps1" }
@@ -42,17 +42,18 @@ function Initialize-Action {
     try {
         $scriptPath = $env:TEMP
 
-        Get-Script -Url "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-$Script" -Target "$scriptPath\$Script"
-        Read-Host "Wait mroe"
-        Write-Host "$scriptPath\$Script"
-        Read-Host "Wait"
-        $rawScript = Get-Content -Path "$scriptPath\$Script" -Raw
-        Write-Host $rawScript
-        Read-Host 'wait'
-        # Get-Item -ErrorAction SilentlyContinue "$scriptPath\$Script" | Remove-Item -ErrorAction SilentlyContinue
+        $dl = Get-Script -Url "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-$Script" -Target "$scriptPath\Temp.ps1"
+
+        if (!$dl) {
+            throw "There was an unknown error getting the script."
+        }
+
+        Write-Host "$scriptPath\Temp.ps1"
+
+        $rawScript = Get-Content -Path "$scriptPath\Temp.ps1" -Raw
         
         Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$rawScript`"" -WorkingDirectory $pwd -Verb RunAs
-        Read-Host " wait"
+        <# Read-Host " wait" #>
     } catch {
         Write-Text -Type "error" -Text "Initialization error: $($_.Exception.Message)"
         Read-Host "Press key"
@@ -229,7 +230,13 @@ function Get-Script {
     do {
         $count = $reader.Read($buffer, 0, $buffer.Length)
         $writer.Write($buffer, 0, $count)
-    } while ($count -gt 0)                
+    } while ($count -gt 0)          
+    
+    if ($count -eq 0) {
+        return $true
+    } else {
+        return $false
+    }
 }  
 
 Invoke-Script "Select-Tool"

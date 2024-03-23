@@ -7,8 +7,13 @@ function Invoke-This {
     $scriptName = "Invoke-ChasteScripts"
     $scriptPath = $env:TEMP
 
-    Get-Download -Url "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1" -Target "$scriptPath\CS-Framework.ps1"
-    $framework = Get-Content -Path "$scriptPath\CS-Framework.ps1" -Raw
+    if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyContinue) {
+        $framework = Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -Raw
+    } else {
+        Get-Script -Url "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1" -Target "$scriptPath\CS-Framework.ps1"
+        $framework = Get-Content -Path "$scriptPath\CS-Framework.ps1" -Raw
+        Get-Item -ErrorAction SilentlyContinue "$scriptPath\CS-Framework.ps1" | Remove-Item -ErrorAction SilentlyContinue
+    }
 
     $scriptDescription = @"
  This is the root of Chaste Scripts. Here you can type commands to invoke Windows functions like 
@@ -36,7 +41,7 @@ function $scriptName {
     Add-Content -Path "$scriptPath\$scriptName.ps1" -Value $framework
     Add-Content -Path "$scriptPath\$scriptName.ps1" -Value "Invoke-Script '$scriptName'"
 
-    Start-Process powershell.exe "-NoProfile -NoExit -ExecutionPolicy Bypass -File `"$scriptPath\$scriptName.ps1`"" -WorkingDirectory $pwd -Verb RunAs
+    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath\$scriptName.ps1`"" -WorkingDirectory $pwd -Verb RunAs
     
 }
 

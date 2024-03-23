@@ -35,10 +35,10 @@ function $scriptName {
         })
 
         if (`$choice -eq 0) { 
-            irm chaste.dev/add/user/local | iex
+            irm chaste.dev/add/local/user | iex
         }
         if (`$choice -eq 1) { 
-            irm chaste.dev/add/user/domain | iex
+            irm chaste.dev/add/ad/user | iex
         }
     } catch {
         Write-Text -Type "error" -Text "Add user error: `$(`$_.Exception.Message)"
