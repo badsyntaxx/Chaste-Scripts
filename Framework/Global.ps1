@@ -110,6 +110,8 @@ function Write-Exit {
         [parameter(Mandatory = $false)]
         [string]$Message = "",
         [parameter(Mandatory = $false)]
+        [string]$Script = "",
+        [parameter(Mandatory = $false)]
         [switch]$LineBefore = $false,
         [parameter(Mandatory = $false)]
         [switch]$LineAfter = $false
