@@ -10,7 +10,7 @@ function Edit-Hostname {
  of a Windows computer without requiring a system reboot.
 "@
 
-        Write-Welcome -File Edit-Hostname.ps1 -Title "Edit Hostname v0315241122" -Description `"$scriptDescription`"
+        Write-Welcome -File Edit-Hostname.ps1 -Title "Edit Hostname v0315241122" -Description $scriptDescription
 
         $currentHostname = $env:COMPUTERNAME
         $currentDescription = (Get-WmiObject -Class Win32_OperatingSystem).Description

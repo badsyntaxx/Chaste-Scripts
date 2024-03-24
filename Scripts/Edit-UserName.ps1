@@ -2,7 +2,6 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
     Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
     Exit
 }
-    
 
 function Edit-UserName {
     try {
@@ -10,9 +9,7 @@ function Edit-UserName {
  This script allows you to modify the username of a user on a Windows system. 
 "@
 
-        Get-Item -ErrorAction SilentlyContinue "$scriptPath\Edit-UserName.ps1" | Remove-Item -ErrorAction SilentlyContinue
-        Write-Host " Chaste Scripts: Edit User Name v0315242300"
-        Write-Host "$scriptDescription" -ForegroundColor DarkGray
+        Write-Welcome -Title "Edit User Name v0315241122" -Description $scriptDescription
 
         $username = Select-User
 

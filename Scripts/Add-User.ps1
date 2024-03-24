@@ -8,10 +8,7 @@ function Add-User {
         $scriptDescription = @"
  Create new local and / or domain users.
 "@
-
-        Get-Item -ErrorAction SilentlyContinue "$scriptPath\Add-User.ps1" | Remove-Item -ErrorAction SilentlyContinue
-        Write-Host " Chaste Scripts: Add User v0315241122"
-        Write-Host "$scriptDescription" -ForegroundColor DarkGray
+        Write-Welcome -Title "Add User v0315241122" -Description $scriptDescription
 
         Write-Text -Type "header" -Text "What type of user do you want to add?" -LineBefore -LineAfter
 

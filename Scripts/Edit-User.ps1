@@ -3,7 +3,6 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
     Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
     Exit
 }
-    
 
 function Edit-User {
     try {
@@ -12,12 +11,9 @@ function Edit-User {
  including the username, optional password, and group. The account and password never expire.
 "@
 
-        Get-Item -ErrorAction SilentlyContinue "$scriptPath\Edit-User.ps1" | Remove-Item -ErrorAction SilentlyContinue
-        Write-Host " Chaste Scripts: Edit User v0315241122"
-        Write-Host "$scriptDescription" -ForegroundColor DarkGray
+        Write-Welcome -Title "Edit User v0315241122" -Description $scriptDescription
 
         Write-Text -Type "header" -Text "What type of edit would you like to make?" -LineBefore -LineAfter
-
         $choice = Get-Option -Options $([ordered]@{
                 'Edit user name'     = 'Edit a local users name.'
                 'Edit user password' = 'Edit a local users password.'

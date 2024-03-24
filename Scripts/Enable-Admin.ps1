@@ -3,7 +3,6 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
     Exit
 }
 
-
 function Enable-Admin {
     try { 
         $scriptDescription = @"
