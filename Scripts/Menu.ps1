@@ -1,12 +1,10 @@
-function Select-Tool {
-    Read-Host "penis"
+function Menu {
     $scriptDescription = @"
  This is the Chaste Scripts menu. Here you can select the various functions without
  typing out commands.
 "@
 
-    Write-Host " Chaste Scripts: Menu v0319241206"
-    Write-Host "$scriptDescription" -ForegroundColor DarkGray
+    Write-Welcome -Title "Menu v0323241029" -Description "$scriptDescription"
 
     Write-Text -Type "header" -Text "Selection" -LineAfter -LineBefore
     $choice = Get-Option -Options $([ordered]@{
