@@ -5,11 +5,7 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 
 function Add-LocalUser {
     try {
-        $scriptDescription = @"
- This function creates a new local user account on a Windows system with specified settings, 
- including the username, optional password, and group. The account and password never expire.
-"@
-        Write-Welcome -Title "Add Local User v0315241122" -Description $scriptDescription
+        Write-Welcome -Title "Add Local User" -Description "Add local users to the system." -Command "add local user"
 
         Write-Text -Type "header" -Text "Enter name" -LineBefore -LineAfter
         $name = Get-Input -Validate "^([a-zA-Z0-9 _\-]{1,64})$"  -CheckExistingUser
@@ -45,6 +41,6 @@ function Add-LocalUser {
         else { throw "There was an unknown error when creating the user." }
     } catch {
         Write-Text -Type "error" -Text "Add local user error: $($_.Exception.Message)"
-        Write-Exit
+        Write-Exit -Script "Add-LocalUser"
     }
 }

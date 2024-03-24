@@ -5,12 +5,7 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 
 function Enable-Admin {
     try { 
-        $scriptDescription = @"
- This script allows you to toggle the built in admin account on a Windows system. 
- It provides an interactive menu for you to enable or disable the account.
-"@
-
-        Write-Welcome -Title "Enable Administrator v0315241122" -Description `"$scriptDescription`"
+        Write-Welcome -Title "Toggle Administrator" -Description "Toggle the built-in administrator account." -Command "enable admin"
 
         Write-Text -Type "header" -Text "Toggle admin account" -LineBefore -LineAfter
         $admin = Get-LocalUser -Name "Administrator"

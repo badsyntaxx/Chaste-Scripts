@@ -5,10 +5,7 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 
 function Remove-File {
     try {
-        $scriptDescription = @"
- This function forcefully deletes a file.
-"@
-        Write-Welcome  -Title "Remove File v0315241122" -Description $scriptDescription
+        Write-Welcome  -Title "Force Delete File" -Description "Forcefully delete a file." -Command "remove file"
 
         Write-Text -Type 'header' -Text 'Enter or paste the path and file' -LineBefore -LineAfter
         $filepath = Get-Input -Prompt "" -LineAfter
@@ -19,6 +16,6 @@ function Remove-File {
         if (!$file) { Write-Exit -Message "File successfully deleted." }
     } catch {
         Write-Text -Type "error" -Text "Remove file error: $($_.Exception.Message)"
-        Write-Exit
+        Write-Exit -Script "Remove-File"
     }
 }

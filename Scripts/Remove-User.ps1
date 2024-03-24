@@ -5,11 +5,7 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 
 function Remove-User {
     try {
-        $scriptDescription = @"
- This function allows you to remove a user from a Windows system, with options 
- to delete or keep their user profile / data.
-"@
-        Write-Welcome  -Title "Remove User v0315241122" -Description $scriptDescription
+        Write-Welcome  -Title "Remove User" -Description "Remove an existing user account from the system." -Command "remove user"
 
         $username = Select-User
 

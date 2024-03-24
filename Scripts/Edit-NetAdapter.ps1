@@ -4,7 +4,7 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 } 
 
 function Edit-NetworkAdapter {
-    Write-Text -Type "header" -Text "Get started"
+    Write-Welcome -Title "Edit Network Adapter" -Description "Edit the network adapters on this PC." -Command "edit net adapter"
 
     $options = @(
         "Display adapters        - Display all non hidden network adapters."

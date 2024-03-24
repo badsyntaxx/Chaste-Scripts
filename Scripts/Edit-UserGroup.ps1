@@ -6,12 +6,7 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 
 function Edit-UserGroup {
     try {
-        $scriptDescription = @"
- This script allows you to modify the group membership of a user on a Windows system. 
- It provides menus for selecting the user and the desired group (Administrators or Users).
-"@
-
-        Write-Welcome -Title "Edit User Group v0315241122" -Description $scriptDescription
+        Write-Welcome -Title "Edit User Group" -Description "Edit an existing users group membership." -Command "edit user group"
 
         $username = Select-User
 
@@ -57,6 +52,6 @@ function Edit-UserGroup {
         Write-Exit "The group membership for $username has been changed to $group." -Script "Edit-UserGroup"
     } catch {
         Write-Text -Type "error" -Text "Edit group error: $($_.Exception.Message)"
-        Write-Exit
+        Write-Exit -Script "Edit-UserGroup"
     }
 } 

@@ -5,11 +5,7 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 
 function Edit-UserName {
     try {
-        $scriptDescription = @"
- This script allows you to modify the username of a user on a Windows system. 
-"@
-
-        Write-Welcome -Title "Edit User Name v0315241122" -Description $scriptDescription
+        Write-Welcome -Title "Edit User Name" -Description "Edit an existing users name." -Command "edit user name"
 
         $username = Select-User
 

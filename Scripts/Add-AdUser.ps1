@@ -5,12 +5,7 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 
 function Add-AdUser {
     try {
-        $scriptDescription = @"
- This function creates aAd user account on a Windows system with specified settings, 
- including the username, optional password, and group. The account and password never expire.
-"@
-
-        Write-Welcome -Title "Add AD User v0315241122" -Description $scriptDescription
+        Write-Welcome -Title "Add AD User v0315241122" -Description "Add domain users to the system." -Command "add ad user"
         Get-Item -ErrorAction SilentlyContinue "$path\Add-AdUser.ps1" | Remove-Item -ErrorAction SilentlyContinue
         Write-Host " Chaste Scripts: Add Domain User v0321240710"
         Write-Host "$des" -ForegroundColor DarkGray

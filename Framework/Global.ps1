@@ -96,13 +96,17 @@ function Write-Welcome {
         [parameter(Mandatory = $true)]
         [string]$Title,
         [parameter(Mandatory = $true)]
-        [string]$Description
+        [string]$Description,
+        [parameter(Mandatory = $false)]
+        [string]$Command
     )
 
     # Get-Item -ErrorAction SilentlyContinue "$env:TEMP\Chaste-Script.ps1" | Remove-Item -ErrorAction SilentlyContinue
     Write-Host
     Write-Host " Chaste Scripts: $Title"
-    Write-Host "$Description" -ForegroundColor DarkGray
+    Write-Host " Command:"  -ForegroundColor DarkGray -NoNewline
+    Write-Host " $Command" -ForegroundColor DarkGreen -NoNewline
+    Write-Host " | $Description" -ForegroundColor DarkGray
 }
 
 function Write-Exit {

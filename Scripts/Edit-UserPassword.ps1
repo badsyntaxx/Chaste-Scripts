@@ -5,12 +5,7 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 
 function Edit-UserPassword {
     try {
-        $scriptDescription = @"
-   This script allows you to modify the password of a user on a Windows system. 
-   You can leave the password blank to remove an existing password.
-"@
-
-        Write-Welcome -Title "Edit User Password v0315241122" -Description $scriptDescription
+        Write-Welcome -Title "Edit User Password" -Description "Edit an existing users Password." -Command "edit user password"
 
         $username = Select-User
 
