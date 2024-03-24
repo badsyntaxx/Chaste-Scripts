@@ -4,6 +4,8 @@ function Get-Download {
         [string]$Url,
         [Parameter(Mandatory)]
         [string]$Target,
+        [Parameter(Mandatory = $false)]
+        [string]$ProgressText = 'Downloading',
         [parameter(Mandatory = $false)]
         [int]$MaxRetries = 3,
         [parameter(Mandatory = $false)]
@@ -99,11 +101,11 @@ function Get-Download {
                     $totalMB = $total / 1024 / 1024
           
                     if ($fullSize -gt 0) {
-                        Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText "Downloading" -ValueSuffix "MB"
+                        Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText $ProgressText -ValueSuffix "MB"
                     }
 
                     if ($total -eq $fullSize -and $count -eq 0 -and $finalBarCount -eq 0) {
-                        Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText "Downloading" -ValueSuffix "MB" -Complete
+                        Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText $ProgressText -ValueSuffix "MB" -Complete
                         $finalBarCount++
                     }
                 } while ($count -gt 0)
