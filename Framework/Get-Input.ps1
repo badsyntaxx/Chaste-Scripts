@@ -21,7 +21,7 @@ function Get-Input {
 
         $currPos = $host.UI.RawUI.CursorPosition
 
-        Write-Host "  > $Prompt" -NoNewline 
+        Write-Host "  $([char]0x203A) $Prompt" -NoNewline 
         if ($IsSecure) { $userInput = Read-Host -AsSecureString } 
         else { $userInput = Read-Host }
 
