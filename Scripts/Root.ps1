@@ -1,51 +1,213 @@
-function Invoke-This {
-    if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
-        Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
-        Exit
-    }
-    
-    $scriptName = "Invoke-ChasteScripts"
-    $scriptPath = $env:TEMP
+function Invoke-Script {
+    param (
+        [parameter(Mandatory = $false)]
+        [string]$ScriptName
+    ) 
 
-    <# if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyContinue) {
-        $framework = Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -Raw
-    } else { #>
-    Get-Download -Url "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1" -Target "$scriptPath\CS-Framework.ps1"
-    $framework = Get-Content -Path "$scriptPath\CS-Framework.ps1" -Raw
-    Get-Item -ErrorAction SilentlyContinue "$scriptPath\CS-Framework.ps1" | Remove-Item -ErrorAction SilentlyContinue
-    # }
-
-    $scriptDescription = @"
- This is the root of Chaste Scripts. Here you can type commands to invoke Windows functions like 
- ``"add user``" or ``"edit hostname``". Or, type ``"menu``" to get a list of actions you can take.
-"@
-
-    $core = @"
-function $scriptName {
     try {
-        Get-Item -ErrorAction SilentlyContinue "$scriptPath\$scriptName.ps1" | Remove-Item -ErrorAction SilentlyContinue
-        Write-Host " Chaste Scripts: v0319241206"
-        Write-Host "$scriptDescription" -ForegroundColor DarkGray
-        Get-Command
+        if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
+            Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
+            Exit
+        } 
+
+        $console = $host.UI.RawUI
+        $console.BackgroundColor = "Black"
+        $console.ForegroundColor = "Gray"
+        $console.WindowTitle = "Chaste Scripts"
+        Clear-Host
+        Write-Welcome -File "Root.ps1" -Title "Chaste Scripts" -Description " Enter commands."
+        Invoke-Expression $ScriptName
     } catch {
-        Write-Text -Type "error" -Text "`$(`$_.Exception.Message)" -LineBefore -LineAfter
-        Write-Exit -Script "$scriptName"
+        Write-Text -Type "error" -Text "Initialization Error: $($_.Exception.Message)"
+        Write-Exit
     }
 }
 
-"@
+function Get-Command {
+    try {
+        $command = Get-Input -LineBefore
+        $makeTitleCase = (Get-Culture).TextInfo.ToTitleCase($command)
+        $addDash = $makeTitleCase -split '\s+', 2, "RegexMatch" -join '-'
+        $fileFunc = $addDash -replace ' ', ''
 
-    New-Item -Path "$scriptPath\$scriptName.ps1" -ItemType File -Force | Out-Null
+        New-Item -Path "$env:TEMP\$fileFunc.ps1" -ItemType File -Force | Out-Null
 
-    Add-Content -Path "$scriptPath\$scriptName.ps1" -Value $core | Out-Null
-    Add-Content -Path "$scriptPath\$scriptName.ps1" -Value $framework | Out-Null
-    Add-Content -Path "$scriptPath\$scriptName.ps1" -Value "Invoke-Script '$scriptName'" | Out-Null
+        $scriptPath = "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/"
 
-    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath\$scriptName.ps1`"" -WorkingDirectory $pwd -Verb RunAs
-    
+        $dependencies = @( "Scripts/$fileFunc", "Framework/Global", "Framework/Get-Input", "Framework/Get-Option", "Framework/Get-UserData", "Framework/Get-Download", "Framework/Select-User")
+
+        foreach ($dependency in $dependencies) {
+            Get-Script -Url "$scriptPath/$dependency.ps1" -Target "$env:TEMP\$dependency.ps1" | Out-Null
+            $rawScript = Get-Content -Path "$env:TEMP\$dependency.ps1" -Raw
+            Add-Content -Path "$env:TEMP\$fileFunc.ps1" -Value $rawScript
+            Get-Item -ErrorAction SilentlyContinue "$env:TEMP\$dependency.ps1" | Remove-Item -ErrorAction SilentlyContinue
+        }
+
+        Add-Content -Path "$env:TEMP\$fileFunc.ps1" -Value "Invoke-Script '$fileFunc'"
+
+        Start-Process powershell.exe "-NoProfile -NoExit -ExecutionPolicy Bypass -File `"$env:TEMP\$fileFunc.ps1`"" -WorkingDirectory $pwd -Verb RunAs
+    } catch {
+        Write-Text -Type "error" -Text "$($_.Exception.Message)" -LineBefore -LineAfter
+        Get-Command
+    }
 }
 
-function Get-Download {
+function Write-Text {
+    param (
+        [parameter(Mandatory = $false)]
+        [string]$Text,
+        [parameter(Mandatory = $false)]
+        [string]$Type = "plain",
+        [parameter(Mandatory = $false)]
+        [string]$Color = "White",
+        [parameter(Mandatory = $false)]
+        [switch]$LineBefore = $false,
+        [parameter(Mandatory = $false)]
+        [switch]$LineAfter = $false,
+        [parameter(Mandatory = $false)]
+        [array]$List,
+        [parameter(Mandatory = $false)]
+        [string]$OldData,
+        [parameter(Mandatory = $false)]
+        [string]$NewData
+    )
+
+    if ($LineBefore) { Write-Host }
+    if ($Type -eq "header") { Write-Host " ## $Text" -ForegroundColor "DarkCyan" }
+    if ($Type -eq 'done') { 
+        Write-Host "  $([char]0x2713)" -ForegroundColor "Green" -NoNewline
+        Write-Host " $Text" 
+    }
+    if ($Type -eq 'compare') { 
+        Write-Host "   $OldData" -ForegroundColor "DarkGray" -NoNewline
+        Write-Host " $([char]0x2192) " -ForegroundColor "Magenta" -NoNewline
+        Write-Host "$NewData" -ForegroundColor "White"
+    }
+    if ($Type -eq 'fail') { 
+        Write-Host "  X " -ForegroundColor "Red" -NoNewline
+        Write-Host "$Text" 
+    }
+    if ($Type -eq 'success') { Write-Host "  $([char]0x2713) $Text" -ForegroundColor "Green" }
+    if ($Type -eq 'error') { Write-Host "  X $Text" -ForegroundColor "Red" }
+    if ($Type -eq 'notice') { Write-Host " ## $Text" -ForegroundColor "Yellow" }
+    if ($Type -eq 'plain') { Write-Host "    $Text" -ForegroundColor $Color }
+    if ($Type -eq 'list') {
+        foreach ($item in $List) { Write-Host "    $item" -ForegroundColor "DarkGray" }
+    }
+    if ($LineAfter) { Write-Host }
+}
+
+function Write-Welcome {
+    param (
+        [parameter(Mandatory = $true)]
+        [string]$File,
+        [parameter(Mandatory = $true)]
+        [string]$Title,
+        [parameter(Mandatory = $true)]
+        [string]$Description
+    )
+
+    Get-Item -ErrorAction SilentlyContinue "$env:TEMP\$File" | Remove-Item -ErrorAction SilentlyContinue
+    Write-Host
+    Write-Host " Chaste Scripts: $Title"
+    Write-Host "$Description" -ForegroundColor DarkGray
+}
+
+function Write-Exit {
+    param (
+        [parameter(Mandatory = $false)]
+        [string]$Message = "",
+        [parameter(Mandatory = $false)]
+        [string]$Script = "",
+        [parameter(Mandatory = $false)]
+        [switch]$LineBefore = $false,
+        [parameter(Mandatory = $false)]
+        [switch]$LineAfter = $false
+    )
+
+    if ($Message -ne "") { Write-Text -Type "success" -Text $Message -LineAfter }
+
+    $choice = Get-Option -Options $([ordered]@{
+            'Again' = 'Start over and run this task again.'
+            'Exit'  = 'Exit this function but stay in Chaste Scripts'
+        })
+
+    if ($choice -eq 0) {
+        Invoke-Script $Script
+    }
+
+    Get-Command
+}
+
+function Get-Input {
+    param (
+        [parameter(Mandatory = $false)]
+        [string]$Value = "",
+        [parameter(Mandatory = $false)]
+        [string]$Prompt,
+        [parameter(Mandatory = $false)]
+        [regex]$Validate = $null,
+        [parameter(Mandatory = $false)]
+        [switch]$IsSecure = $false,
+        [parameter(Mandatory = $false)]
+        [switch]$CheckExistingUser = $false,
+        [parameter(Mandatory = $false)]
+        [switch]$LineBefore = $false,
+        [parameter(Mandatory = $false)]
+        [switch]$LineAfter = $false
+    )
+
+    try {
+        if ($LineBefore) { Write-Host }
+
+        $currPos = $host.UI.RawUI.CursorPosition
+
+        Write-Host "  > $Prompt" -NoNewline 
+        if ($IsSecure) { $userInput = Read-Host -AsSecureString } 
+        else { $userInput = Read-Host }
+
+        $errorMessage = ""
+
+        if ($CheckExistingUser) {
+            $account = Get-LocalUser -Name $userInput -ErrorAction SilentlyContinue
+            if ($null -ne $account) { $errorMessage = "An account with that name already exists." }
+        }
+
+        if ($userInput -notmatch $Validate) {
+            $errorMessage = "Invalid input. Please try again."
+        } 
+
+        if ($errorMessage -ne "") {
+            Write-Text -Type "error" -Text $errorMessage
+            if ($CheckExistingUser) {
+                return Get-Input -Prompt $Prompt -Validate $Validate -CheckExistingUser
+            } else {
+                return Get-Input -Prompt $Prompt -Validate $Validate
+            }
+        }
+
+        if ($userInput.Length -eq 0 -and $Value -ne "" -and !$IsSecure) {
+            $userInput = $Value
+        }
+
+        [Console]::SetCursorPosition($currPos.X, $currPos.Y)
+        
+        Write-Host "  $([char]0x2713) " -ForegroundColor "Green" -NoNewline
+        if ($IsSecure -and ($userInput.Length -eq 0)) {
+            Write-Host "$Prompt                                                       "
+        } else {
+            Write-Host "$Prompt$userInput                                             "
+        }
+
+        if ($LineAfter) { Write-Host }
+    
+        return $userInput
+    } catch {
+        Write-Text -Type "error" -Text "Input Error: $($_.Exception.Message)"
+    }
+}
+
+function Get-Script {
     param (
         [Parameter(Mandatory)]
         [string]$Url,
@@ -85,8 +247,6 @@ function Get-Download {
             $progbar = ""
             $progbar = $progbar.PadRight($curBarSize, [char]9608)
             $progbar = $progbar.PadRight($BarSize, [char]9617)
-
-
 
             if (!$Complete.IsPresent) {
                 Write-Host -NoNewLine "`r    $ProgressText $progbar $($percentComplete.ToString("##0.00").PadLeft(6))%"
@@ -148,11 +308,11 @@ function Get-Download {
                     $totalMB = $total / 1024 / 1024
           
                     if ($fullSize -gt 0) {
-                        Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText "Loading" -ValueSuffix "MB"
+                        Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText "Downloading" -ValueSuffix "MB"
                     }
 
                     if ($total -eq $fullSize -and $count -eq 0 -and $finalBarCount -eq 0) {
-                        Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText "Loading" -ValueSuffix "MB" -Complete
+                        Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText "Downloading" -ValueSuffix "MB" -Complete
                         $finalBarCount++
                     }
                 } while ($count -gt 0)
@@ -160,15 +320,15 @@ function Get-Download {
                 if ($downloadComplete) { return $true } else { return $false }
             } catch {
                 # Write-Text -Type "fail" -Text "$($_.Exception.Message)"
-                Write-Host "    Loading script failed..." -ForegroundColor Red
+                Write-Text -Type "fail" -Text "Download failed..."
                 
                 $downloadComplete = $false
             
                 if ($retryCount -lt $MaxRetries) {
-                    Write-Host "    Retrying..."
+                    Write-Text "Retrying..."
                     Start-Sleep -Seconds $Interval
                 } else {
-                    Write-Host "Maximum retries reached. Contact Chase." -LineBefore
+                    Write-Text -Type "error" -Text "Maximum retries reached. Download failed." -LineBefore
                 }
             } finally {
                 # cleanup
@@ -182,4 +342,4 @@ function Get-Download {
     }
 }
 
-Invoke-This
+Invoke-Script "Get-Command"
