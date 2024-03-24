@@ -9,7 +9,7 @@ function Add-LocalUser {
  This function creates a new local user account on a Windows system with specified settings, 
  including the username, optional password, and group. The account and password never expire.
 "@
-        Write-Welcome -File Add-LocalUser.ps1 -Title "Add User v0315241122" -Description `"$scriptDescription`"
+        Write-Welcome -Title "Add User v0315241122" -Description `"$scriptDescription`"
 
         Write-Text -Type "header" -Text "Enter name" -LineBefore -LineAfter
         $name = Get-Input -Validate "^([a-zA-Z0-9 _\-]{1,64})$"  -CheckExistingUser

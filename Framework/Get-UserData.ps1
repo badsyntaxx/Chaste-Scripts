@@ -26,5 +26,3 @@ function Get-UserData {
         Write-Exit
     }
 }
-
-

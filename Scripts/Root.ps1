@@ -30,22 +30,25 @@ function Get-Command {
         $addDash = $makeTitleCase -split '\s+', 2, "RegexMatch" -join '-'
         $fileFunc = $addDash -replace ' ', ''
 
-        New-Item -Path "$env:TEMP\$fileFunc.ps1" -ItemType File -Force | Out-Null
+        New-Item -Path "$env:TEMP\Chaste-Script.ps1" -ItemType File -Force | Out-Null
 
-        $scriptPath = "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/"
+        $url = "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/"
 
-        $dependencies = @( "Scripts/$fileFunc", "Framework/Global", "Framework/Get-Input", "Framework/Get-Option", "Framework/Get-UserData", "Framework/Get-Download", "Framework/Select-User")
+        $dependencies = @( "$fileFunc", "Global", "Get-Input", "Get-Option", "Get-UserData", "Get-Download", "Select-User")
 
         foreach ($dependency in $dependencies) {
-            Get-Script -Url "$scriptPath/$dependency.ps1" -Target "$env:TEMP\$dependency.ps1" | Out-Null
+            $subPath = "Framework"
+            if ($dependency -eq $fileFunc) { $subPath = "Scripts" }
+            if ($dependency -eq 'Reclaim') { $subPath = "Plugins" }
+            Get-Script -Url "$url/$subPath/$dependency.ps1" -Target "$env:TEMP\$dependency.ps1" | Out-Null
             $rawScript = Get-Content -Path "$env:TEMP\$dependency.ps1" -Raw
-            Add-Content -Path "$env:TEMP\$fileFunc.ps1" -Value $rawScript
+            Add-Content -Path "$env:TEMP\Chaste-Script.ps1" -Value $rawScript
             Get-Item -ErrorAction SilentlyContinue "$env:TEMP\$dependency.ps1" | Remove-Item -ErrorAction SilentlyContinue
         }
 
-        Add-Content -Path "$env:TEMP\$fileFunc.ps1" -Value "Invoke-Script '$fileFunc'"
+        Add-Content -Path "$env:TEMP\Chaste-Script.ps1" -Value "Invoke-Script '$fileFunc'"
 
-        Start-Process powershell.exe "-NoProfile -NoExit -ExecutionPolicy Bypass -File `"$env:TEMP\$fileFunc.ps1`"" -WorkingDirectory $pwd -Verb RunAs
+        Start-Process powershell.exe "-NoProfile -NoExit -ExecutionPolicy Bypass -File `"$env:TEMP\Chaste-Script.ps1`"" -WorkingDirectory $pwd -Verb RunAs
     } catch {
         Write-Text -Type "error" -Text "$($_.Exception.Message)" -LineBefore -LineAfter
         Get-Command
@@ -308,11 +311,11 @@ function Get-Script {
                     $totalMB = $total / 1024 / 1024
           
                     if ($fullSize -gt 0) {
-                        Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText "Downloading" -ValueSuffix "MB"
+                        Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText "Loading" -ValueSuffix "MB"
                     }
 
                     if ($total -eq $fullSize -and $count -eq 0 -and $finalBarCount -eq 0) {
-                        Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText "Downloading" -ValueSuffix "MB" -Complete
+                        Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText "Loading" -ValueSuffix "MB" -Complete
                         $finalBarCount++
                     }
                 } while ($count -gt 0)
