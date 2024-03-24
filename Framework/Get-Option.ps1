@@ -12,6 +12,7 @@ function Get-Option {
 
     try {
         if ($LineBefore) { Write-Host }
+
         $vkeycode = 0
         $pos = 0
         $oldPos = 0
@@ -57,6 +58,7 @@ function Get-Option {
         }
 
         if ($LineAfter) { Write-Host }
+        
         if ($ReturnValue) { if ($orderedKeys.Count -eq 1) { return $orderedKeys } else { return $orderedKeys[$pos] } } 
         else { return $pos }
     } catch {
