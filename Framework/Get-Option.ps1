@@ -19,7 +19,7 @@ function Get-Option {
         $longestKeyLength = ($orderedKeys | Measure-Object -Property Length -Maximum).Maximum
 
         if ($orderedKeys.Count -eq 1) {
-            Write-Host "  $($orderedKeys) $(" " * ($longestKeyLength - $orderedKeys.Length)) - $($Options[$orderedKeys])" -ForegroundColor "Cyan"
+            Write-Host "  $([char]0x203A) $($orderedKeys) $(" " * ($longestKeyLength - $orderedKeys.Length)) - $($Options[$orderedKeys])" -ForegroundColor "Cyan"
         } else {
             for ($i = 0; $i -lt $orderedKeys.Count; $i++) {
                 $key = $orderedKeys[$i]
