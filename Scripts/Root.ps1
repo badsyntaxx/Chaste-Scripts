@@ -33,7 +33,7 @@ function Get-Command {
         New-Item -Path "$env:TEMP\Chaste-Script.ps1" -ItemType File -Force | Out-Null
 
         $url = "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main"
-        $dependencies = @( "$fileFunc", "Global", "Get-Input", "Get-Option", "Get-UserData", "Get-Download", "Select-User")
+        $dependencies = @("$fileFunc", "Global", "Get-Input", "Get-Option", "Get-UserData", "Get-Download", "Select-User")
         $subPath = "Framework"
 
         foreach ($dependency in $dependencies) {
