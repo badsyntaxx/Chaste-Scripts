@@ -14,11 +14,6 @@ function Invoke-Script {
         $console.BackgroundColor = "Black"
         $console.ForegroundColor = "Gray"
         $console.WindowTitle = "Chaste Scripts"
-        Clear-Host
-        Write-Host
-        Write-Host " Chaste Scripts: Root"
-        Write-Host " Enter `"menu`" or `"help`" if you don't know commands." -ForegroundColor DarkGray
-        Write-Host
         Invoke-Expression $ScriptName
     } catch {
         Write-Host "Initialization Error: $($_.Exception.Message)" -ForegroundColor Red
@@ -28,6 +23,11 @@ function Invoke-Script {
 
 function Get-Command {
     try {
+        Clear-Host
+        Write-Host
+        Write-Host " Chaste Scripts: Root"
+        Write-Host " Enter `"menu`" or `"help`" if you don't know commands." -ForegroundColor DarkGray
+        Write-Host
         Write-Host "  $([char]0x203A) " -NoNewline 
         $command = Read-Host 
 
