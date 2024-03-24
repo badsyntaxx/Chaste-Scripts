@@ -3,106 +3,31 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
     Exit
 }
 
-function Invoke-This {
-    $scriptName = 'Add-User'
-
-    $scriptDescription = @"
+function Add-User {
+    try {
+        $scriptDescription = @"
  Create new local and / or domain users.
 "@
 
-    $core = @"
-function $scriptName {
-    try {
-        Get-Item -ErrorAction SilentlyContinue "$scriptPath\$scriptName.ps1" | Remove-Item -ErrorAction SilentlyContinue
+        Get-Item -ErrorAction SilentlyContinue "$scriptPath\Add-User.ps1" | Remove-Item -ErrorAction SilentlyContinue
         Write-Host " Chaste Scripts: Add User v0315241122"
         Write-Host "$scriptDescription" -ForegroundColor DarkGray
 
         Write-Text -Type "header" -Text "What type of user do you want to add?" -LineBefore -LineAfter
 
-        `$choice = Get-Option -Options `$([ordered]@{
-            'Local'  = 'Create a local user.' 
-            'Domain' = 'Create a domain user.'
-        })
+        $choice = Get-Option -Options $([ordered]@{
+                'Local'  = 'Create a local user.' 
+                'Domain' = 'Create a domain user.'
+            })
 
-        if (`$choice -eq 0) { 
+        if ($choice -eq 0) { 
             irm chaste.dev/add/local/user | iex
         }
-        if (`$choice -eq 1) { 
+        if ($choice -eq 1) { 
             irm chaste.dev/add/ad/user | iex
         }
     } catch {
-        Write-Text -Type "error" -Text "Add user error: `$(`$_.Exception.Message)"
+        Write-Text -Type "error" -Text "Add user error: $($_.Exception.Message)"
         Write-Exit
     }
 }
-
-
-"@
-
-    New-Item -Path "$env:TEMP\$scriptName.ps1" -ItemType File -Force | Out-Null
-
-    $dependencies = @(
-        'Global'
-        'Get-Input'
-        'Get-Option'
-        'Get-UserData'
-    )
-
-    foreach ($dependency in $dependencies) {
-        Get-Script -Url "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/Framework/$dependency.ps1" -Target "$env:TEMP\$dependency.ps1" | Out-Null
-        $rawScript = Get-Content -Path "$env:TEMP\$dependency.ps1" -Raw
-        Add-Content -Path "$env:TEMP\$scriptName.ps1" -Value $rawScript
-        Get-Item -ErrorAction SilentlyContinue "$env:TEMP\$dependency.ps1" | Remove-Item -ErrorAction SilentlyContinue
-    }
-
-    Add-Content -Path "$env:TEMP\$scriptName.ps1" -Value $core
-    Add-Content -Path "$env:TEMP\$scriptName.ps1" -Value "Invoke-Script '$scriptName'"
-
-    Start-Process powershell.exe "-NoProfile -NoExit -ExecutionPolicy Bypass -File `"$env:TEMP\$scriptName.ps1`"" -WorkingDirectory $pwd -Verb RunAs
-}
-
-function Get-Script {
-    param (
-        [Parameter(Mandatory)]
-        [string]$Url,
-        [Parameter(Mandatory)]
-        [string]$Target
-    )
-    
-    try {
-        $request = [System.Net.HttpWebRequest]::Create($Url)
-        $response = $request.GetResponse()
-  
-        if ($response.StatusCode -eq 401 -or $response.StatusCode -eq 403 -or $response.StatusCode -eq 404) {
-            throw "Remote file either doesn't exist, is unauthorized, or is forbidden for '$Url'."
-        }
-
-        [byte[]]$buffer = new-object byte[] 1048576
-        [long]$total = [long]$count = 0
-  
-        $reader = $response.GetResponseStream()
-        $writer = new-object System.IO.FileStream $Target, "Create"
-  
-        do {
-            $count = $reader.Read($buffer, 0, $buffer.Length)
-            $writer.Write($buffer, 0, $count)
-            $total += $count
-        } while ($count -gt 0)
-        if ($count -eq 0) { return $true } else { return $false }
-    } catch {
-        Write-Host "Loading failed..."
-            
-        if ($retryCount -lt $MaxRetries) {
-            Write-Host "Retrying..."
-            Start-Sleep -Seconds $Interval
-        } else {
-            Write-Host "Maximum retries reached. Loading failed."
-        }
-    } finally {
-        if ($reader) { $reader.Close() }
-        if ($writer) { $writer.Flush(); $writer.Close() }
-        [GC]::Collect()
-    } 
-}   
-
-Invoke-This

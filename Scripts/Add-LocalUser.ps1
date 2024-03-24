@@ -23,7 +23,7 @@ function Add-LocalUser {
                 'Users'          = 'Set this users group membership to standard users.' 
             }) -ReturnValue -LineAfter
 
-        Write-Text -Type "notice" -Text "You're about to create a new local user!" -LineBefore -LineAfter
+        Write-Text -Type "notice" -Text "You're about to create a new local user!" -LineAfter
         $choice = Get-Option -Options $([ordered]@{
                 "Submit" = "Confirm and apply." 
                 "Reset"  = "Start over at the beginning."
