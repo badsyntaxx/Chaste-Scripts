@@ -14,6 +14,11 @@ function Invoke-Script {
         $console.BackgroundColor = "Black"
         $console.ForegroundColor = "Gray"
         $console.WindowTitle = "Chaste Scripts"
+        Clear-Host
+        Write-Host
+        Write-Host " Chaste Scripts: Root"
+        Write-Host " Enter `"menu`" or `"help`" if you don't know commands." -ForegroundColor DarkGray
+        Write-Host
         Invoke-Expression $ScriptName
     } catch {
         Write-Host "Initialization Error: $($_.Exception.Message)" -ForegroundColor Red
@@ -23,42 +28,48 @@ function Invoke-Script {
 
 function Get-Command {
     try {
-        Clear-Host
-        Write-Host
-        Write-Host " Chaste Scripts: Root"
-        Write-Host " Enter `"menu`" or `"help`" if you don't know commands." -ForegroundColor DarkGray
-        Write-Host
         Write-Host "  $([char]0x203A) " -NoNewline 
-        $command = Read-Host 
 
+        $command = Read-Host 
         $makeTitleCase = (Get-Culture).TextInfo.ToTitleCase($command)
         $addDash = $makeTitleCase -split '\s+', 2, "RegexMatch" -join '-'
         $fileFunc = $addDash -replace ' ', ''
 
-        New-Item -Path "$env:TEMP\Chaste-Script.ps1" -ItemType File -Force | Out-Null
+        if ($command -eq 'help') {
+            Write-Host
+            Write-Host "    enable admin    - Toggle the built-in administrator account."
+            Write-Host "    add user        - Add a user to the system."
+            Write-Host "    add local user  - Add a local user to the system."
+            Write-Host "    add ad user     - Add a domain user to the system."
+            Write-Host
+            Get-Command
+        } else {
+            New-Item -Path "$env:TEMP\Chaste-Script.ps1" -ItemType File -Force | Out-Null
 
-        $url = "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main"
-        $dependencies = @("$fileFunc", "Global", "Get-Input", "Get-Option", "Get-UserData", "Get-Download", "Select-User")
-        $subPath = "Framework"
+            $url = "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main"
+            $dependencies = @("$fileFunc", "Global", "Get-Input", "Get-Option", "Get-UserData", "Get-Download", "Select-User")
+            $subPath = "Framework"
 
-        foreach ($dependency in $dependencies) {
-            if ($dependency -eq $fileFunc) { $subPath = "Scripts" } else { $subPath = "Framework" }
-            if ($dependency -eq 'Reclaim') { $subPath = "Plugins" }
+            foreach ($dependency in $dependencies) {
+                if ($dependency -eq $fileFunc) { $subPath = "Scripts" } else { $subPath = "Framework" }
+                if ($dependency -eq 'Reclaim') { $subPath = "Plugins" }
 
-            $download = Get-Script -Url "$url/$subPath/$dependency.ps1" -Target "$env:TEMP\$dependency.ps1"
-            if (!$download) { throw "Could not acquire dependency." }
+                $download = Get-Script -Url "$url/$subPath/$dependency.ps1" -Target "$env:TEMP\$dependency.ps1" -ProgressText $dependency
 
-            $rawScript = Get-Content -Path "$env:TEMP\$dependency.ps1" -Raw -ErrorAction SilentlyContinue
+                if (!$download) { throw "Could not acquire dependency." }
 
-            Add-Content -Path "$env:TEMP\Chaste-Script.ps1" -Value $rawScript
-            Get-Item -ErrorAction SilentlyContinue "$env:TEMP\$dependency.ps1" | Remove-Item -ErrorAction SilentlyContinue
+                $rawScript = Get-Content -Path "$env:TEMP\$dependency.ps1" -Raw -ErrorAction SilentlyContinue
 
-            if ($subPath -eq 'Plugins') { break }
+                Add-Content -Path "$env:TEMP\Chaste-Script.ps1" -Value $rawScript
+                Get-Item -ErrorAction SilentlyContinue "$env:TEMP\$dependency.ps1" | Remove-Item -ErrorAction SilentlyContinue
+
+                if ($subPath -eq 'Plugins') { break }
+            }
+
+            if ($subPath -ne 'Plugins') { Add-Content -Path "$env:TEMP\Chaste-Script.ps1" -Value "Invoke-Script '$fileFunc'" }
+
+            Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$env:TEMP\Chaste-Script.ps1`"" -WorkingDirectory $pwd -Verb RunAs
         }
-
-        if ($subPath -ne 'Plugins') { Add-Content -Path "$env:TEMP\Chaste-Script.ps1" -Value "Invoke-Script '$fileFunc'" }
-
-        Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$env:TEMP\Chaste-Script.ps1`"" -WorkingDirectory $pwd -Verb RunAs
     } catch {
         Write-Host "    Unknown command: $($_.Exception.Message)" -ForegroundColor Red
         Get-Command
@@ -70,7 +81,9 @@ function Get-Script {
         [Parameter(Mandatory)]
         [string]$Url,
         [Parameter(Mandatory)]
-        [string]$Target
+        [string]$Target,
+        [Parameter(Mandatory)]
+        [string]$ProgressText
     )
     Begin {
         function Show-Progress {
@@ -143,11 +156,11 @@ function Get-Script {
                 $totalMB = $total / 1024 / 1024
         
                 if ($fullSize -gt 0) {
-                    Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText "Loading" -ValueSuffix "MB"
+                    Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText $ProgressText -ValueSuffix "MB"
                 }
 
                 if ($total -eq $fullSize -and $count -eq 0 -and $finalBarCount -eq 0) {
-                    Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText "Loading" -ValueSuffix "MB" -Complete
+                    Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText $ProgressText -ValueSuffix "MB" -Complete
                     $finalBarCount++
                 }
             } while ($count -gt 0)
