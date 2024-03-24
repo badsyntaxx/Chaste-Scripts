@@ -33,20 +33,22 @@ function Get-Command {
         New-Item -Path "$env:TEMP\Chaste-Script.ps1" -ItemType File -Force | Out-Null
 
         $url = "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/"
-
         $dependencies = @( "$fileFunc", "Global", "Get-Input", "Get-Option", "Get-UserData", "Get-Download", "Select-User")
+        $subPath = "Framework"
 
         foreach ($dependency in $dependencies) {
-            $subPath = "Framework"
             if ($dependency -eq $fileFunc) { $subPath = "Scripts" }
             if ($dependency -eq 'Reclaim') { $subPath = "Plugins" }
             Get-Script -Url "$url/$subPath/$dependency.ps1" -Target "$env:TEMP\$dependency.ps1" | Out-Null
             $rawScript = Get-Content -Path "$env:TEMP\$dependency.ps1" -Raw
             Add-Content -Path "$env:TEMP\Chaste-Script.ps1" -Value $rawScript
             Get-Item -ErrorAction SilentlyContinue "$env:TEMP\$dependency.ps1" | Remove-Item -ErrorAction SilentlyContinue
+            if ($subPath -eq 'Plugins') { break }
         }
 
-        Add-Content -Path "$env:TEMP\Chaste-Script.ps1" -Value "Invoke-Script '$fileFunc'"
+        if ($subPath -ne 'Plugins') {
+            Add-Content -Path "$env:TEMP\Chaste-Script.ps1" -Value "Invoke-Script '$fileFunc'"
+        }
 
         Start-Process powershell.exe "-NoProfile -NoExit -ExecutionPolicy Bypass -File `"$env:TEMP\Chaste-Script.ps1`"" -WorkingDirectory $pwd -Verb RunAs
     } catch {
