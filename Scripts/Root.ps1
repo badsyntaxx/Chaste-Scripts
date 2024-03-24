@@ -32,15 +32,15 @@ function Get-Command {
 
         New-Item -Path "$env:TEMP\Chaste-Script.ps1" -ItemType File -Force | Out-Null
 
-        $url = "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/"
+        $url = "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main"
         $dependencies = @( "$fileFunc", "Global", "Get-Input", "Get-Option", "Get-UserData", "Get-Download", "Select-User")
         $subPath = "Framework"
 
         foreach ($dependency in $dependencies) {
-            if ($dependency -eq $fileFunc) { $subPath = "Scripts" }
+            if ($dependency -eq $fileFunc) { $subPath = "Scripts" } else { $subPath = "Framework" }
             if ($dependency -eq 'Reclaim') { $subPath = "Plugins" }
             Get-Script -Url "$url/$subPath/$dependency.ps1" -Target "$env:TEMP\$dependency.ps1" | Out-Null
-            $rawScript = Get-Content -Path "$env:TEMP\$dependency.ps1" -Raw
+            $rawScript = Get-Content -Path "$env:TEMP\$dependency.ps1" -Raw -ErrorAction SilentlyContinue
             Add-Content -Path "$env:TEMP\Chaste-Script.ps1" -Value $rawScript
             Get-Item -ErrorAction SilentlyContinue "$env:TEMP\$dependency.ps1" | Remove-Item -ErrorAction SilentlyContinue
             if ($subPath -eq 'Plugins') { break }

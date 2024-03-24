@@ -9,7 +9,7 @@ function Remove-User {
  This function allows you to remove a user from a Windows system, with options 
  to delete or keep their user profile / data.
 "@
-        Write-Welcome -File Remove-User.ps1 -Title "Remove User v0315241122" -Description `"$scriptDescription`"
+        Write-Welcome  -Title "Remove User v0315241122" -Description `"$scriptDescription`"
 
         $username = Select-User
 
