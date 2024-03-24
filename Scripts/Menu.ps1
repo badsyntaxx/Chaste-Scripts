@@ -18,18 +18,32 @@ function Menu {
             "Edit network adapter" = "Edit a network adapter.(beta)"
         })
 
-    if ($choice -eq 0) { $script = "Enable-Admin" }
-    if ($choice -eq 1) { $script = "Add-User" }
-    if ($choice -eq 2) { $script = "Remove-User" }
-    if ($choice -eq 3) { $script = "Edit-UserName" }
-    if ($choice -eq 4) { $script = "Edit-UserPassword" }
-    if ($choice -eq 5) { $script = "Edit-UserGroup" }
-    if ($choice -eq 6) { $script = "Edit-Hostname" }
-    if ($choice -eq 7) { $script = "Edit-NetworkAdapter" }
+    if ($choice -eq 0) { $fileFunc = "Enable-Admin" }
+    if ($choice -eq 1) { $fileFunc = "Add-User" }
+    if ($choice -eq 2) { $fileFunc = "Remove-User" }
+    if ($choice -eq 3) { $fileFunc = "Edit-UserName" }
+    if ($choice -eq 4) { $fileFunc = "Edit-UserPassword" }
+    if ($choice -eq 5) { $fileFunc = "Edit-UserGroup" }
+    if ($choice -eq 6) { $fileFunc = "Edit-Hostname" }
+    if ($choice -eq 7) { $fileFunc = "Edit-NetworkAdapter" }
 
-    Write-Text -Text "Initializing script..." -LineBefore
-    
-    Get-Script -Url "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-$script.ps1" -Target "$env:TEMP\CS-Menu.ps1"
+    New-Item -Path "$env:TEMP\Chaste-Script.ps1" -ItemType File -Force | Out-Null
 
-    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$env:TEMP\CS-Menu.ps1`"" -WorkingDirectory $pwd -Verb RunAs
+    $url = "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/"
+
+    $dependencies = @( "$fileFunc", "Global", "Get-Input", "Get-Option", "Get-UserData", "Get-Download", "Select-User")
+
+    foreach ($dependency in $dependencies) {
+        $subPath = "Framework"
+        if ($dependency -eq $fileFunc) { $subPath = "Scripts" }
+        if ($dependency -eq 'Reclaim') { $subPath = "Plugins" }
+        Get-Script -Url "$url/$subPath/$dependency.ps1" -Target "$env:TEMP\$dependency.ps1" | Out-Null
+        $rawScript = Get-Content -Path "$env:TEMP\$dependency.ps1" -Raw
+        Add-Content -Path "$env:TEMP\Chaste-Script.ps1" -Value $rawScript
+        Get-Item -ErrorAction SilentlyContinue "$env:TEMP\$dependency.ps1" | Remove-Item -ErrorAction SilentlyContinue
+    }
+
+    Add-Content -Path "$env:TEMP\Chaste-Script.ps1" -Value "Invoke-Script '$fileFunc'"
+
+    Start-Process powershell.exe "-NoProfile -NoExit -ExecutionPolicy Bypass -File `"$env:TEMP\Chaste-Script.ps1`"" -WorkingDirectory $pwd -Verb RunAs
 }
