@@ -36,7 +36,7 @@ function Invoke-Script {
 
 function Get-Command {
     try {
-        $command = Get-Input -Prompt ">" -LineBefore
+        $command = Get-Input -LineBefore
         $command = $command -replace ' ', '/'
         
         Invoke-Restmethod "chaste.dev/$command" | Invoke-Expression
