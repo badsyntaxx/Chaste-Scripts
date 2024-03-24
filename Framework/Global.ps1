@@ -110,8 +110,6 @@ function Write-Exit {
         [parameter(Mandatory = $false)]
         [string]$Message = "",
         [parameter(Mandatory = $false)]
-        [string]$Script = "",
-        [parameter(Mandatory = $false)]
         [switch]$LineBefore = $false,
         [parameter(Mandatory = $false)]
         [switch]$LineAfter = $false
@@ -124,9 +122,7 @@ function Write-Exit {
             'Exit'  = 'Exit this function but stay in Chaste Scripts'
         })
 
-    if ($choice -eq 0) {
-        Invoke-Script $Script
-    }
+    if ($choice -eq 0) { Invoke-Script $Script }
 
     Get-Command
 }
