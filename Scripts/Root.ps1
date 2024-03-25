@@ -35,6 +35,12 @@ function Get-Command {
         Write-Host "  $([char]0x203A) " -NoNewline 
 
         $command = Read-Host 
+        if ($command -match "(^\w+)") { $firstWord = $matches[1] }
+        if ($firstWord -eq 'intech') { 
+            $command = $command -replace "^$firstWord \s*", "" 
+        }
+
+        read-host $command
         $makeTitleCase = (Get-Culture).TextInfo.ToTitleCase($command)
         $addDash = $makeTitleCase -split '\s+', 2, "RegexMatch" -join '-'
         $fileFunc = $addDash -replace ' ', ''
@@ -57,7 +63,6 @@ function Get-Command {
             foreach ($dependency in $dependencies) {
                 if ($dependency -eq $fileFunc) { $subPath = "Scripts" } else { $subPath = "Framework" }
                 if ($dependency -eq 'Reclaim') { $subPath = "Plugins" }
-                if ($makeTitleCase -match "(^\w+)") { $firstWord = $matches[1] }
                 if ($firstWord -eq 'Intech' -and $dependency -eq $fileFunc) { $subPath = "InTech" }
 
                 $download = Get-Script -Url "$url/$subPath/$dependency.ps1" -Target "$env:TEMP\$dependency.ps1" -ProgressText $dependency

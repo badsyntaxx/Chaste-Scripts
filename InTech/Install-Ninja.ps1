@@ -1,7 +1,6 @@
-
-function Install-NinjaOne {
+function Install-Ninja {
     try {
-        Write-Host "Chaste Scripts: Install NinjaOne for Nuvia ISR's" -ForegroundColor DarkGray
+        Write-Host "Chaste Scripts: Install NinjaOne" -ForegroundColor DarkGray
         Write-Text -Type "header" -Text "Install NinjaOne" -LineBefore -LineAfter
 
         Add-TempFolder
@@ -29,7 +28,7 @@ function Add-TempFolder {
 }
 
 function Invoke-Installation {
-    $url = "https://app.ninjarmm.com/agent/installer/0274c0c3-3ec8-44fc-93cb-79e96f191e07/nuviaisrcenteroremut-5.7.8836-windows-installer.msi"
+    $url = "https://app.ninjarmm.com/agent/installer/3b7909f8-b6bf-4fc9-9fd4-fa5d332415f7/intechtogetherunassigned-5.7.8836-windows-installer.msi"
     $paths = @("C:\Program Files\NinjaRemote")
     $appName = "NinjaOne"
     $installed = Find-ExistingInstall -Paths $paths -App $appName
@@ -76,7 +75,7 @@ function Install-Program {
         if ($download) {
             Write-Text -Text "Intalling..." -LineBefore
 
-            Start-Process -FilePath "msiexec" -ArgumentList "/i ``"$tempPath\$AppName.msi``" $Args" -Wait
+            # Start-Process -FilePath "msiexec" -ArgumentList "/i ``"$tempPath\$AppName.msi``" $Args" -Wait
 
             $service = Get-Service -Name "NinjaRMMAgent" -ErrorAction SilentlyContinue
 

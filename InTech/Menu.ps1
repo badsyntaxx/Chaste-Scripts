@@ -1,4 +1,4 @@
-function Intech {
+function Menu {
     try {
         Write-Welcome -Title "Chaste Scripts Menu" -Description "Select an action to take." -Command "menu"
 

@@ -5,7 +5,7 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 }
     
 
-function Intech-InstallBginfo {
+function Install-Bginfo {
     try {
         Write-Welcome -Title "Install BGInfo" -Description "Install BGInfo with various DSO flavor profiles." -Command "intall bginfo"
 

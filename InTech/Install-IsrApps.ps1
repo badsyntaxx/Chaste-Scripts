@@ -1,4 +1,4 @@
-function Intech-InstallIsrApps {
+function Install-IsrApps {
     Write-Host "Chaste Scripts" -ForegroundColor DarkGray
     Write-Text "Select user" -Type "header" -LineBefore -LineAfter
     Add-TempFolder
@@ -44,7 +44,7 @@ function Install-GoogleChrome {
     $paths = @(
         "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
         "$env:ProgramFiles (x86)\Google\Chrome\Application\chrome.exe",
-        "C:\Users\$account\AppData\Google\Chrome\Application\chrome.exe"
+        "C:\Users\$env:username\AppData\Google\Chrome\Application\chrome.exe"
     )
 
     $url = "https://dl.google.com/dl/chrome/install/googlechromestandaloneenterprise64.msi"
@@ -56,10 +56,10 @@ function Install-GoogleChrome {
 function Install-GoogleChromeBookmarks {
     try {
         Write-Text "Adding Nuvia bookmarks..."
-        $tempPath = "C:\Users\$account\Desktop\TEMP"
+        $tempPath = "C:\Users\$env:username\Desktop\TEMP"
         $download = Get-Download -Url "https://drive.google.com/uc?export=download&id=1WmvSnxtDSLOt0rgys947sOWW-v9rzj9U" -Target "$tempPath\Bookmarks"
         if ($download) {
-            ROBOCOPY "$tempPath" "C:\Users\$account\AppData\Local\Google\Chrome\User Data\Default" "Bookmarks" /NFL /NDL /NJH /NJS /nc /ns | Out-Null
+            ROBOCOPY "$tempPath" "C:\Users\$env:username\AppData\Local\Google\Chrome\User Data\Default" "Bookmarks" /NFL /NDL /NJH /NJS /nc /ns | Out-Null
             Write-Text -Type "done" -Text "Bookmarks added to chrome."
         }
     } catch {
@@ -71,7 +71,7 @@ function Install-GoogleChromeBookmarks {
 function Install-Slack {
     $paths = @(
         "C:\Program Files\Slack\slack.exe",
-        "C:\Users\$account\AppData\slack\slack.exe"
+        "C:\Users\$env:username\AppData\slack\slack.exe"
     )
     $url = "https://downloads.slack-edge.com/releases/windows/4.36.138/prod/x64/slack-standalone-4.36.138.0.msi"
     $appName = "Slack"
@@ -83,7 +83,7 @@ function Install-Zoom {
     $paths = @(
         "C:\Program Files\Zoom\Zoom.exe",
         "C:\Program Files\Zoom\bin\Zoom.exe",
-        "C:\Users\$account\AppData\Zoom\Zoom.exe"
+        "C:\Users\$env:username\AppData\Zoom\Zoom.exe"
     )
     $url = "https://zoom.us/client/latest/ZoomInstallerFull.msi?archType=x64"
     $appName = "Zoom"
@@ -119,7 +119,7 @@ function Install-AdobeAcrobatReader {
 }
 
 function Install-Balto {
-    $paths = @("C:\Users\$account\AppData\Local\Programs\Balto\Balto.exe")
+    $paths = @("C:\Users\$env:username\AppData\Local\Programs\Balto\Balto.exe")
     $url = "https://download.baltocloud.com/Balto+Setup+6.1.1.exe"
     $appName = "Balto"
     $installed = Find-ExistingInstall -Paths $paths -App $appName
@@ -135,11 +135,11 @@ function Install-ExplorerPatcher {
 }
 
 function Initialize-Cleanup {
-    Remove-Item "C:\Users\$script:account\Desktop\Revo Uninstaller.lnk" -Force -ErrorAction SilentlyContinue
+    Remove-Item "C:\Users\$env:username\Desktop\Revo Uninstaller.lnk" -Force -ErrorAction SilentlyContinue
     Remove-Item "C:\Users\Public\Desktop\Revo Uninstaller.lnk" -Force -ErrorAction SilentlyContinue
-    Remove-Item "C:\Users\$script:account\Desktop\Adobe Acrobat.lnk" -Force -ErrorAction SilentlyContinue
+    Remove-Item "C:\Users\$env:username\Desktop\Adobe Acrobat.lnk" -Force -ErrorAction SilentlyContinue
     Remove-Item "C:\Users\Public\Desktop\Adobe Acrobat.lnk" -Force -ErrorAction SilentlyContinue
-    Remove-Item "C:\Users\$script:account\Desktop\Microsoft Edge.lnk" -Force -ErrorAction SilentlyContinue
+    Remove-Item "C:\Users\$env:username\Desktop\Microsoft Edge.lnk" -Force -ErrorAction SilentlyContinue
     Remove-Item "C:\Users\Public\Desktop\Microsoft Edge.lnk" -Force -ErrorAction SilentlyContinue
 }
 

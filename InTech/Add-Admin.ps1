@@ -4,7 +4,7 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
     Exit
 }
 
-function Intech-AddAdmin {
+function Add-Admin {
     try {
         Write-Welcome -Title "Add InTechAdmin Account" -Description "Add an InTech administrator account to this PC." -Command "intech add admin"
 
