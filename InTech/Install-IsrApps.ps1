@@ -251,7 +251,7 @@ function Install-Program {
         if ($download) {
             Write-Text -Text "Installing..." -LineAfter
             if ($Extenstion -eq "msi") {
-                Start-Process -FilePath "msiexec" -ArgumentList "/i ``"$tempPath\$output``" $Args" -Wait
+                Start-Process -FilePath "msiexec" -ArgumentList "/i `"$tempPath\$output`" $Args" -Wait
             } else {
                 Start-Process -FilePath "$tempPath\$output" -ArgumentList "$Args" -Wait
             }
