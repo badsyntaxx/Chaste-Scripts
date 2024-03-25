@@ -6,7 +6,7 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 
 function Intech-AddAdmin {
     try {
-        Write-Welcom -Title "Add InTechAdmin Account" -Description "Add an InTech administrator account to this PC." -Command "intech add admin"
+        Write-Welcome -Title "Add InTechAdmin Account" -Description "Add an InTech administrator account to this PC." -Command "intech add admin"
 
         Write-Text -Type "header" -Text "Getting credentials" -LineBefore -LineAfter
 

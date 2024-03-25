@@ -57,9 +57,8 @@ function Get-Command {
             foreach ($dependency in $dependencies) {
                 if ($dependency -eq $fileFunc) { $subPath = "Scripts" } else { $subPath = "Framework" }
                 if ($dependency -eq 'Reclaim') { $subPath = "Plugins" }
-
-                $intech = $dependency.Substring(0, 1)
-                if ($intech -eq "intech") { $subPath = "InTech" }
+                if ($makeTitleCase -match "(^\w+)") { $firstWord = $matches[1] }
+                if ($firstWord -eq 'Intech' -and $dependency -eq $fileFunc) { $subPath = "InTech" }
 
                 $download = Get-Script -Url "$url/$subPath/$dependency.ps1" -Target "$env:TEMP\$dependency.ps1" -ProgressText $dependency
                 if (!$download) { throw "Could not acquire dependency." }
