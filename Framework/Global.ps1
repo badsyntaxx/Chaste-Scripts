@@ -36,12 +36,52 @@ function Invoke-Script {
 
 function Get-Command {
     try {
-        $command = Get-Input -LineBefore
-        $command = $command -replace ' ', '/'
-        
-        Invoke-Restmethod "chaste.dev/$command" | Invoke-Expression
+        Write-Host "  $([char]0x203A) " -NoNewline 
+
+        $command = Read-Host 
+        $makeTitleCase = (Get-Culture).TextInfo.ToTitleCase($command)
+        $addDash = $makeTitleCase -split '\s+', 2, "RegexMatch" -join '-'
+        $fileFunc = $addDash -replace ' ', ''
+
+        if ($command -eq 'help') {
+            Write-Host
+            Write-Host "    enable admin    - Toggle the built-in administrator account."
+            Write-Host "    add user        - Add a user to the system."
+            Write-Host "    add local user  - Add a local user to the system."
+            Write-Host "    add ad user     - Add a domain user to the system."
+            Write-Host
+            Get-Command
+        } else {
+            New-Item -Path "$env:TEMP\Chaste-Script.ps1" -ItemType File -Force | Out-Null
+
+            $url = "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main"
+            $dependencies = @("$fileFunc", "Global", "Get-Input", "Get-Option", "Get-UserData", "Get-Download", "Select-User")
+            $subPath = "Framework"
+
+            foreach ($dependency in $dependencies) {
+                if ($dependency -eq $fileFunc) { $subPath = "Scripts" } else { $subPath = "Framework" }
+                if ($dependency -eq 'Reclaim') { $subPath = "Plugins" }
+                if ($makeTitleCase -match "(^\w+)") { $firstWord = $matches[1] }
+                if ($firstWord -eq 'Intech' -and $dependency -eq $fileFunc) { $subPath = "InTech" }
+
+                $download = Get-Script -Url "$url/$subPath/$dependency.ps1" -Target "$env:TEMP\$dependency.ps1" -ProgressText $dependency
+                if (!$download) { throw "Could not acquire dependency." }
+
+                $rawScript = Get-Content -Path "$env:TEMP\$dependency.ps1" -Raw -ErrorAction SilentlyContinue
+
+                Add-Content -Path "$env:TEMP\Chaste-Script.ps1" -Value $rawScript
+                Get-Item -ErrorAction SilentlyContinue "$env:TEMP\$dependency.ps1" | Remove-Item -ErrorAction SilentlyContinue
+
+                if ($subPath -eq 'Plugins') { break }
+            }
+
+            if ($subPath -ne 'Plugins') { Add-Content -Path "$env:TEMP\Chaste-Script.ps1" -Value "Invoke-Script '$fileFunc'" }
+
+            $chasteScript = Get-Content -Path "$env:TEMP\Chaste-Script.ps1" -Raw
+            Invoke-Expression "$chasteScript"
+        }
     } catch {
-        Write-Text -Type "error" -Text "$($_.Exception.Message)" -LineBefore -LineAfter
+        Write-Host "    Unknown command: $($_.Exception.Message)" -ForegroundColor Red
         Get-Command
     }
 }
