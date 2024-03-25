@@ -9,25 +9,35 @@ function Edit-UserGroup {
         Write-Welcome -Title "Edit User Group" -Description "Edit an existing users group membership." -Command "edit user group"
 
         $username = Select-User
+        $data = Get-UserData -Username $username
 
+        if ($data["Source"] -eq "Local") { Edit-LocalUserGroup -Source $data["Source"] } else { Edit-ADUserGroup }
+    } catch {
+        Write-Text -Type "error" -Text "Edit group error: $($_.Exception.Message)"
+        Write-Exit -Script "Edit-UserGroup"
+    }
+} 
+
+function Edit-LocalUserGroup {
+    param (
+        [Parameter(Mandatory)]
+        [string]$Source
+    )
+
+    try {
         Write-Text -Type "header" -Text "Select user group" -LineBefore -LineAfter
-     
+
         $groups = Get-LocalGroup | ForEach-Object {
             $description = $_.Description
-            if ($description.Length -gt 72) {
-                $description = $description.Substring(0, 72) + "..."
-            }
+            if ($description.Length -gt 72) { $description = $description.Substring(0, 72) + "..." }
             @{ $_.Name = $description }
         } | Sort-Object -Property Name
-        
+    
         $moreGroups = [ordered]@{}
 
-        foreach ($group in $groups) {
-            $moreGroups += $group
-        }
-        
+        foreach ($group in $groups) { $moreGroups += $group }
+    
         $group = Get-Option -Options $moreGroups -ReturnValue
-        
         $data = Get-UserData -Username $username
 
         Write-Text -Type "notice" -Text "You're about to change this users group membership." -LineBefore -LineAfter
@@ -51,7 +61,14 @@ function Edit-UserGroup {
 
         Write-Exit "The group membership for $username has been changed to $group." -Script "Edit-UserGroup"
     } catch {
-        Write-Text -Type "error" -Text "Edit group error: $($_.Exception.Message)"
+        Write-Text -Type "error" -Text "Edit local group error: $($_.Exception.Message)"
         Write-Exit -Script "Edit-UserGroup"
     }
-} 
+}
+
+function Edit-ADUserGroup {
+    Write-Text -Type "fail" -Text "Editing domain users doesn't work yet."
+    Write-Exit
+    Write-Text -Type "header" -Text "Select user group" -LineBefore -LineAfter
+}
+

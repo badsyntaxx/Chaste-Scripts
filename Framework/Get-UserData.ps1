@@ -13,12 +13,12 @@ function Get-UserData {
 
         $source = Get-LocalUser -Name $Username | Select-Object -ExpandProperty PrincipalSource
 
-        $data = @(
-            "Name:$Username"
-            "Groups:$($groups -join ';')"
-            "Path:$dir"
-            "Source:$source"
-        )
+        $data = [ordered]@{
+            "Name"   = "$Username"
+            "Groups" = "$($groups -join ';')"
+            "Path"   = "$dir"
+            "Source" = "$source"
+        }
 
         return $data
     } catch {

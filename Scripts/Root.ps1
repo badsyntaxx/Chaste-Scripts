@@ -17,11 +17,11 @@ function Invoke-Script {
         Clear-Host
         Write-Host
         Write-Host " Chaste Scripts: Root"
-        Write-Host " Enter " -ForegroundColor DarkGray -NoNewLine
-        Write-Host "`"menu`"" -ForegroundColor DarkGreen -NoNewLine
-        Write-Host " or " -ForegroundColor DarkGray -NoNewLine
-        Write-Host "`"help`"" -ForegroundColor DarkGreen -NoNewLine
-        Write-Host " if you don't know commands." -ForegroundColor DarkGray
+        Write-Host " Enter `"" -ForegroundColor DarkGray -NoNewLine
+        Write-Host "menu" -ForegroundColor Cyan -NoNewLine
+        Write-Host "`" or `"" -ForegroundColor DarkGray -NoNewLine
+        Write-Host "help" -ForegroundColor Cyan -NoNewLine
+        Write-Host "`" if you don't know commands." -ForegroundColor DarkGray
         Write-Host
         Invoke-Expression $ScriptName
     } catch {

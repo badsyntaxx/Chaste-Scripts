@@ -59,7 +59,7 @@ function Write-Text {
         [parameter(Mandatory = $false)]
         [switch]$LineAfter = $false,
         [parameter(Mandatory = $false)]
-        [array]$List,
+        [System.Collections.Specialized.OrderedDictionary]$List,
         [parameter(Mandatory = $false)]
         [string]$OldData,
         [parameter(Mandatory = $false)]
@@ -86,7 +86,7 @@ function Write-Text {
     if ($Type -eq 'notice') { Write-Host " ## $Text" -ForegroundColor "Yellow" }
     if ($Type -eq 'plain') { Write-Host "    $Text" -ForegroundColor $Color }
     if ($Type -eq 'list') {
-        foreach ($item in $List) { Write-Host "    $item" -ForegroundColor "DarkGray" }
+        foreach ($item in $List.Keys) { Write-Host "    $item`: $($List[$item])" -ForegroundColor "DarkGray" }
     }
     if ($LineAfter) { Write-Host }
 }

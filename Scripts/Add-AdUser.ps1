@@ -56,3 +56,4 @@ function Add-AdUser {
         Write-Exit
     }
 }
+

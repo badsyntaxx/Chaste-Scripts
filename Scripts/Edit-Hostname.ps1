@@ -56,3 +56,4 @@ function Edit-Hostname {
         Write-Exit -Script "Edit-Hostname"
     }
 }
+

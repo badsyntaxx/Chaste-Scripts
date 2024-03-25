@@ -22,7 +22,7 @@ function Select-User {
         }
 
         $choice = Get-Option -Options $accounts -ReturnValue -LineAfter
-        $data = Get-UserData $choice
+        $data = Get-UserData -Username $choice
         Write-Text -Type "list" -List $data
 
         return $choice

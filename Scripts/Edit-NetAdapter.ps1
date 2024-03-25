@@ -359,3 +359,4 @@ function Show-Adapters {
 
     Edit-NetworkAdapter
 }
+

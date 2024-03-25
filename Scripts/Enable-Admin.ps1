@@ -11,7 +11,6 @@ function Enable-Admin {
         $admin = Get-LocalUser -Name "Administrator"
 
         Write-Host "    Administrator:" -NoNewLine
-
         if ($admin.Enabled) { Write-Host "Enabled" -ForegroundColor Yellow } 
         else { Write-Host "Disabled" -ForegroundColor Yellow }
         
@@ -38,3 +37,4 @@ function Enable-Admin {
         Write-Exit -Script "Enable-Admin"
     }
 }
+

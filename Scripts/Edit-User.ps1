@@ -3,18 +3,20 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
     Exit
 }
 
-function Add-User {
+function Edit-User {
     try {
         Write-Welcome -Title "Edit User" -Description "Edit an existing users data." -Command "edit user"
 
         Write-Text -Type "header" -Text "Local or domain user?" -LineAfter -LineBefore
         $choice = Get-Option -Options $([ordered]@{
-                "Edit user name"     = "Add a local user to the system."
-                "Edit user password" = "Add a domain user to the system."
+                "Edit user name"     = "Edit an existing users name."
+                "Edit user password" = "Edit an existing users password."
+                "Edit user group"    = "Edit an existing users group membership."
             }) -LineAfter
 
-        if ($choice -eq 0) { $fileFunc = "Add-LocalUser" }
-        if ($choice -eq 1) { $fileFunc = "Add-AdUser" }
+        if ($choice -eq 0) { $fileFunc = "Edit-UserName" }
+        if ($choice -eq 1) { $fileFunc = "Edit-UserPassword" }
+        if ($choice -eq 2) { $fileFunc = "Edit-UserGroup" }
 
         New-Item -Path "$env:TEMP\Chaste-Script.ps1" -ItemType File -Force | Out-Null
 
