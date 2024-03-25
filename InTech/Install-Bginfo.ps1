@@ -1,6 +1,6 @@
 function Install-Bginfo {
     try {
-        Write-Welcome -Title "Install BGInfo" -Description "Install BGInfo with various DSO flavor profiles." -Command "intall bginfo"
+        Write-Welcome -Title "Install BGInfo" -Description "Install BGInfo with various DSO flavor profiles." -Command "intech intall bginfo"
 
         $choice = Get-Option -Options $([ordered]@{
                 "Default" = "Generic install with no background and customizations by Chase."
