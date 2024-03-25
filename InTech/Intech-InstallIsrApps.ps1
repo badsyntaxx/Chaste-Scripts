@@ -245,7 +245,7 @@ function Install-Program {
     try {
         if ($Extenstion -eq "msi") { $output = "$AppName.msi" } else { $output = "$AppName.exe" }
         
-        $tempPath = "C:\Users\$account\Desktop\TEMP"
+        $tempPath = "C:\Users\$env:username\Desktop\TEMP"
         $download = Get-Download -Url $Url -Target "$tempPath\$output"
 
         if ($download) {
