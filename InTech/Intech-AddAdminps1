@@ -4,9 +4,9 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
     Exit
 }
 
-function Add-Intechadmin {
+function Intech-AddAdmin {
     try {
-        Write-Welcom -Title "Add InTechAdmin Account" -Description "Add an InTech administrator account to this PC." -Command "add intechadmin"
+        Write-Welcom -Title "Add InTechAdmin Account" -Description "Add an InTech administrator account to this PC." -Command "intech add admin"
 
         Write-Text -Type "header" -Text "Getting credentials" -LineBefore -LineAfter
 
@@ -48,9 +48,9 @@ function Add-Intechadmin {
         Remove-Item -Path "$path\PHRASE.txt"
         Remove-Item -Path "$path\KEY.txt"
 
-        Write-Exit -Message $finalMessage -Script "Add-Intechadmin"
+        Write-Exit -Message $finalMessage -Script "Intech-AddAdmin"
     } catch {
         Write-Text -Type "error" -Text "Create IntechAdmin Error: $($_.Exception.Message)"
-        Write-Exit -Script "Add-Intechadmin"
+        Write-Exit -Script "Intech-AddAdmin"
     }
 }
