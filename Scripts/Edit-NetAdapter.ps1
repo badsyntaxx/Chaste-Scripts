@@ -1,14 +1,12 @@
-function Edit-NetworkAdapter {
+function Edit-NetAdapter {
     Write-Welcome -Title "Edit Network Adapter" -Description "Edit the network adapters on this PC." -Command "edit net adapter"
 
-    $options = @(
-        "Display adapters        - Display all non hidden network adapters."
-        "Select network adapter  - Select the network adapter you want to edit."
-        "Quit                    - Do nothing and exit."
-    )
+    $choice = Get-Option -Options $([ordered]@{
+            "Display adapters"       = "Display all non hidden network adapters."
+            "Select network adapter" = "Select the network adapter you want to edit."
+            "Quit"                   = "Do nothing and exit."
+        }) -LineBefore -LineAfter
 
-    $choice = Get-Option -Options $options
-    Write-Host 
     if (0 -eq $choice) { Show-Adapters }
     if (1 -eq $choice) { Select-Adapter }
     if (3 -eq $choice) { Exit }
@@ -17,13 +15,13 @@ function Edit-NetworkAdapter {
 function Select-Adapter {
     Write-Text -Type "header" -Text "Select an adapter"
 
-    $adapters = @()
-    foreach ($n in (Get-NetAdapter | Select-Object -ExpandProperty Name)) {
-        $adapters += $n
+    $adapters = [ordered]@{}
+
+    Get-NetAdapter | ForEach-Object {
+        $adapters[$_.Name] = $_.MediaConnectionState
     }
 
     $choice = Get-Option -Options $adapters
-
     $netAdapter = Get-NetAdapter -Name $adapters[$choice]
     $adapterIndex = $netAdapter.InterfaceIndex
     $ipData = Get-NetIPAddress -InterfaceIndex $adapterIndex -AddressFamily IPv4 | Where-Object { $_.PrefixOrigin -ne "WellKnown" -and $_.SuffixOrigin -ne "Link" -and ($_.AddressState -eq "Preferred" -or $_.AddressState -eq "Tentative") } | Select-Object -First 1
