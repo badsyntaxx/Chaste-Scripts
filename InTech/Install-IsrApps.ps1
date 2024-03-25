@@ -1,6 +1,5 @@
 function Install-IsrApps {
-    Write-Host "Chaste Scripts" -ForegroundColor DarkGray
-    Write-Text "Select user" -Type "header" -LineBefore -LineAfter
+    Write-Welcome -Title "Install ISR Applications" -Description "Install ISR apps and add bookmarks to Chrome." -Command "intech install isr apps"
     Add-TempFolder
     # Install-NinjaOne
     Install-GoogleChrome
