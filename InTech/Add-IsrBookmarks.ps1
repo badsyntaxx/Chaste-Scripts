@@ -18,20 +18,20 @@ function Add-IsrBookmarks {
     }
 
     $choice = Get-Option -Options $profiles -LineAfter -ReturnValue
-
     $account = $profiles["$choice"]
-
-    Read-Host $account
-
     $boomarksUrl = "https://drive.google.com/uc?export=download&id=1WmvSnxtDSLOt0rgys947sOWW-v9rzj9U"
 
-    $wc = New-Object System.Net.WebClient
-    $wc.DownloadFile($boomarksUrl, "C:\Users\$env:USERNAME\Desktop\Bookmarks")
+    $download = Get-Download -Url $boomarksUrl -Target "$env:TEMP\Bookmarks"
+    if (!$download) { throw "Unable to acquire bookmarks." }
 
-    Write-Host "   Adding Nuvia bookmarks to $app"
-    # ROBOCOPY "C:\Users\$env:USERNAME\Desktop" "C:\Users\$env:USERNAME\AppData\Local\Google\Chrome\User Data\Default" "Bookmarks"
+    Write-Text "Adding Nuvia bookmarks to $app"
+    ROBOCOPY $env:TEMP $account "Bookmarks"
+
+    if (Test-Path -Path $account) {
+        Write-Text -Type "done" -Text "The bookmarks were successfully added"
+    }
 
     # Example: Force delete a file
-    Remove-Item -Path "C:\Users\$env:USERNAME\Desktop\Bookmarks" -Force
+    Remove-Item -Path "$env:TEMP" -Force
 }
 
