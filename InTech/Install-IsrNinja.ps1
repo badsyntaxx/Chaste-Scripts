@@ -1,4 +1,3 @@
-
 function Install-IsrNinja {
     try {
         Write-Welcome -Title "Install NinjaOne" -Description "Install NinjaOne for Nuvia ISR's" -Command "intech install isr ninja"
@@ -8,6 +7,8 @@ function Install-IsrNinja {
         $service = Get-Service -Name "NinjaRMMAgent" -ErrorAction SilentlyContinue
 
         if ($null -ne $service -and $service.Status -eq "Running") {
+            Write-Text -Type "done" -Text "NinjaRMMAgent is already installed and running."
+        } else {
             $download = Get-Download -Url $Url -Target "$env:TEMP\NinjaOne.msi"
             if (!$download) { throw "Unable to acquire intaller." }
           
@@ -18,9 +19,7 @@ function Install-IsrNinja {
                 Write-Text -Type "success" -Text "NinjaOne successfully installed." -LineAfter
             } else {
                 Write-Text -Type "error" -Text "NinjaOne did not successfully install." -LineAfter
-            }
-        } else {
-            Write-Text -Type "done" -Text "$service is already installed and running."
+            } 
         }
         Get-Item -ErrorAction SilentlyContinue "$env:TEMP\NinjaOne.msi" | Remove-Item -ErrorAction SilentlyContinue
         Write-Exit -Script "Install-IsrNinja"
@@ -29,3 +28,4 @@ function Install-IsrNinja {
         Write-Exit -Script "Install-IsrNinja"
     }
 }
+

@@ -265,3 +265,4 @@ function Install-Program {
         Write-Text "Skipping $AppName installation."
     }
 }
+
