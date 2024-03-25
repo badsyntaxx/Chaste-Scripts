@@ -12,7 +12,7 @@ function Edit-UserPassword {
     }
 }
 
-function EditLocalUserPassword {
+function Edit-LocalUserPassword {
     try {
         Write-Text -Type "header" -Text "Enter password or leave blank" -LineBefore -LineAfter
         $password = Get-Input -Prompt "" -IsSecure $true
