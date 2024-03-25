@@ -141,7 +141,7 @@ function Write-Welcome {
         [string]$Command
     )
 
-    Get-Item -ErrorAction SilentlyContinue "$env:TEMP\Chaste-Script.ps1" | Remove-Item -ErrorAction SilentlyContinue
+    #Get-Item -ErrorAction SilentlyContinue "$env:TEMP\Chaste-Script.ps1" | Remove-Item -ErrorAction SilentlyContinue
     Write-Host
     Write-Host " Chaste Scripts: $Title"
     Write-Host " Command:"  -ForegroundColor DarkGray -NoNewline
