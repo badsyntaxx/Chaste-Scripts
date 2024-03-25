@@ -1,6 +1,6 @@
 function Add-LocalUser {
     try {
-        Write-Welcome -Title "Add Local User" -Description "Add local users to the system." -Command "add local user"
+        Write-Welcome -Title "Add Local User" -Description "Add a new local user to the system." -Command "add local user"
 
         Write-Text -Type "header" -Text "Enter name" -LineBefore -LineAfter
         $name = Get-Input -Validate "^([a-zA-Z0-9 _\-]{1,64})$"  -CheckExistingUser

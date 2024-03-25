@@ -29,11 +29,10 @@ function Edit-User {
             if ($subPath -eq 'Plugins') { break }
         }
 
-        if ($subPath -ne 'Plugins') {
-            Add-Content -Path "$env:TEMP\Chaste-Script.ps1" -Value "Invoke-Script '$fileFunc'"
-        }
+        if ($subPath -ne 'Plugins') { Add-Content -Path "$env:TEMP\Chaste-Script.ps1" -Value "Invoke-Script '$fileFunc'" }
 
-        Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$env:TEMP\Chaste-Script.ps1`"" -WorkingDirectory $pwd -Verb RunAs
+        $chasteScript = Get-Content -Path "$env:TEMP\Chaste-Script.ps1" -Raw
+        Invoke-Expression "$chasteScript"
     } catch {
         Write-Text -Type "error" -Text "Add user error: $($_.Exception.Message)"
         Write-Exit -Script "Add-LocalUser"
