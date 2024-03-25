@@ -8,7 +8,17 @@ function Edit-UserName {
         Write-Welcome -Title "Edit User Name" -Description "Edit an existing users name." -Command "edit user name"
 
         $username = Select-User
+        $data = Get-UserData -Username $username
 
+        if ($data["Source"] -eq "Local") { Edit-LocalUserName -Source $data["Source"] } else { Edit-ADUserName }
+    } catch {
+        Write-Text -Type "error" -Text "Edit name error: $($_.Exception.Message)"
+        Write-Exit -Script "Edit-UserName"
+    }
+}
+
+function Edit-LocalUserName {
+    try {
         Write-Text -Type "header" -Text "Enter username" -LineBefore -LineAfter
         $newName = Get-Input -Prompt "" -Validate "^(\s*|[a-zA-Z0-9 _\-]{1,64})$" -CheckExistingUser
 
@@ -40,3 +50,7 @@ function Edit-UserName {
     }
 }
 
+function Edit-ADUserName {
+    Write-Text -Type "fail" -Text "Editing domain users doesn't work yet."
+    Write-Exit
+}

@@ -69,6 +69,5 @@ function Edit-LocalUserGroup {
 function Edit-ADUserGroup {
     Write-Text -Type "fail" -Text "Editing domain users doesn't work yet."
     Write-Exit
-    Write-Text -Type "header" -Text "Select user group" -LineBefore -LineAfter
 }
 
