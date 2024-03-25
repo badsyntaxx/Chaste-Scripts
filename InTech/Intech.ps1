@@ -1,18 +1,15 @@
-if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
-    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
-    Exit
-}
-
-function Menu {
+function Intech {
     try {
         Write-Welcome -Title "Chaste Scripts Menu" -Description "Select an action to take." -Command "menu"
 
         Write-Text -Type "header" -Text "Selection" -LineAfter -LineBefore
         $choice = Get-Option -Options $([ordered]@{
-                "Add InTechAdmin" = "Add the InTech administrator account to the system."
+                "Add InTech Admin" = "Add the InTech administrator account to this PC."
+                "Install BGInfo"   = "Install BGInfo with a chosen DSO flavor profile."
             }) -LineAfter
 
         if ($choice -eq 0) { $fileFunc = "Intech-AddAdmin" }
+        if ($choice -eq 1) { $fileFunc = "Intech-InstallBginfo" }
 
         New-Item -Path "$env:TEMP\Chaste-Script.ps1" -ItemType File -Force | Out-Null
 
@@ -31,7 +28,8 @@ function Menu {
             Add-Content -Path "$env:TEMP\Chaste-Script.ps1" -Value "Invoke-Script '$fileFunc'"
         }
 
-        Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$env:TEMP\Chaste-Script.ps1`"" -WorkingDirectory $pwd -Verb RunAs
+        $chasteScript = Get-Content -Path "$env:TEMP\Chaste-Script.ps1" -Raw
+        Invoke-Expression "$chasteScript"
     } catch {
         Write-Text -Type "error" -Text "Menu error: $($_.Exception.Message)"
         Write-Exit -Script "Menu"
