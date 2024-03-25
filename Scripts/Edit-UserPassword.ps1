@@ -5,7 +5,7 @@ function Edit-UserPassword {
         $username = Select-User
         $data = Get-UserData -Username $username
 
-        if ($data["Source"] -eq "Local") { Edit-LocalUserName -Source $data["Source"] } else { Edit-ADUserName }
+        if ($data["Source"] -eq "Local") { Edit-LocalUserPassword -Source $data["Source"] } else { Edit-ADUserPassword }
     } catch {
         Write-Text -Type "error" -Text "Edit password error: $($_.Exception.Message)"
         Write-Exit -Script "Edit-UserPassword"
