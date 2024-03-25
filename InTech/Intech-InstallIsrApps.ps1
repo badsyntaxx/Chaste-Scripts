@@ -1,4 +1,4 @@
-function Install-ISRApps {
+function Intech-InstallIsrApps {
     Write-Host "Chaste Scripts" -ForegroundColor DarkGray
     Write-Text "Select user" -Type "header" -LineBefore -LineAfter
     Add-TempFolder
