@@ -5,7 +5,7 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 }
     
 
-function Install-BGInfo {
+function Intech-InstallBginfo {
     try {
         Write-Welcome -Title "Install BGInfo" -Description "Install BGInfo with various DSO flavor profiles." -Command "intall bginfo"
 
@@ -39,7 +39,7 @@ function Install-BGInfo {
 
         $download = Get-Download -Url $url -Target "C:\Windows\Temp\$target`_BGInfo.zip"
 
-        if (!$download) { Write-Exit -Script "Install-BGInfo" }
+        if (!$download) { Write-Exit -Script "Intech-InstallBginfo" }
 
         Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name WallPaper -Value ""
         Set-ItemProperty -Path "HKCU:Control Panel\Colors" -Name Background -Value "0 0 0"
@@ -56,9 +56,9 @@ function Install-BGInfo {
         Remove-Item -Path "C:\Windows\Temp\BGInfo" -Recurse 
 
         Write-Host
-        Write-Exit -Message "BGInfo installed and applied." -Script "Install-BGInfo" -LineBefore
+        Write-Exit -Message "BGInfo installed and applied." -Script "Intech-InstallBginfo" -LineBefore
     } catch {
         Write-Text -Type "error" -Text "Install BGInfo error: $($_.Exception.Message)"
-        Write-Exit -Script "Install-BGInfo"
+        Write-Exit -Script "Intech-InstallBginfo"
     }
 }

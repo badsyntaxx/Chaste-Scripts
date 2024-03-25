@@ -37,13 +37,13 @@ function Add-AdUser {
         -SamAccountName $samAccountName 
         -GivenName $GivenName 
         -Surname $Surname 
-        -UserPrincipalName `"`UserPrincipalName@$domainName.com`" 
+        -UserPrincipalName "$UserPrincipalName@$domainName.com" 
         -AccountPassword $password 
         -Enabled $true
 
         Add-LocalGroupMember -Group $group -Member $name -ErrorAction Stop
 
-        $data = Get-UserData $name
+        $data = Get-UserData -Username $name
 
         Write-Text -Type "list" -List $data -LineAfter
 
