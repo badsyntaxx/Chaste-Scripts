@@ -1,15 +1,5 @@
-if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
-    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
-    Exit
-}
-
 function Edit-Hostname {
     try {
-        $scriptDescription = @"
- This function enables you to modify the hostname and description 
- of a Windows computer without requiring a system reboot.
-"@
-
         Write-Welcome -Title "Edit Hostname" -Description "Edit the hostname and description of this computer." -Command "edit hostname"
 
         $currentHostname = $env:COMPUTERNAME

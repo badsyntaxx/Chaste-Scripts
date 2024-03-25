@@ -1,8 +1,3 @@
-if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
-    Start-Process powershell.exe "-NoProfile -NoExit -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
-    Exit
-}
-
 function Add-AdUser {
     try {
         Write-Welcome -Title "Add AD User v0315241122" -Description "Add domain users to the system." -Command "add ad user"

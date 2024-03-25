@@ -58,8 +58,10 @@ function Get-Command {
                 if ($dependency -eq $fileFunc) { $subPath = "Scripts" } else { $subPath = "Framework" }
                 if ($dependency -eq 'Reclaim') { $subPath = "Plugins" }
 
-                $download = Get-Script -Url "$url/$subPath/$dependency.ps1" -Target "$env:TEMP\$dependency.ps1" -ProgressText $dependency
+                $intech = $dependency.Substring(0, 1)
+                if ($intech -eq "intech") { $subPath = "InTech" }
 
+                $download = Get-Script -Url "$url/$subPath/$dependency.ps1" -Target "$env:TEMP\$dependency.ps1" -ProgressText $dependency
                 if (!$download) { throw "Could not acquire dependency." }
 
                 $rawScript = Get-Content -Path "$env:TEMP\$dependency.ps1" -Raw -ErrorAction SilentlyContinue
@@ -72,7 +74,8 @@ function Get-Command {
 
             if ($subPath -ne 'Plugins') { Add-Content -Path "$env:TEMP\Chaste-Script.ps1" -Value "Invoke-Script '$fileFunc'" }
 
-            Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$env:TEMP\Chaste-Script.ps1`"" -WorkingDirectory $pwd -Verb RunAs
+            $chasteScript = Get-Content -Path "$env:TEMP\Chaste-Script.ps1" -Raw
+            Invoke-Expression "$chasteScript"
         }
     } catch {
         Write-Host "    Unknown command: $($_.Exception.Message)" -ForegroundColor Red

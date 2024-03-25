@@ -1,8 +1,3 @@
-if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
-    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
-    Exit
-}
-
 function Menu {
     try {
         Write-Welcome -Title "Chaste Scripts Menu" -Description "Select an action to take." -Command "menu"
@@ -48,7 +43,8 @@ function Menu {
             Add-Content -Path "$env:TEMP\Chaste-Script.ps1" -Value "Invoke-Script '$fileFunc'"
         }
 
-        Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$env:TEMP\Chaste-Script.ps1`"" -WorkingDirectory $pwd -Verb RunAs
+        $chasteScript = Get-Content -Path "$env:TEMP\Chaste-Script.ps1" -Raw
+        Invoke-Expression "$chasteScript"
     } catch {
         Write-Text -Type "error" -Text "Menu error: $($_.Exception.Message)"
         Write-Exit -Script "Menu"

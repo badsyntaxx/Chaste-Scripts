@@ -1,7 +1,3 @@
-if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
-    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
-    Exit
-}
 
 function Remove-User {
     try {
@@ -37,11 +33,8 @@ function Remove-User {
 
         $user = Get-LocalUser -Name $username -ErrorAction SilentlyContinue | Out-Null
 
-        if ($null -eq $user) {
-            Write-Text -Type "done" -Text "Local user removed."
-        } else {
-            Write-Text -Type "fail" -Text "Local user not removed." -LineBefore
-        }
+        if ($null -eq $user) { Write-Text -Type "done" -Text "Local user removed." } 
+        else { Write-Text -Type "fail" -Text "Local user not removed." -LineBefore }
         
         if ($deleteData) {
             $userProfile = Get-CimInstance Win32_UserProfile -Filter "SID = '$($user.SID)'"

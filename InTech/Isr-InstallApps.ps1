@@ -3,19 +3,6 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
     Exit
 } 
 
-$script = "Install-ISRApps"
-$isAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
-$path = if ($isAdmin) { "$env:SystemRoot\Temp" } else { "$env:TEMP" }
-
-if (Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -ErrorAction SilentlyContinue) {
-    $framework = Get-Content -Path "$PSScriptRoot\CS-Framework.ps1" -Raw
-    Write-Host "   Using local file."
-    Start-Sleep 1
-} else {
-    $framework = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/badsyntaxx/Chaste-Scripts/main/CS-Framework.ps1"
-}
-
-$addLocalUser = @"
 function Install-ISRApps {
     Write-Host "Chaste Scripts" -ForegroundColor DarkGray
     Write-Text "Select user" -Type "header" -LineBefore -LineAfter
@@ -38,132 +25,132 @@ function Install-ISRApps {
 function Add-TempFolder {
     try {
         Write-Text "Creating TEMP folder"
-        Write-Text "Path: C:\Users\`$env:username\Desktop\"
+        Write-Text "Path: C:\Users\$env:username\Desktop\"
 
-        if (-not (Test-Path -PathType Container "C:\Users\`$env:username\Desktop\TEMP")) {
-            New-Item -Path "C:\Users\`$env:username\Desktop\" -Name "TEMP" -ItemType Directory | Out-Null
+        if (-not (Test-Path -PathType Container "C:\Users\$env:username\Desktop\TEMP")) {
+            New-Item -Path "C:\Users\$env:username\Desktop\" -Name "TEMP" -ItemType Directory | Out-Null
         }
         
         Write-Text -Type "done" -Text "Folder created."
     } catch {
-        Write-Text "ERROR: `$(`$_.Exception.Message)" -Type "error"
+        Write-Text "ERROR: $($_.Exception.Message)" -Type "error"
     }
 }
 
 function Install-NinjaOne {
-    `$paths = @("C:\Program Files\NinjaRemote")
-    `$url = "https://app.ninjarmm.com/agent/installer/0274c0c3-3ec8-44fc-93cb-79e96f191e07/nuviaisrcenteroremut-5.7.8652-windows-installer.msi"
-    `$appName = "NinjaOne"
-    `$installed = Find-ExistingInstall -Paths `$paths -App `$appName
-    if (!`$installed) { Install-Program `$url `$appName "msi" "/quiet" }
+    $paths = @("C:\Program Files\NinjaRemote")
+    $url = "https://app.ninjarmm.com/agent/installer/0274c0c3-3ec8-44fc-93cb-79e96f191e07/nuviaisrcenteroremut-5.7.8652-windows-installer.msi"
+    $appName = "NinjaOne"
+    $installed = Find-ExistingInstall -Paths $paths -App $appName
+    if (!$installed) { Install-Program $url $appName "msi" "/quiet" }
 }
 
 function Install-GoogleChrome {
-    `$paths = @(
-        "`$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
-        "`$env:ProgramFiles (x86)\Google\Chrome\Application\chrome.exe",
-        "C:\Users\`$account\AppData\Google\Chrome\Application\chrome.exe"
+    $paths = @(
+        "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
+        "$env:ProgramFiles (x86)\Google\Chrome\Application\chrome.exe",
+        "C:\Users\$account\AppData\Google\Chrome\Application\chrome.exe"
     )
 
-    `$url = "https://dl.google.com/dl/chrome/install/googlechromestandaloneenterprise64.msi"
-    `$appName = "Google Chrome"
-    `$installed = Find-ExistingInstall -Paths `$paths -App `$appName
-    if (!`$installed) { Install-Program `$url `$appName "msi" "/quiet" }
+    $url = "https://dl.google.com/dl/chrome/install/googlechromestandaloneenterprise64.msi"
+    $appName = "Google Chrome"
+    $installed = Find-ExistingInstall -Paths $paths -App $appName
+    if (!$installed) { Install-Program $url $appName "msi" "/quiet" }
 }
 
 function Install-GoogleChromeBookmarks {
     try {
         Write-Text "Adding Nuvia bookmarks..."
-        `$tempPath = "C:\Users\`$account\Desktop\TEMP"
-        `$download = Get-Download -Url "https://drive.google.com/uc?export=download&id=1WmvSnxtDSLOt0rgys947sOWW-v9rzj9U" -Target "`$tempPath\Bookmarks"
-        if (`$download) {
-            ROBOCOPY "`$tempPath" "C:\Users\`$account\AppData\Local\Google\Chrome\User Data\Default" "Bookmarks" /NFL /NDL /NJH /NJS /nc /ns | Out-Null
+        $tempPath = "C:\Users\$account\Desktop\TEMP"
+        $download = Get-Download -Url "https://drive.google.com/uc?export=download&id=1WmvSnxtDSLOt0rgys947sOWW-v9rzj9U" -Target "$tempPath\Bookmarks"
+        if ($download) {
+            ROBOCOPY "$tempPath" "C:\Users\$account\AppData\Local\Google\Chrome\User Data\Default" "Bookmarks" /NFL /NDL /NJH /NJS /nc /ns | Out-Null
             Write-Text -Type "done" -Text "Bookmarks added to chrome."
         }
     } catch {
-        Write-Text "Bookmarks Error: `$(`$_.Exception.Message)" -Type "error"
+        Write-Text "Bookmarks Error: $($_.Exception.Message)" -Type "error"
         Write-Exit -Script "Install-Apps"
     }
 }
 
 function Install-Slack {
-    `$paths = @(
+    $paths = @(
         "C:\Program Files\Slack\slack.exe",
-        "C:\Users\`$account\AppData\slack\slack.exe"
+        "C:\Users\$account\AppData\slack\slack.exe"
     )
-    `$url = "https://downloads.slack-edge.com/releases/windows/4.36.138/prod/x64/slack-standalone-4.36.138.0.msi"
-    `$appName = "Slack"
-    `$installed = Find-ExistingInstall -Paths `$paths -App `$appName
-    if (!`$installed) { Install-Program `$url `$appName "msi" "/quiet" }
+    $url = "https://downloads.slack-edge.com/releases/windows/4.36.138/prod/x64/slack-standalone-4.36.138.0.msi"
+    $appName = "Slack"
+    $installed = Find-ExistingInstall -Paths $paths -App $appName
+    if (!$installed) { Install-Program $url $appName "msi" "/quiet" }
 }
 
 function Install-Zoom {
-    `$paths = @(
+    $paths = @(
         "C:\Program Files\Zoom\Zoom.exe",
         "C:\Program Files\Zoom\bin\Zoom.exe",
-        "C:\Users\`$account\AppData\Zoom\Zoom.exe"
+        "C:\Users\$account\AppData\Zoom\Zoom.exe"
     )
-    `$url = "https://zoom.us/client/latest/ZoomInstallerFull.msi?archType=x64"
-    `$appName = "Zoom"
-    `$installed = Find-ExistingInstall -Paths `$paths -App `$appName
-    if (!`$installed) { Install-Program `$url `$appName "msi" "/quiet" }
+    $url = "https://zoom.us/client/latest/ZoomInstallerFull.msi?archType=x64"
+    $appName = "Zoom"
+    $installed = Find-ExistingInstall -Paths $paths -App $appName
+    if (!$installed) { Install-Program $url $appName "msi" "/quiet" }
 }
 
 function Install-RingCentral {
-    `$paths = @("C:\Program Files\RingCentral\RingCentral.exe")
-    `$url = "https://app.ringcentral.com/download/RingCentral-x64.msi"
-    `$appName = "Ring Central"
-    `$installed = Find-ExistingInstall -Paths `$paths -App `$appName
-    if (!`$installed) { Install-Program `$url `$appName "msi" "/quiet" }
+    $paths = @("C:\Program Files\RingCentral\RingCentral.exe")
+    $url = "https://app.ringcentral.com/download/RingCentral-x64.msi"
+    $appName = "Ring Central"
+    $installed = Find-ExistingInstall -Paths $paths -App $appName
+    if (!$installed) { Install-Program $url $appName "msi" "/quiet" }
 }
 
 function Install-RevoUninstaller {
-    `$paths = @("C:\Program Files\VS Revo Group\Revo Uninstaller\RevoUnin.exe")
-    `$url = "https://download.revouninstaller.com/download/revosetup.exe"
-    `$appName = "Revo Uninstaller"
-    `$installed = Find-ExistingInstall -Paths `$paths -App `$appName
-    if (!`$installed) { Install-Program `$url `$appName "exe" "/verysilent" }
+    $paths = @("C:\Program Files\VS Revo Group\Revo Uninstaller\RevoUnin.exe")
+    $url = "https://download.revouninstaller.com/download/revosetup.exe"
+    $appName = "Revo Uninstaller"
+    $installed = Find-ExistingInstall -Paths $paths -App $appName
+    if (!$installed) { Install-Program $url $appName "exe" "/verysilent" }
 }
 
 function Install-AdobeAcrobatReader {
-    `$paths = @(
+    $paths = @(
         "C:\Program Files\Adobe\Acrobat DC\Acrobat\Acrobat.exe"
         "C:\Program Files (x86)\Adobe\Acrobat Reader DC\Reader\AcroRd32.exe"
     )
-    `$url = "https://ardownload2.adobe.com/pub/adobe/reader/win/AcrobatDC/2300820555/AcroRdrDC2300820555_en_US.exe"
-    `$appName = "Adobe Acrobat Reader"
-    `$installed = Find-ExistingInstall -Paths `$paths -App `$appName
-    if (!`$installed) { Install-Program `$url `$appName "exe" "/sAll /rs /msi EULA_ACCEPT=YES" }
+    $url = "https://ardownload2.adobe.com/pub/adobe/reader/win/AcrobatDC/2300820555/AcroRdrDC2300820555_en_US.exe"
+    $appName = "Adobe Acrobat Reader"
+    $installed = Find-ExistingInstall -Paths $paths -App $appName
+    if (!$installed) { Install-Program $url $appName "exe" "/sAll /rs /msi EULA_ACCEPT=YES" }
 }
 
 function Install-Balto {
-    `$paths = @("C:\Users\`$account\AppData\Local\Programs\Balto\Balto.exe")
-    `$url = "https://download.baltocloud.com/Balto+Setup+6.1.1.exe"
-    `$appName = "Balto"
-    `$installed = Find-ExistingInstall -Paths `$paths -App `$appName
-    if (!`$installed) { Install-Program `$url `$appName "exe" "/quiet" }
+    $paths = @("C:\Users\$account\AppData\Local\Programs\Balto\Balto.exe")
+    $url = "https://download.baltocloud.com/Balto+Setup+6.1.1.exe"
+    $appName = "Balto"
+    $installed = Find-ExistingInstall -Paths $paths -App $appName
+    if (!$installed) { Install-Program $url $appName "exe" "/quiet" }
 }
 
 function Install-ExplorerPatcher {
-    `$paths = @("C:\Program Files\ExplorerPatcher\ep_gui.dll")
-    `$url = "https://github.com/valinet/ExplorerPatcher/releases/download/22621.2861.62.2_9b68cc0/ep_setup.exe"
-    `$appName = "ExplorerPatcher"
-    `$installed = Find-ExistingInstall -Paths `$paths -App `$appName
-    if (!`$installed) { Install-Program `$url `$appName "exe" "/quiet" }
+    $paths = @("C:\Program Files\ExplorerPatcher\ep_gui.dll")
+    $url = "https://github.com/valinet/ExplorerPatcher/releases/download/22621.2861.62.2_9b68cc0/ep_setup.exe"
+    $appName = "ExplorerPatcher"
+    $installed = Find-ExistingInstall -Paths $paths -App $appName
+    if (!$installed) { Install-Program $url $appName "exe" "/quiet" }
 }
 
 function Initialize-Cleanup {
-    Remove-Item "C:\Users\`$script:account\Desktop\Revo Uninstaller.lnk" -Force -ErrorAction SilentlyContinue
+    Remove-Item "C:\Users\$script:account\Desktop\Revo Uninstaller.lnk" -Force -ErrorAction SilentlyContinue
     Remove-Item "C:\Users\Public\Desktop\Revo Uninstaller.lnk" -Force -ErrorAction SilentlyContinue
-    Remove-Item "C:\Users\`$script:account\Desktop\Adobe Acrobat.lnk" -Force -ErrorAction SilentlyContinue
+    Remove-Item "C:\Users\$script:account\Desktop\Adobe Acrobat.lnk" -Force -ErrorAction SilentlyContinue
     Remove-Item "C:\Users\Public\Desktop\Adobe Acrobat.lnk" -Force -ErrorAction SilentlyContinue
-    Remove-Item "C:\Users\`$script:account\Desktop\Microsoft Edge.lnk" -Force -ErrorAction SilentlyContinue
+    Remove-Item "C:\Users\$script:account\Desktop\Microsoft Edge.lnk" -Force -ErrorAction SilentlyContinue
     Remove-Item "C:\Users\Public\Desktop\Microsoft Edge.lnk" -Force -ErrorAction SilentlyContinue
 }
 
 function Add-EPRegedits {
     Write-Text "Configuring explorer."
-    `$regCommands = @(
+    $regCommands = @(
         'reg add "HKEY_CURRENT_USER\Software\ExplorerPatcher" /v "ImportOK" /t REG_DWORD /d 1 /f',
         'reg add "HKEY_CURRENT_USER\Software\ExplorerPatcher" /v "OldTaskbar" /t REG_DWORD /d 0 /f',
         'reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search" /v "SearchboxTaskbarMode" /t REG_DWORD /d 0 /f',
@@ -217,8 +204,8 @@ function Add-EPRegedits {
         'reg add "HKEY_CURRENT_USER\Software\ExplorerPatcher" /v "Language" /t REG_DWORD /d 0 /f'
     )
 
-    foreach (`$cmd in `$regCommands) {
-        Start-Process -FilePath "cmd.exe" -ArgumentList "/c `$cmd"
+    foreach ($cmd in $regCommands) {
+        Start-Process -FilePath "cmd.exe" -ArgumentList "/c $cmd"
     }
 
     Write-Text "Explorer configured" -Type "done" -LineAfter
@@ -226,71 +213,60 @@ function Add-EPRegedits {
 
 function Find-ExistingInstall {
     param (
-        [parameter(Mandatory = `$true)]
-        [array]`$Paths,
-        [parameter(Mandatory = `$true)]
-        [string]`$App
+        [parameter(Mandatory = $true)]
+        [array]$Paths,
+        [parameter(Mandatory = $true)]
+        [string]$App
     )
 
-    Write-Text -Type "header" -Text "Installing `$App" -LineBefore -LineAfter
+    Write-Text -Type "header" -Text "Installing $App" -LineBefore -LineAfter
 
-    `$installationFound = `$false
+    $installationFound = $false
 
-    foreach (`$path in `$paths) {
-        if (Test-Path `$path) {
-            `$installationFound = `$true
+    foreach ($path in $paths) {
+        if (Test-Path $path) {
+            $installationFound = $true
             break
         }
     }
 
-    if (`$installationFound) { Write-Text -Type "success" -Text "`$App already installed." }
+    if ($installationFound) { Write-Text -Type "success" -Text "$App already installed." }
 
-    return `$installationFound
+    return $installationFound
 }
 
 function Install-Program {
     param (
-        [parameter(Mandatory = `$true)]
-        [string]`$Url,
-        [parameter(Mandatory = `$true)]
-        [string]`$AppName,
-        [parameter(Mandatory = `$true)]
-        [string]`$Extenstion,
-        [parameter(Mandatory = `$true)]
-        [string]`$Args
+        [parameter(Mandatory = $true)]
+        [string]$Url,
+        [parameter(Mandatory = $true)]
+        [string]$AppName,
+        [parameter(Mandatory = $true)]
+        [string]$Extenstion,
+        [parameter(Mandatory = $true)]
+        [string]$Args
     )
 
     try {
-        if (`$Extenstion -eq "msi") { `$output = "`$AppName.msi" } else { `$output = "`$AppName.exe" }
+        if ($Extenstion -eq "msi") { $output = "$AppName.msi" } else { $output = "$AppName.exe" }
         
-        `$tempPath = "C:\Users\`$account\Desktop\TEMP"
-        `$download = Get-Download -Url `$Url -Target "`$tempPath\`$output"
+        $tempPath = "C:\Users\$account\Desktop\TEMP"
+        $download = Get-Download -Url $Url -Target "$tempPath\$output"
 
-        if (`$download) {
+        if ($download) {
             Write-Text -Text "Installing..." -LineAfter
-            if (`$Extenstion -eq "msi") {
-                Start-Process -FilePath "msiexec" -ArgumentList "/i ``"`$tempPath\`$output``" `$Args" -Wait
+            if ($Extenstion -eq "msi") {
+                Start-Process -FilePath "msiexec" -ArgumentList "/i ``"$tempPath\$output``" $Args" -Wait
             } else {
-                Start-Process -FilePath "`$tempPath\`$output" -ArgumentList "`$Args" -Wait
+                Start-Process -FilePath "$tempPath\$output" -ArgumentList "$Args" -Wait
             }
            
-            Write-Text -Type "success" -Text "`$AppName successfully installed."
+            Write-Text -Type "success" -Text "$AppName successfully installed."
         } else {
             Write-Text -Type "error" "Download failed. Skipping." -LineAfter
         }
     } catch {
-        Write-Text -Type "error" "Installation error: `$(`$_.Exception.Message)"
-        Write-Text "Skipping `$AppName installation."
+        Write-Text -Type "error" "Installation error: $($_.Exception.Message)"
+        Write-Text "Skipping $AppName installation."
     }
 }
-
-"@
-
-New-Item -Path "$path\$script.ps1" -ItemType File -Force | Out-Null
-
-Add-Content -Path "$path\$script.ps1" -Value $addLocalUser
-Add-Content -Path "$path\$script.ps1" -Value $framework
-Add-Content -Path "$path\$script.ps1" -Value "Invoke-Script '$script'"
-
-PowerShell.exe -File "$path\$script.ps1" -Verb RunAs
-
