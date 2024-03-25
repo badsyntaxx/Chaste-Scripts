@@ -36,11 +36,7 @@ function Get-Command {
 
         $command = Read-Host 
         if ($command -match "(^\w+)") { $firstWord = $matches[1] }
-        if ($firstWord -eq 'intech') { 
-            $command = $command -replace "^$firstWord \s*", "" 
-        }
-
-        read-host $command
+        if ($firstWord -eq 'intech') { $command = $command -replace "^$firstWord \s*", "" }
         $makeTitleCase = (Get-Culture).TextInfo.ToTitleCase($command)
         $addDash = $makeTitleCase -split '\s+', 2, "RegexMatch" -join '-'
         $fileFunc = $addDash -replace ' ', ''
