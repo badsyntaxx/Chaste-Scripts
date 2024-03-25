@@ -9,18 +9,6 @@ function Intech-InstallBginfo {
     try {
         Write-Welcome -Title "Install BGInfo" -Description "Install BGInfo with various DSO flavor profiles." -Command "intall bginfo"
 
-        $text = @(
-            "What this script does."
-            " "
-            "1. Downloads a BGInfo.zip containing BGInfo install."
-            "2. Opens the archive and copies the BGInfo folder to 'Program Files'."
-            "3. Adds a 'Start BGInfo.bat' to the common startup folder."
-            "4. Runs the .bat file and apply the background."
-            " "
-        )
-
-        Write-Box -Text $text
-
         $options = (
             "Default",
             "Nuvia ISR"
