@@ -23,6 +23,24 @@ function Add-IsrBookmarks {
 
         Remove-Item -Path "$env:TEMP\Bookmarks" -Force
 
+        $preferencesFilePath = Join-Path -Path $profiles["$choice"] -ChildPath "Preferences"
+        if (Test-Path -Path $preferencesFilePath) {
+            $preferences = Get-Content -Path $preferencesFilePath -Raw | ConvertFrom-Json
+            if (-not $preferences.PSObject.Properties.Match('bookmark_bar').Count) {
+                $preferences | Add-Member -Type NoteProperty -Name 'bookmark_bar' -Value @{}
+            }
+
+            if (-not $preferences.bookmark_bar.PSObject.Properties.Match('show_on_all_tabs').Count) {
+                $preferences.bookmark_bar | Add-Member -Type NoteProperty -Name 'show_on_all_tabs' -Value $true
+            } else {
+                $preferences.bookmark_bar.show_on_all_tabs = $true
+            }
+
+            $preferences | ConvertTo-Json -Depth 100 | Set-Content -Path $preferencesFilePath
+        } else {
+            throw "Preferences file not found."
+        }
+
         if (Test-Path -Path $account) {
             Write-Host
             Write-Exit -Message "The bookmarks have been added." -Script "Add-IsrBookmarks"
