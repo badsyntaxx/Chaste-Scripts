@@ -92,7 +92,7 @@ function Install-Zoom {
 }
 
 function Install-RingCentral {
-    $paths = @("C:\Program Files\RingCentral\RingCentral.exe")
+    $paths = @("C:\Program Files\RingCentral\RingCentral.exe", "C:\Users\$env:username\AppData\Local\Programs\RingCentral")
     $url = "https://app.ringcentral.com/download/RingCentral-x64.msi"
     $appName = "Ring Central"
     $installed = Find-ExistingInstall -Paths $paths -App $appName
