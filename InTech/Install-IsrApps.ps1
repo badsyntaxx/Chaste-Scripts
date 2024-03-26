@@ -1,7 +1,6 @@
 function Install-IsrApps {
     Write-Welcome -Title "Install ISR Applications" -Description "Install ISR apps and add bookmarks to Chrome." -Command "intech install isr apps"
     $script:user = Select-User
-    Add-TempFolder
     # Install-NinjaOne
     Install-GoogleChrome
     Install-GoogleChromeBookmarks
@@ -15,21 +14,6 @@ function Install-IsrApps {
     Initialize-Cleanup
     Add-EPRegedits
     Write-Exit -Script "$script"
-}
-
-function Add-TempFolder {
-    try {
-        Write-Text "Creating TEMP folder"
-        Write-Text "Path: C:\Users\$user\Desktop\"
-
-        if (-not (Test-Path -PathType Container "C:\Users\$user\Desktop\TEMP")) {
-            New-Item -Path "C:\Users\$user\Desktop\" -Name "TEMP" -ItemType Directory | Out-Null
-        }
-        
-        Write-Text -Type "done" -Text "Folder created."
-    } catch {
-        Write-Text "ERROR: $($_.Exception.Message)" -Type "error"
-    }
 }
 
 function Install-NinjaOne {
@@ -56,10 +40,9 @@ function Install-GoogleChrome {
 function Install-GoogleChromeBookmarks {
     try {
         Write-Text "Adding Nuvia bookmarks..."
-        $tempPath = "C:\Users\$user\Desktop\TEMP"
-        $download = Get-Download -Url "https://drive.google.com/uc?export=download&id=1WmvSnxtDSLOt0rgys947sOWW-v9rzj9U" -Target "$tempPath\Bookmarks"
+        $download = Get-Download -Url "https://drive.google.com/uc?export=download&id=1WmvSnxtDSLOt0rgys947sOWW-v9rzj9U" -Target "$env:TEMP\Bookmarks"
         if ($download) {
-            ROBOCOPY "$tempPath" "C:\Users\$user\AppData\Local\Google\Chrome\User Data\Default" "Bookmarks" /NFL /NDL /NJH /NJS /nc /ns | Out-Null
+            ROBOCOPY "$env:TEMP" "C:\Users\$user\AppData\Local\Google\Chrome\User Data\Default" "Bookmarks" /NFL /NDL /NJH /NJS /nc /ns | Out-Null
             Write-Text -Type "done" -Text "Bookmarks added to chrome."
         }
     } catch {
@@ -135,11 +118,11 @@ function Install-ExplorerPatcher {
 }
 
 function Initialize-Cleanup {
-    Remove-Item "C:\Users\$user\Desktop\Revo Uninstaller.lnk" -Force -ErrorAction SilentlyContinue
+    Remove-Item "$env:TEMPRevo Uninstaller.lnk" -Force -ErrorAction SilentlyContinue
     Remove-Item "C:\Users\Public\Desktop\Revo Uninstaller.lnk" -Force -ErrorAction SilentlyContinue
-    Remove-Item "C:\Users\$user\Desktop\Adobe Acrobat.lnk" -Force -ErrorAction SilentlyContinue
+    Remove-Item "$env:TEMPAdobe Acrobat.lnk" -Force -ErrorAction SilentlyContinue
     Remove-Item "C:\Users\Public\Desktop\Adobe Acrobat.lnk" -Force -ErrorAction SilentlyContinue
-    Remove-Item "C:\Users\$user\Desktop\Microsoft Edge.lnk" -Force -ErrorAction SilentlyContinue
+    Remove-Item "$env:TEMPMicrosoft Edge.lnk" -Force -ErrorAction SilentlyContinue
     Remove-Item "C:\Users\Public\Desktop\Microsoft Edge.lnk" -Force -ErrorAction SilentlyContinue
 }
 
@@ -245,15 +228,14 @@ function Install-Program {
     try {
         if ($Extenstion -eq "msi") { $output = "$AppName.msi" } else { $output = "$AppName.exe" }
         
-        $tempPath = "C:\Users\$user\Desktop\TEMP"
-        $download = Get-Download -Url $Url -Target "$tempPath\$output"
+        $download = Get-Download -Url $Url -Target "$env:TEMP\$output"
 
         if ($download) {
             Write-Text -Text "Installing..." -LineAfter
             if ($Extenstion -eq "msi") {
-                Start-Process -FilePath "msiexec" -ArgumentList "/i `"$tempPath\$output`" $Args" -Wait
+                Start-Process -FilePath "msiexec" -ArgumentList "/i `"$env:TEMP\$output`" $Args" -Wait
             } else {
-                Start-Process -FilePath "$tempPath\$output" -ArgumentList "$Args" -Wait
+                Start-Process -FilePath "$env:TEMP\$output" -ArgumentList "$Args" -Wait
             }
            
             Write-Text -Type "success" -Text "$AppName successfully installed."
