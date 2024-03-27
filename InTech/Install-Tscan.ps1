@@ -5,9 +5,23 @@ function Install-Tscan {
 
         Add-TscanFolder
 
-        robocopy "\\NUVFULSVR\Intech\59179_T-Scan_v10_KALLIE_NUVIA_DENTAL_IMPLANT_CENTER" "$env:TEMP\tscan" /E /COPYALL
+        # Enable SSDP Discovery service
+        Set-Service -Name "SSDPSRV" -StartupType Automatic
+        Start-Service -Name "SSDP Discovery"
+
+        # Enable UPnP Device Host service
+        Set-Service -Name "upnphost" -StartupType Automatic
+        Start-Service -Name "UPnP Device Host"
+
+        # Enable Network Discovery rule
+        Set-NetFirewallRule -DisplayGroup "Network Discovery" -Enabled True
+
+        # Enable File and Printer Sharing rule
+        Set-NetFirewallRule -DisplayGroup "File and Printer Sharing" -Enabled True
+
+        robocopy "\\fileshare\shared\59179_T-Scan_v10_KALLIE_NUVIA_DENTAL_IMPLANT_CENTER" "$env:TEMP\tscan" /E /IS /COPYALL
           
-        Start-Process -FilePath "$env:TEMP\tscan\tekscan\setup.exe" -ArgumentList "/silent" -Wait
+        Start-Process -FilePath "$env:TEMP\tscan\tekscan\setup.exe" -ArgumentList "/quiet" -Wait
         
         Get-Item -ErrorAction SilentlyContinue "$env:TEMP\tscan" | Remove-Item -ErrorAction SilentlyContinue
         Write-Exit -Script "Install-Tscan"
