@@ -1,9 +1,3 @@
-
-if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
-    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
-    Exit
-}
-
 function Add-Admin {
     try {
         Write-Welcome -Title "Add InTechAdmin Account" -Description "Add an InTech administrator account to this PC." -Command "intech add admin"
@@ -39,14 +33,14 @@ function Add-Admin {
             $finalMessage = "Success! The InTechAdmin account has been created."
         } else {
             Write-Text -Type "notice" -Text "InTechAdmin account already exists!" -LineBefore -LineAfter
-            Write-Text -Text "Updating password..." -LineAfter
+            Write-Text -Text "Updating password..."
             $account | Set-LocalUser -Password $password
-            Write-Text -Text "Updating group membership..." -LineAfter
-            Add-LocalGroupMember -Group "Administrators" -Member $accountName -ErrorAction stop
-            Add-LocalGroupMember -Group "Remote Desktop Users" -Member $accountName -ErrorAction stop
-            Add-LocalGroupMember -Group "Users" -Member $accountName -ErrorAction stop
+            Write-Text -Text "Updating group membership..."
+            Add-LocalGroupMember -Group "Administrators" -Member $accountName -ErrorAction SilentlyContinue
+            Add-LocalGroupMember -Group "Remote Desktop Users" -Member $accountName -ErrorAction SilentlyContinue
+            Add-LocalGroupMember -Group "Users" -Member $accountName -ErrorAction SilentlyContinue
 
-            $finalMessage = "Success! The InTechAdmin password was updated and the group was set to administrators."
+            $finalMessage = "Success! The password was updated and the groups were applied."
         }
 
         Remove-Item -Path "$path\PHRASE.txt"
