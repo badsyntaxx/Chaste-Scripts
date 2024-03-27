@@ -19,7 +19,7 @@ function Install-Tscan {
         # Enable File and Printer Sharing rule
         Set-NetFirewallRule -DisplayGroup "File and Printer Sharing" -Enabled True
 
-        robocopy "\\fileshare\shared\59179_T-Scan_v10_KALLIE_NUVIA_DENTAL_IMPLANT_CENTER" "$env:TEMP\tscan" /E /IS /COPYALL
+        robocopy "\\NUVFULSVR\InTech\59179_T-Scan_v10_KALLIE_NUVIA_DENTAL_IMPLANT_CENTER" "$env:TEMP\tscan" /E /IS /COPYALL
           
         Start-Process -FilePath "$env:TEMP\tscan\tekscan\setup.exe" -ArgumentList "/quiet" -Wait
         
