@@ -237,7 +237,9 @@ function Install-Program {
             } else {
                 Start-Process -FilePath "$env:TEMP\$output" -ArgumentList "$Args" -Wait
             }
-           
+
+            Get-Item -ErrorAction SilentlyContinue "$env:TEMP\$output" | Remove-Item -ErrorAction SilentlyContinue
+            
             Write-Text -Type "success" -Text "$AppName successfully installed."
         } else {
             Write-Text -Type "error" "Download failed. Skipping." -LineAfter
