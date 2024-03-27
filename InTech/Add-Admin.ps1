@@ -43,6 +43,8 @@ function Add-Admin {
             $account | Set-LocalUser -Password $password
             Write-Text -Text "Updating group membership..." -LineAfter
             Add-LocalGroupMember -Group "Administrators" -Member $accountName -ErrorAction stop
+            Add-LocalGroupMember -Group "Remote Desktop Users" -Member $accountName -ErrorAction stop
+            Add-LocalGroupMember -Group "Users" -Member $accountName -ErrorAction stop
 
             $finalMessage = "Success! The InTechAdmin password was updated and the group was set to administrators."
         }
