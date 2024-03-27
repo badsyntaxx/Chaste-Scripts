@@ -12,7 +12,7 @@ function Add-IsrBookmarks {
             }
         }
 
-        $choice = Get-Option -Options $profiles -LineAfter -ReturnValue
+        $choice = Get-Option -Options $profiles -LineAfter -ReturnKey
         $account = $profiles["$choice"]
         $boomarksUrl = "https://drive.google.com/uc?export=download&id=1WmvSnxtDSLOt0rgys947sOWW-v9rzj9U"
 

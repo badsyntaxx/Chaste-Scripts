@@ -31,7 +31,7 @@ function Edit-LocalUserGroup {
 
         foreach ($group in $groups) { $moreGroups += $group }
     
-        $group = Get-Option -Options $moreGroups -ReturnValue
+        $group = Get-Option -Options $moreGroups -ReturnKey
         $data = Get-UserData -Username $username
 
         Write-Text -Type "notice" -Text "You're about to change this users group membership." -LineBefore -LineAfter

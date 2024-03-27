@@ -21,7 +21,7 @@ function Select-User {
             $accounts["$username"] = "$groupString"
         }
 
-        $choice = Get-Option -Options $accounts -ReturnValue -LineAfter
+        $choice = Get-Option -Options $accounts -ReturnKey -LineAfter
         $data = Get-UserData -Username $choice
         Write-Text -Type "list" -List $data
 

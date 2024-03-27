@@ -12,7 +12,7 @@ function Add-LocalUser {
         $group = Get-Option -Options $([ordered]@{
                 'Administrators' = 'Set this users group membership to administrators.'
                 'Users'          = 'Set this users group membership to standard users.' 
-            }) -ReturnValue -LineAfter
+            }) -ReturnKey -LineAfter
 
         Write-Text -Type "notice" -Text "You're about to create a new local user!" -LineAfter
         $choice = Get-Option -Options $([ordered]@{

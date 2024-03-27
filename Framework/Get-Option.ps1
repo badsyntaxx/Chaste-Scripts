@@ -3,6 +3,8 @@ function Get-Option {
         [parameter(Mandatory = $true)]
         [System.Collections.Specialized.OrderedDictionary]$Options,
         [parameter(Mandatory = $false)]
+        [switch]$ReturnKey = $false,
+        [parameter(Mandatory = $false)]
         [switch]$ReturnValue = $false,
         [parameter(Mandatory = $false)]
         [switch]$LineBefore = $false,
@@ -58,10 +60,11 @@ function Get-Option {
         }
 
         if ($LineAfter) { Write-Host }
-        
-        if ($ReturnValue) { if ($orderedKeys.Count -eq 1) { return $orderedKeys } else { return $orderedKeys[$pos] } } 
+        if ($ReturnKey) { if ($orderedKeys.Count -eq 1) { return $orderedKeys } else { return $orderedKeys[$pos] } } 
+        if ($ReturnValue) { if ($orderedKeys.Count -eq 1) { return $Options[$pos] } else { return $Options[$orderedKeys[$pos]] } }
         else { return $pos }
     } catch {
-        Write-Host "  $($_.Exception.Message)" -ForegroundColor "Red"
+        Write-Text -Type "fail" -Text "Get option error: $($_.Exception.Message)"
     }
 }
+
