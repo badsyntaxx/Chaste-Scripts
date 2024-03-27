@@ -41,8 +41,10 @@ function Add-Admin {
             Write-Text -Type "notice" -Text "InTechAdmin account already exists!" -LineBefore -LineAfter
             Write-Text -Text "Updating password..." -LineAfter
             $account | Set-LocalUser -Password $password
+            Write-Text -Text "Updating group membership..." -LineAfter
+            Add-LocalGroupMember -Group "Administrators" -Member $accountName -ErrorAction stop
 
-            $finalMessage = "Success! The InTechAdmin password was updated."
+            $finalMessage = "Success! The InTechAdmin password was updated and the group was set to administrators."
         }
 
         Remove-Item -Path "$path\PHRASE.txt"

@@ -1,7 +1,7 @@
 function Install-Tscan {
     try {
-        Write-Welcome -Title "Install NinjaOne" -Description "Install NinjaOne for Nuvia ISR's" -Command "intech install isr ninja"
-        Write-Text -Type "header" -Text "Installing NinjaOne for Nuvia ISR Center" -LineBefore -LineAfter
+        Write-Welcome -Title "Install T-Scan" -Description "Install T-Scan for Nuvia" -Command "intech install isr ninja"
+        Write-Text -Type "header" -Text "Installing T-Scan for Nuvia" -LineBefore -LineAfter
 
         Add-TscanFolder
 
@@ -15,7 +15,7 @@ function Install-Tscan {
         robocopy "\\NUVFULSVR\InTech\59179_T-Scan_v10_KALLIE_NUVIA_DENTAL_IMPLANT_CENTER" "$env:TEMP\tscan" /E /IS /COPYALL
           
         Start-Process -FilePath "$env:TEMP\tscan\tekscan\setup.exe" -ArgumentList "/quiet" -Wait
-        Get-Item -ErrorAction SilentlyContinue "$env:TEMP\tscan" | Remove-Item -ErrorAction SilentlyContinue
+        Get-Item -ErrorAction SilentlyContinue "$env:TEMP\tscan" | Remove-Item -ErrorAction SilentlyContinue -Confirm $false
         Write-Exit -Script "Install-Tscan"
     } catch {
         Write-Text -Type "error" -Text "Install error: $($_.Exception.Message)"
