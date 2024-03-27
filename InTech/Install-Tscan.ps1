@@ -3,6 +3,8 @@ function Install-Tscan {
         Write-Welcome -Title "Install NinjaOne" -Description "Install NinjaOne for Nuvia ISR's" -Command "intech install isr ninja"
         Write-Text -Type "header" -Text "Installing NinjaOne for Nuvia ISR Center" -LineBefore -LineAfter
 
+        Add-TscanFolder
+
         robocopy "\\NUVFULSVR\Intech\59179_T-Scan_v10_KALLIE_NUVIA_DENTAL_IMPLANT_CENTER" "$env:TEMP\tscan" /E /COPYALL
           
         Start-Process -FilePath "$env:TEMP\tscan\tekscan\setup.exe" -ArgumentList "/silent" -Wait
